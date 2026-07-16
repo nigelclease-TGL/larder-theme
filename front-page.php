@@ -20,7 +20,7 @@ $hero_image_id = absint( get_theme_mod( 'larder_hero_image', 0 ) );
 					<a class="button button-primary" href="<?php echo esc_url( get_permalink( get_option( 'page_for_posts' ) ) ?: home_url( '/recipes/' ) ); ?>">
 						<?php esc_html_e( 'Browse recipes', 'larder' ); ?>
 					</a>
-					<a class="button button-secondary" href="<?php echo esc_url( home_url( '/about/' ) ); ?>">
+					<a class="button button-secondary" href="<?php echo esc_url( home_url( '/my-story/' ) ); ?>">
 						<?php esc_html_e( 'About the kitchen', 'larder' ); ?>
 					</a>
 				</div>
@@ -28,7 +28,7 @@ $hero_image_id = absint( get_theme_mod( 'larder_hero_image', 0 ) );
 
 			<div class="hero-media">
 				<?php if ( $hero_image_id ) : ?>
-					<?php echo wp_get_attachment_image( $hero_image_id, 'larder-hero', false, array( 'loading' => 'eager', 'fetchpriority' => 'high' ) ); ?>
+					<?php echo wp_get_attachment_image( $hero_image_id, 'larder-hero', false, array( 'loading' => 'eager', 'fetchpriority' => 'high', 'sizes' => '(max-width: 900px) 92vw, 48vw' ) ); ?>
 				<?php else : ?>
 					<div class="hero-media__placeholder">
 						<span><?php esc_html_e( 'Add your hero recipe image in Appearance → Customise → Nigel’s Kitchen Table Homepage.', 'larder' ); ?></span>
@@ -81,8 +81,10 @@ $hero_image_id = absint( get_theme_mod( 'larder_hero_image', 0 ) );
 	<?php get_template_part( 'template-parts/home/seasonal' ); ?>
 	<?php get_template_part( 'template-parts/home/categories' ); ?>
 	<?php get_template_part( 'template-parts/home/popular' ); ?>
+	<?php get_template_part( 'template-parts/home/kitchen-notes' ); ?>
 	<?php get_template_part( 'template-parts/home/about' ); ?>
 	<?php get_template_part( 'template-parts/home/newsletter' ); ?>
+	<?php get_template_part( 'template-parts/home/social' ); ?>
 </main>
 
 <?php get_footer(); ?>
