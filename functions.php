@@ -14,6 +14,7 @@ require_once get_template_directory() . '/inc/performance.php';
 require_once get_template_directory() . '/inc/seo.php';
 require_once get_template_directory() . '/inc/monetization.php';
 require_once get_template_directory() . '/inc/collections.php';
+require_once get_template_directory() . '/inc/navigation.php';
 
 function larder_setup() {
 	load_theme_textdomain( 'larder', get_template_directory() . '/languages' );
@@ -44,7 +45,7 @@ function larder_enqueue_assets() {
 
 	wp_enqueue_style(
 		'larder-fonts',
-		'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap',
+		'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Instrument+Serif:ital@0;1&family=Source+Sans+3:wght@400;500;600;700&display=swap',
 		array(),
 		null
 	);
