@@ -4,8 +4,12 @@ document.addEventListener('DOMContentLoaded', () => {
 	const cookModeButtons = document.querySelectorAll('[data-cook-mode]');
 	let wakeLock = null;
 
-	if (recipeCard && !recipeCard.id) {
-		recipeCard.id = 'recipe-card';
+	if (recipeCard && !document.getElementById('recipe-card')) {
+		const recipeAnchor = document.createElement('span');
+		recipeAnchor.id = 'recipe-card';
+		recipeAnchor.className = 'recipe-anchor';
+		recipeAnchor.setAttribute('aria-hidden', 'true');
+		recipeCard.before(recipeAnchor);
 	}
 
 	printButtons.forEach((button) => button.addEventListener('click', () => window.print()));
