@@ -1,7 +1,6 @@
 <?php
 /**
  * Lightweight social metadata for Nigel's Kitchen Table.
- * SEO plugins can override these tags when active.
  *
  * @package Larder
  */
@@ -10,8 +9,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Output basic metadata only when no dedicated SEO plugin is active.
+ */
 function nkt_output_social_meta() {
 	if ( is_admin() ) {
+		return;
+	}
+
+	// Yoast, Rank Math and All in One SEO already output canonical social metadata.
+	if ( defined( 'WPSEO_VERSION' ) || defined( 'RANK_MATH_VERSION' ) || defined( 'AIOSEO_VERSION' ) ) {
 		return;
 	}
 
@@ -41,6 +48,7 @@ function nkt_output_social_meta() {
 		$image   = $hero_id ? wp_get_attachment_image_url( $hero_id, 'large' ) : '';
 	}
 
+	$description = trim( wp_strip_all_tags( $description ) );
 	?>
 	<meta name="description" content="<?php echo esc_attr( $description ); ?>">
 	<meta property="og:site_name" content="<?php echo esc_attr( "Nigel's Kitchen Table" ); ?>">
