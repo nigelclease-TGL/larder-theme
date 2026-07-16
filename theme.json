@@ -1,0 +1,45 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/theme.json",
+  "version": 3,
+  "settings": {
+    "appearanceTools": true,
+    "layout": {
+      "contentSize": "760px",
+      "wideSize": "1280px"
+    },
+    "color": {
+      "palette": [
+        { "slug": "cream", "name": "Cream", "color": "#faf7f2" },
+        { "slug": "white", "name": "Warm White", "color": "#fffdf9" },
+        { "slug": "sage", "name": "Sage", "color": "#a7b397" },
+        { "slug": "olive", "name": "Olive", "color": "#66785f" },
+        { "slug": "copper", "name": "Copper", "color": "#b8784d" },
+        { "slug": "charcoal", "name": "Charcoal", "color": "#2e2e2e" }
+      ]
+    },
+    "typography": {
+      "fluid": true,
+      "fontFamilies": [
+        { "slug": "body", "name": "Inter", "fontFamily": "Inter, sans-serif" },
+        { "slug": "heading", "name": "Playfair Display", "fontFamily": "\"Playfair Display\", serif" }
+      ]
+    }
+  },
+  "styles": {
+    "color": {
+      "background": "#faf7f2",
+      "text": "#2e2e2e"
+    },
+    "typography": {
+      "fontFamily": "var:preset|font-family|body",
+      "lineHeight": "1.7"
+    },
+    "elements": {
+      "heading": {
+        "typography": {
+          "fontFamily": "var:preset|font-family|heading"
+        }
+      }
+    }
+  }
+}
