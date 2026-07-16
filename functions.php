@@ -76,6 +76,20 @@ function larder_enqueue_assets() {
 }
 add_action( 'wp_enqueue_scripts', 'larder_enqueue_assets' );
 
+/**
+ * Use the bundled monogram until a WordPress Site Icon is selected.
+ */
+function nkt_fallback_site_icon() {
+	if ( has_site_icon() ) {
+		return;
+	}
+
+	$icon_url = get_template_directory_uri() . '/assets/images/nkt-monogram.svg';
+	printf( '<link rel="icon" href="%s" type="image/svg+xml">' . "\n", esc_url( $icon_url ) );
+}
+add_action( 'wp_head', 'nkt_fallback_site_icon', 2 );
+add_action( 'admin_head', 'nkt_fallback_site_icon', 2 );
+
 function larder_widgets_init() {
 	register_sidebar(
 		array(
