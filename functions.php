@@ -21,7 +21,7 @@ function larder_setup() {
 	add_theme_support( 'wp-block-styles' );
 	add_theme_support( 'align-wide' );
 	add_theme_support( 'automatic-feed-links' );
-	add_theme_support( 'custom-logo', array( 'height' => 120, 'width' => 420, 'flex-height' => true, 'flex-width' => true ) );
+	add_theme_support( 'custom-logo', array( 'height' => 120, 'width' => 520, 'flex-height' => true, 'flex-width' => true ) );
 	add_theme_support( 'html5', array( 'search-form', 'comment-form', 'comment-list', 'gallery', 'caption', 'style', 'script' ) );
 
 	register_nav_menus(
@@ -41,7 +41,7 @@ function larder_enqueue_assets() {
 
 	wp_enqueue_style(
 		'larder-fonts',
-		'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap',
+		'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap',
 		array(),
 		null
 	);
@@ -54,6 +54,7 @@ function larder_enqueue_assets() {
 	wp_enqueue_style( 'larder-header-tools', get_template_directory_uri() . '/assets/css/header-tools.css', array( 'larder-wprm' ), $version );
 	wp_enqueue_style( 'larder-final-polish', get_template_directory_uri() . '/assets/css/final-polish.css', array( 'larder-header-tools' ), $version );
 	wp_enqueue_style( 'larder-mailchimp', get_template_directory_uri() . '/assets/css/mailchimp.css', array( 'larder-final-polish' ), $version );
+	wp_enqueue_style( 'nkt-brand', get_template_directory_uri() . '/assets/css/nkt-brand.css', array( 'larder-mailchimp' ), $version );
 
 	wp_enqueue_script( 'larder-navigation', get_template_directory_uri() . '/assets/js/navigation.js', array(), $version, true );
 
