@@ -21,7 +21,7 @@
 					'theme_location' => 'primary',
 					'container'      => false,
 					'menu_class'     => 'primary-menu',
-					'fallback_cb'    => false,
+					'fallback_cb'    => 'nkt_primary_menu_fallback',
 				)
 			);
 			?>
