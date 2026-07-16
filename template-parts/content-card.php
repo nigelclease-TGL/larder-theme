@@ -10,7 +10,7 @@
 	<a class="recipe-card__link" href="<?php the_permalink(); ?>">
 		<div class="recipe-card__media">
 			<?php if ( has_post_thumbnail() ) : ?>
-				<?php the_post_thumbnail( 'larder-card', array( 'loading' => 'lazy', 'decoding' => 'async' ) ); ?>
+				<?php the_post_thumbnail( 'larder-card', array( 'loading' => 'lazy', 'decoding' => 'async', 'sizes' => '(max-width: 620px) 92vw, (max-width: 900px) 46vw, 31vw' ) ); ?>
 			<?php else : ?>
 				<div class="recipe-card__placeholder" aria-hidden="true"></div>
 			<?php endif; ?>
