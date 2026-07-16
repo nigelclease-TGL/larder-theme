@@ -11,6 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 require_once get_template_directory() . '/inc/customizer.php';
 require_once get_template_directory() . '/inc/performance.php';
+require_once get_template_directory() . '/inc/seo.php';
 
 function larder_setup() {
 	load_theme_textdomain( 'larder', get_template_directory() . '/languages' );
@@ -55,6 +56,7 @@ function larder_enqueue_assets() {
 	wp_enqueue_style( 'larder-final-polish', get_template_directory_uri() . '/assets/css/final-polish.css', array( 'larder-header-tools' ), $version );
 	wp_enqueue_style( 'larder-mailchimp', get_template_directory_uri() . '/assets/css/mailchimp.css', array( 'larder-final-polish' ), $version );
 	wp_enqueue_style( 'nkt-brand', get_template_directory_uri() . '/assets/css/nkt-brand.css', array( 'larder-mailchimp' ), $version );
+	wp_enqueue_style( 'nkt-social-share', get_template_directory_uri() . '/assets/css/social-share.css', array( 'nkt-brand' ), $version );
 
 	wp_enqueue_script( 'larder-navigation', get_template_directory_uri() . '/assets/js/navigation.js', array(), $version, true );
 
