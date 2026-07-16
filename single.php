@@ -15,6 +15,7 @@ get_header();
 					<div class="recipe-hero__content">
 						<p class="eyebrow"><?php echo wp_kses_post( get_the_category_list( ' · ' ) ); ?></p>
 						<h1><?php the_title(); ?></h1>
+						<?php nkt_post_meta(); ?>
 						<?php if ( has_excerpt() ) : ?>
 							<p class="recipe-intro"><?php echo esc_html( get_the_excerpt() ); ?></p>
 						<?php endif; ?>
@@ -24,7 +25,7 @@ get_header();
 						</div>
 					</div>
 					<?php if ( has_post_thumbnail() ) : ?>
-						<div class="recipe-hero__media"><?php the_post_thumbnail( 'large' ); ?></div>
+						<div class="recipe-hero__media"><?php the_post_thumbnail( 'larder-hero', array( 'loading' => 'eager', 'fetchpriority' => 'high' ) ); ?></div>
 					<?php endif; ?>
 				</div>
 			</header>
