@@ -80,7 +80,7 @@ function larder_customize_register( $wp_customize ) {
 		'larder_newsletter',
 		array(
 			'title'       => __( 'Mailchimp Newsletter', 'larder' ),
-			'description' => __( 'Install and connect the Mailchimp for WordPress plugin, create a form, then enter its numeric form ID here.', 'larder' ),
+			'description' => __( 'Install and connect the Mailchimp for WordPress plugin, create a form, then enter the numeric WordPress form ID shown by the plugin. Mailchimp audience or account identifiers will not work in this field.', 'larder' ),
 			'priority'    => 31,
 		)
 	);
@@ -95,8 +95,8 @@ function larder_customize_register( $wp_customize ) {
 	$wp_customize->add_control(
 		'larder_mailchimp_form_id',
 		array(
-			'label'       => __( 'Mailchimp form ID', 'larder' ),
-			'description' => __( 'Example: 123', 'larder' ),
+			'label'       => __( 'Mailchimp for WordPress form ID', 'larder' ),
+			'description' => __( 'Numeric only, for example: 123', 'larder' ),
 			'section'     => 'larder_newsletter',
 			'type'        => 'number',
 			'input_attrs' => array( 'min' => 0, 'step' => 1 ),
@@ -111,11 +111,18 @@ function larder_customize_register( $wp_customize ) {
 		)
 	);
 
-	foreach ( array( 'instagram', 'pinterest', 'facebook' ) as $network ) {
+	$social_defaults = array(
+		'instagram' => 'https://www.instagram.com/thegourmetlarder/',
+		'pinterest' => 'https://hu.pinterest.com/thegourmetlarder/',
+		'facebook'  => 'https://www.facebook.com/thegourmetlarder/',
+	);
+
+	foreach ( $social_defaults as $network => $default_url ) {
 		$setting_id = 'larder_' . $network . '_url';
 		$wp_customize->add_setting(
 			$setting_id,
 			array(
+				'default'           => $default_url,
 				'sanitize_callback' => 'esc_url_raw',
 			)
 		);
