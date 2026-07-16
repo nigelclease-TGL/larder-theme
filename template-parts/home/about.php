@@ -5,23 +5,26 @@
  * @package Larder
  */
 
-$about_page = get_page_by_path( 'about' );
-$about_url  = $about_page ? get_permalink( $about_page ) : home_url( '/about/' );
+$about_page       = get_page_by_path( 'about' );
+$about_url        = $about_page ? get_permalink( $about_page ) : home_url( '/about/' );
+$portrait_image_id = absint( get_theme_mod( 'larder_portrait_image', 0 ) );
 ?>
 <section class="home-section home-about" aria-labelledby="home-about-title">
-	<div class="container about-grid">
-		<div class="about-portrait" role="img" aria-label="<?php esc_attr_e( 'Portrait of Nigel', 'larder' ); ?>">
-			<span><?php esc_html_e( 'Portrait coming soon', 'larder' ); ?></span>
-		</div>
-
+	<div class="container about-grid about-grid--compact">
 		<div class="about-copy">
-			<p class="eyebrow"><?php esc_html_e( 'Meet Nigel', 'larder' ); ?></p>
-			<h2 id="home-about-title"><?php esc_html_e( "Hello, I'm Nigel", 'larder' ); ?></h2>
-			<p><?php esc_html_e( 'Welcome to The Gourmet Larder. Every recipe is developed and tested to help home bakers create delicious food with confidence.', 'larder' ); ?></p>
-			<p><?php esc_html_e( 'From simple everyday bakes to impressive celebration desserts, my aim is to make baking reliable, enjoyable and inspiring.', 'larder' ); ?></p>
+			<p class="eyebrow"><?php esc_html_e( "Nigel's Kitchen Table", 'larder' ); ?></p>
+			<h2 id="home-about-title"><?php echo esc_html( get_theme_mod( 'larder_about_title', __( 'A little about the kitchen', 'larder' ) ) ); ?></h2>
+			<p><?php echo esc_html( get_theme_mod( 'larder_about_copy', __( "I'm Nigel. I develop and test approachable recipes for good food that belongs around the table.", 'larder' ) ) ); ?></p>
+			<p><?php esc_html_e( 'The focus is always the food: seasonal ingredients, clear methods and recipes worth making again.', 'larder' ); ?></p>
 			<a class="button button-primary" href="<?php echo esc_url( $about_url ); ?>">
-				<?php esc_html_e( 'Read my story', 'larder' ); ?>
+				<?php esc_html_e( 'Read the story', 'larder' ); ?>
 			</a>
 		</div>
+
+		<?php if ( $portrait_image_id ) : ?>
+			<figure class="about-portrait about-portrait--small">
+				<?php echo wp_get_attachment_image( $portrait_image_id, 'medium', false, array( 'loading' => 'lazy', 'alt' => __( 'Nigel', 'larder' ) ) ); ?>
+			</figure>
+		<?php endif; ?>
 	</div>
 </section>
