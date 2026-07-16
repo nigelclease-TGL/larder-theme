@@ -6,27 +6,34 @@
  */
 
 get_header();
+$hero_image_id = absint( get_theme_mod( 'larder_hero_image', 0 ) );
 ?>
 
 <main id="primary">
 	<section class="hero">
 		<div class="container hero-grid">
-			<div>
-				<p class="eyebrow"><?php esc_html_e( 'Bake · Create · Share', 'larder' ); ?></p>
-				<h1><?php esc_html_e( 'Beautiful baking recipes and seasonal desserts', 'larder' ); ?></h1>
-				<p class="hero-copy"><?php esc_html_e( 'Reliable recipes, practical baking guidance and inspiration to help you bake with confidence.', 'larder' ); ?></p>
+			<div class="hero-content">
+				<p class="eyebrow"><?php esc_html_e( "Welcome to Nigel's Kitchen Table", 'larder' ); ?></p>
+				<h1><?php echo esc_html( get_theme_mod( 'larder_hero_title', __( 'Timeless recipes. Made to be shared.', 'larder' ) ) ); ?></h1>
+				<p class="hero-copy"><?php echo esc_html( get_theme_mod( 'larder_hero_copy', __( 'Seasonal baking, comforting dinners and beautiful desserts made with simple ingredients and plenty of heart.', 'larder' ) ) ); ?></p>
 				<div class="button-row">
-					<a class="button button-primary" href="<?php echo esc_url( home_url( '/recipes/' ) ); ?>">
+					<a class="button button-primary" href="<?php echo esc_url( get_permalink( get_option( 'page_for_posts' ) ) ?: home_url( '/recipes/' ) ); ?>">
 						<?php esc_html_e( 'Browse recipes', 'larder' ); ?>
 					</a>
-					<a class="button button-secondary" href="<?php echo esc_url( get_permalink( get_option( 'page_for_posts' ) ) ?: home_url( '/blog/' ) ); ?>">
-						<?php esc_html_e( 'Latest recipes', 'larder' ); ?>
+					<a class="button button-secondary" href="<?php echo esc_url( home_url( '/about/' ) ); ?>">
+						<?php esc_html_e( 'About the kitchen', 'larder' ); ?>
 					</a>
 				</div>
 			</div>
 
-			<div class="hero-media" aria-hidden="true">
-				<span><?php esc_html_e( 'Featured recipe image', 'larder' ); ?></span>
+			<div class="hero-media">
+				<?php if ( $hero_image_id ) : ?>
+					<?php echo wp_get_attachment_image( $hero_image_id, 'larder-hero', false, array( 'loading' => 'eager', 'fetchpriority' => 'high' ) ); ?>
+				<?php else : ?>
+					<div class="hero-media__placeholder">
+						<span><?php esc_html_e( 'Add your mango cheesecake image in Appearance → Customise → Larder Homepage.', 'larder' ); ?></span>
+					</div>
+				<?php endif; ?>
 			</div>
 		</div>
 	</section>
@@ -38,7 +45,7 @@ get_header();
 					<p class="eyebrow"><?php esc_html_e( 'Fresh from the kitchen', 'larder' ); ?></p>
 					<h2 id="latest-recipes-title"><?php esc_html_e( 'Latest recipes', 'larder' ); ?></h2>
 				</div>
-				<a class="text-link" href="<?php echo esc_url( get_permalink( get_option( 'page_for_posts' ) ) ?: home_url( '/blog/' ) ); ?>">
+				<a class="text-link" href="<?php echo esc_url( get_permalink( get_option( 'page_for_posts' ) ) ?: home_url( '/recipes/' ) ); ?>">
 					<?php esc_html_e( 'View all recipes', 'larder' ); ?>
 				</a>
 			</header>
@@ -76,5 +83,4 @@ get_header();
 	<?php get_template_part( 'template-parts/home/newsletter' ); ?>
 </main>
 
-<?php
-get_footer();
+<?php get_footer(); ?>
