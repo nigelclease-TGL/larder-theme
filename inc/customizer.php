@@ -13,27 +13,28 @@ function larder_customize_register( $wp_customize ) {
 	$wp_customize->add_section(
 		'larder_homepage',
 		array(
-			'title'    => __( 'Larder Homepage', 'larder' ),
-			'priority' => 30,
+			'title'       => __( "Nigel's Kitchen Table Homepage", 'larder' ),
+			'description' => __( 'Set the homepage wording and images. The portrait is deliberately displayed at a modest size.', 'larder' ),
+			'priority'    => 30,
 		)
 	);
 
 	$settings = array(
 		'larder_hero_title' => array(
 			'label'   => __( 'Hero title', 'larder' ),
-			'default' => __( 'Beautiful baking recipes and seasonal desserts', 'larder' ),
+			'default' => __( 'Timeless recipes. Made to be shared.', 'larder' ),
 		),
 		'larder_hero_copy' => array(
 			'label'   => __( 'Hero introduction', 'larder' ),
-			'default' => __( 'Reliable recipes, practical baking guidance and inspiration to help you bake with confidence.', 'larder' ),
+			'default' => __( 'Seasonal baking, comforting dinners and beautiful desserts made with simple ingredients and plenty of heart.', 'larder' ),
 		),
 		'larder_about_title' => array(
 			'label'   => __( 'About title', 'larder' ),
-			'default' => __( "Hello, I'm Nigel", 'larder' ),
+			'default' => __( 'A little about the kitchen', 'larder' ),
 		),
 		'larder_about_copy' => array(
 			'label'   => __( 'About introduction', 'larder' ),
-			'default' => __( 'Every recipe is developed and tested to help home bakers create delicious food with confidence.', 'larder' ),
+			'default' => __( "I'm Nigel. I develop and test approachable recipes for good food that belongs around the table.", 'larder' ),
 		),
 	);
 
@@ -55,7 +56,7 @@ function larder_customize_register( $wp_customize ) {
 		);
 	}
 
-	foreach ( array( 'hero' => __( 'Hero image', 'larder' ), 'portrait' => __( 'About portrait', 'larder' ) ) as $key => $label ) {
+	foreach ( array( 'hero' => __( 'Hero image', 'larder' ), 'portrait' => __( 'Small about portrait', 'larder' ) ) as $key => $label ) {
 		$setting_id = 'larder_' . $key . '_image';
 		$wp_customize->add_setting(
 			$setting_id,
