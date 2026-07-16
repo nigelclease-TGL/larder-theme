@@ -73,6 +73,13 @@ function larder_enqueue_assets() {
 		$version
 	);
 
+	wp_enqueue_style(
+		'larder-header-tools',
+		get_template_directory_uri() . '/assets/css/header-tools.css',
+		array( 'larder-wprm' ),
+		$version
+	);
+
 	wp_enqueue_script(
 		'larder-navigation',
 		get_template_directory_uri() . '/assets/js/navigation.js',
