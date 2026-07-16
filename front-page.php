@@ -25,14 +25,24 @@ get_header();
 				</div>
 			</div>
 
-			<div class="hero-media" aria-hidden="true"></div>
+			<div class="hero-media" aria-hidden="true">
+				<span><?php esc_html_e( 'Featured recipe image', 'larder' ); ?></span>
+			</div>
 		</div>
 	</section>
 
-	<section class="content-section">
+	<section class="home-section latest-recipes" aria-labelledby="latest-recipes-title">
 		<div class="container">
-			<p class="eyebrow"><?php esc_html_e( 'Fresh from the kitchen', 'larder' ); ?></p>
-			<h2><?php esc_html_e( 'Latest recipes', 'larder' ); ?></h2>
+			<header class="section-heading section-heading--split">
+				<div>
+					<p class="eyebrow"><?php esc_html_e( 'Fresh from the kitchen', 'larder' ); ?></p>
+					<h2 id="latest-recipes-title"><?php esc_html_e( 'Latest recipes', 'larder' ); ?></h2>
+				</div>
+				<a class="text-link" href="<?php echo esc_url( get_permalink( get_option( 'page_for_posts' ) ) ?: home_url( '/blog/' ) ); ?>">
+					<?php esc_html_e( 'View all recipes', 'larder' ); ?>
+				</a>
+			</header>
+
 			<?php
 			$latest_recipes = new WP_Query(
 				array(
@@ -60,6 +70,10 @@ get_header();
 			<?php endif; ?>
 		</div>
 	</section>
+
+	<?php get_template_part( 'template-parts/home/categories' ); ?>
+	<?php get_template_part( 'template-parts/home/about' ); ?>
+	<?php get_template_part( 'template-parts/home/newsletter' ); ?>
 </main>
 
 <?php
