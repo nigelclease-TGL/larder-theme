@@ -1,24 +1,56 @@
 :root {
-	--color-cream: #fbf8f2;
-	--color-white: #fffdfa;
-	--color-sage: #aab19a;
-	--color-olive: #344232;
-	--color-olive-dark: #263225;
-	--color-copper: #b78443;
-	--color-charcoal: #26302a;
-	--color-border: #e5ded2;
-	--shadow: 0 24px 70px rgba(38, 48, 42, 0.10);
+	--color-cream: #f7f1e7;
+	--color-white: #fffdf9;
+	--color-sage: #98a28d;
+	--color-olive: #465443;
+	--color-olive-dark: #344033;
+	--color-copper: #a77b46;
+	--color-charcoal: #292a27;
+	--color-border: #e4dacb;
+	--shadow: 0 24px 70px rgba(41, 42, 39, 0.10);
 }
 
 body {
 	background:
-		radial-gradient(circle at 10% 0%, rgba(183,132,67,.06), transparent 28rem),
-		linear-gradient(180deg, #fffdfa 0%, var(--color-cream) 100%);
+		radial-gradient(circle at 10% 0%, rgba(167, 123, 70, .06), transparent 28rem),
+		linear-gradient(180deg, #fffdf9 0%, var(--color-cream) 100%);
+	font-family: "Source Sans 3", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button,
+input,
+select,
+textarea,
+.button,
+.primary-menu,
+.footer-menu {
+	font-family: "Source Sans 3", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.site-title,
+.hero h1,
+.section-heading h2,
+.about-copy h2,
+.newsletter-panel h2,
+.recipe-card__title,
+.category-card__name,
+.archive-hero h1,
+.archive-header h1,
+.recipe-hero h1,
+.page-hero h1,
+.footer-logo {
+	font-family: "Cormorant Garamond", Georgia, serif;
 }
 
 .site-header {
-	background: rgba(255,253,250,.92);
-	border-bottom-color: rgba(229,222,210,.72);
+	background: rgba(255, 253, 249, .92);
+	border-bottom-color: rgba(228, 218, 203, .72);
 }
 
 .site-branding {
@@ -48,19 +80,9 @@ body {
 	inset: 8% auto auto -8%;
 	width: 330px;
 	height: 330px;
-	border: 1px solid rgba(183,132,67,.18);
+	border: 1px solid rgba(167, 123, 70, .18);
 	border-radius: 50%;
 	pointer-events: none;
-}
-
-.hero h1,
-.section-heading h2,
-.recipe-card__title,
-.archive-hero h1,
-.recipe-hero h1,
-.page-hero h1,
-.footer-logo {
-	font-family: "Cormorant Garamond", Georgia, serif;
 }
 
 .hero h1 {
@@ -85,19 +107,24 @@ body {
 .hero-media {
 	position: relative;
 	isolation: isolate;
-	border: 10px solid rgba(255,255,255,.65);
+	min-height: 640px;
+	padding: 0;
+	border: 10px solid rgba(255, 255, 255, .65);
+	background: #ede4d7;
 }
 
 .hero-media img {
 	width: 100%;
 	height: 100%;
+	min-height: 620px;
 	object-fit: cover;
+	object-position: center 45%;
 }
 
 .hero-media__placeholder {
 	display: grid;
 	place-items: center;
-	min-height: 500px;
+	min-height: 620px;
 	padding: 30px;
 	text-align: center;
 }
@@ -108,8 +135,8 @@ body {
 	inset: auto -26px -26px auto;
 	width: 52%;
 	height: 52%;
-	border-right: 2px solid rgba(183,132,67,.5);
-	border-bottom: 2px solid rgba(183,132,67,.5);
+	border-right: 2px solid rgba(167, 123, 70, .5);
+	border-bottom: 2px solid rgba(167, 123, 70, .5);
 	border-radius: 0 0 28px 0;
 	z-index: -1;
 }
@@ -131,7 +158,7 @@ body {
 }
 
 .recipe-card__media {
-	aspect-ratio: 5 / 4;
+	aspect-ratio: 4 / 5;
 }
 
 .category-card {
@@ -139,7 +166,7 @@ body {
 }
 
 .home-newsletter .newsletter-panel {
-	background: linear-gradient(135deg, #344232, #263225);
+	background: linear-gradient(135deg, var(--color-olive), var(--color-olive-dark));
 }
 
 .about-grid--compact {
@@ -148,11 +175,11 @@ body {
 
 .about-portrait--small {
 	min-height: 0;
-	width: min(100%, 240px);
+	width: min(100%, 220px);
 	justify-self: end;
 	padding: 8px;
 	border-radius: 50%;
-	background: rgba(255,255,255,.78);
+	background: rgba(255, 255, 255, .78);
 }
 
 .about-portrait--small img {
@@ -163,7 +190,7 @@ body {
 }
 
 .site-footer {
-	background: #263225;
+	background: var(--color-olive-dark);
 }
 
 .footer-logo {
@@ -175,11 +202,23 @@ body {
 	font-size: .82rem;
 }
 
+:focus-visible {
+	outline: 3px solid var(--color-copper);
+	outline-offset: 4px;
+}
+
+::selection {
+	background: rgba(167, 123, 70, .28);
+}
+
 @media (max-width: 900px) {
 	.site-branding { width: 210px; }
 	.hero h1 { font-size: clamp(2.8rem, 11vw, 4.8rem); }
+	.hero-media,
+	.hero-media img,
+	.hero-media__placeholder { min-height: 520px; }
 	.about-grid--compact { grid-template-columns: 1fr; }
-	.about-portrait--small { justify-self: start; width: 170px; }
+	.about-portrait--small { justify-self: start; width: 165px; }
 }
 
 @media (max-width: 620px) {
@@ -193,5 +232,8 @@ body {
 	}
 
 	.hero::before { display: none; }
-	.about-portrait--small { width: 135px; }
+	.hero-media,
+	.hero-media img,
+	.hero-media__placeholder { min-height: 430px; }
+	.about-portrait--small { width: 130px; }
 }
