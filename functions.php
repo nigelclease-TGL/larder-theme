@@ -67,6 +67,7 @@ function larder_enqueue_assets() {
 	wp_enqueue_style( 'nkt-editorial-content', get_template_directory_uri() . '/assets/css/editorial-content.css', array( 'nkt-collections' ), $version );
 	wp_enqueue_style( 'nkt-about-contact', get_template_directory_uri() . '/assets/css/about-contact.css', array( 'nkt-editorial-content' ), $version );
 	wp_enqueue_style( 'nkt-recipes-hub', get_template_directory_uri() . '/assets/css/recipes-hub.css', array( 'nkt-about-contact' ), $version );
+	wp_enqueue_style( 'nkt-home-finishing', get_template_directory_uri() . '/assets/css/home-finishing.css', array( 'nkt-recipes-hub' ), $version );
 
 	wp_enqueue_script( 'larder-navigation', get_template_directory_uri() . '/assets/js/navigation.js', array(), $version, true );
 
