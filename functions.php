@@ -16,6 +16,7 @@ require_once get_template_directory() . '/inc/monetization.php';
 require_once get_template_directory() . '/inc/collections.php';
 require_once get_template_directory() . '/inc/navigation.php';
 require_once get_template_directory() . '/inc/template-tags.php';
+require_once get_template_directory() . '/inc/setup-wizard.php';
 
 function larder_setup() {
 	load_theme_textdomain( 'larder', get_template_directory() . '/languages' );
