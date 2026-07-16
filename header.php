@@ -3,11 +3,12 @@
 <head>
 	<meta charset="<?php bloginfo( 'charset' ); ?>">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="theme-color" content="#263225">
+	<meta name="theme-color" content="#344033">
 	<?php wp_head(); ?>
 </head>
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
+<a class="skip-link screen-reader-text" href="#primary"><?php esc_html_e( 'Skip to content', 'larder' ); ?></a>
 
 <header class="site-header">
 	<div class="container header-inner">
@@ -46,7 +47,7 @@
 
 <div id="site-search-dialog" class="search-dialog" aria-hidden="true">
 	<div class="search-dialog__backdrop" data-search-close></div>
-	<div class="search-dialog__panel" role="dialog" aria-modal="true" aria-labelledby="site-search-title">
+	<div class="search-dialog__panel" role="dialog" aria-modal="true" aria-labelledby="site-search-title" tabindex="-1">
 		<button class="search-dialog__close" type="button" data-search-close>
 			<span aria-hidden="true">×</span>
 			<span class="screen-reader-text"><?php esc_html_e( 'Close search', 'larder' ); ?></span>
