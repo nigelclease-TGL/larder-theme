@@ -1,41 +1,89 @@
 document.addEventListener('DOMContentLoaded', () => {
+	const recipeCard = document.querySelector('.wprm-recipe-container');
 	const printButtons = document.querySelectorAll('[data-print-recipe]');
 	const cookModeButtons = document.querySelectorAll('[data-cook-mode]');
 	let wakeLock = null;
 
+	if (recipeCard && !recipeCard.id) {
+		recipeCard.id = 'recipe-card';
+	}
+
 	printButtons.forEach((button) => button.addEventListener('click', () => window.print()));
 
-	const setCookMode = async (enabled) => {
-		document.body.classList.toggle('cook-mode', enabled);
+	const updateCookModeButtons = (enabled) => {
 		cookModeButtons.forEach((button) => {
 			button.setAttribute('aria-pressed', String(enabled));
 			button.textContent = enabled ? 'Exit cook mode' : 'Cook mode';
 		});
+	};
+
+	const requestWakeLock = async () => {
+		if (!('wakeLock' in navigator) || document.visibilityState !== 'visible') {
+			return;
+		}
 
 		try {
-			if (enabled && 'wakeLock' in navigator) {
-				wakeLock = await navigator.wakeLock.request('screen');
-			} else if (wakeLock) {
-				await wakeLock.release();
-				wakeLock = null;
-			}
+			wakeLock = await navigator.wakeLock.request('screen');
 		} catch (error) {
-			// Cook mode remains useful even when Wake Lock is unavailable.
+			wakeLock = null;
 		}
 	};
 
+	const setCookMode = async (enabled) => {
+		document.body.classList.toggle('cook-mode', enabled);
+		updateCookModeButtons(enabled);
+
+		try {
+			window.sessionStorage.setItem('nktCookMode', enabled ? '1' : '0');
+		} catch (error) {
+			// Session storage is optional.
+		}
+
+		if (enabled) {
+			await requestWakeLock();
+		} else if (wakeLock) {
+			try {
+				await wakeLock.release();
+			} catch (error) {
+				// The lock may already have been released by the browser.
+			}
+			wakeLock = null;
+		}
+	};
+
+	let cookModeEnabled = false;
+	try {
+		cookModeEnabled = window.sessionStorage.getItem('nktCookMode') === '1';
+	} catch (error) {
+		cookModeEnabled = false;
+	}
+
+	if (cookModeEnabled) {
+		setCookMode(true);
+	} else {
+		updateCookModeButtons(false);
+	}
+
 	cookModeButtons.forEach((button) => {
 		button.addEventListener('click', () => setCookMode(!document.body.classList.contains('cook-mode')));
+	});
+
+	document.addEventListener('visibilitychange', () => {
+		if (document.visibilityState === 'visible' && document.body.classList.contains('cook-mode') && !wakeLock) {
+			requestWakeLock();
+		}
 	});
 
 	document.querySelectorAll('.wprm-recipe-ingredient').forEach((ingredient) => {
 		ingredient.setAttribute('tabindex', '0');
 		ingredient.setAttribute('role', 'checkbox');
 		ingredient.setAttribute('aria-checked', 'false');
+
 		const toggle = () => {
 			const checked = ingredient.classList.toggle('is-checked');
 			ingredient.setAttribute('aria-checked', String(checked));
 		};
+
 		ingredient.addEventListener('click', toggle);
 		ingredient.addEventListener('keydown', (event) => {
 			if (event.key === ' ' || event.key === 'Enter') {
