@@ -16,6 +16,7 @@ require_once get_template_directory() . '/inc/monetization.php';
 require_once get_template_directory() . '/inc/collections.php';
 require_once get_template_directory() . '/inc/navigation.php';
 require_once get_template_directory() . '/inc/template-tags.php';
+require_once get_template_directory() . '/inc/search.php';
 require_once get_template_directory() . '/inc/setup-wizard.php';
 
 function larder_setup() {
@@ -27,6 +28,7 @@ function larder_setup() {
 	add_theme_support( 'wp-block-styles' );
 	add_theme_support( 'align-wide' );
 	add_theme_support( 'automatic-feed-links' );
+	add_theme_support( 'customize-selective-refresh-widgets' );
 	add_theme_support( 'custom-logo', array( 'height' => 120, 'width' => 520, 'flex-height' => true, 'flex-width' => true ) );
 	add_theme_support( 'html5', array( 'search-form', 'comment-form', 'comment-list', 'gallery', 'caption', 'style', 'script' ) );
 
