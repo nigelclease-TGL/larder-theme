@@ -16,6 +16,8 @@ function larder_setup() {
 	add_theme_support( 'editor-styles' );
 	add_theme_support( 'wp-block-styles' );
 	add_theme_support( 'align-wide' );
+	add_theme_support( 'custom-logo', array( 'height' => 120, 'width' => 420, 'flex-height' => true, 'flex-width' => true ) );
+	add_theme_support( 'html5', array( 'search-form', 'comment-form', 'comment-list', 'gallery', 'caption', 'style', 'script' ) );
 
 	register_nav_menus(
 		array(
@@ -54,6 +56,20 @@ function larder_enqueue_assets() {
 		'larder-templates',
 		get_template_directory_uri() . '/assets/css/templates.css',
 		array( 'larder-main' ),
+		$version
+	);
+
+	wp_enqueue_style(
+		'larder-pages',
+		get_template_directory_uri() . '/assets/css/pages.css',
+		array( 'larder-templates' ),
+		$version
+	);
+
+	wp_enqueue_style(
+		'larder-wprm',
+		get_template_directory_uri() . '/assets/css/wp-recipe-maker.css',
+		array( 'larder-pages' ),
 		$version
 	);
 
