@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 96" role="img" aria-labelledby="title desc">
+<title id="title">Nigel's Kitchen Table</title><desc id="desc">Compact wordmark with a botanical sprig.</desc>
+<g fill="none" stroke="#344232" stroke-width="2" stroke-linecap="round">
+<path d="M86 17c13-9 30-8 43-2 12 6 23 6 34 0"/>
+<path d="M99 15c-4-6-9-8-14-8M112 12c-2-6-6-9-11-10M132 13c4-6 8-9 13-10M149 16c5-5 10-7 15-6"/>
+</g>
+<text x="130" y="58" text-anchor="middle" fill="#263225" font-family="Georgia, 'Times New Roman', serif" font-size="36" letter-spacing="8">NIGEL'S</text>
+<path d="M42 73h42M176 73h42" stroke="#b78443" stroke-width="1.5"/>
+<text x="130" y="80" text-anchor="middle" fill="#b78443" font-family="Arial, Helvetica, sans-serif" font-size="10" letter-spacing="4.5">KITCHEN TABLE</text>
+</svg>
