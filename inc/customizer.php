@@ -77,10 +77,37 @@ function larder_customize_register( $wp_customize ) {
 	}
 
 	$wp_customize->add_section(
+		'larder_newsletter',
+		array(
+			'title'       => __( 'Mailchimp Newsletter', 'larder' ),
+			'description' => __( 'Install and connect the Mailchimp for WordPress plugin, create a form, then enter its numeric form ID here.', 'larder' ),
+			'priority'    => 31,
+		)
+	);
+
+	$wp_customize->add_setting(
+		'larder_mailchimp_form_id',
+		array(
+			'default'           => 0,
+			'sanitize_callback' => 'absint',
+		)
+	);
+	$wp_customize->add_control(
+		'larder_mailchimp_form_id',
+		array(
+			'label'       => __( 'Mailchimp form ID', 'larder' ),
+			'description' => __( 'Example: 123', 'larder' ),
+			'section'     => 'larder_newsletter',
+			'type'        => 'number',
+			'input_attrs' => array( 'min' => 0, 'step' => 1 ),
+		)
+	);
+
+	$wp_customize->add_section(
 		'larder_social',
 		array(
 			'title'    => __( 'Social Links', 'larder' ),
-			'priority' => 31,
+			'priority' => 32,
 		)
 	);
 
