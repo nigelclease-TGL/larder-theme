@@ -1,0 +1,92 @@
+.seasonal-collections {
+	background: #f3ede3;
+}
+
+.seasonal-grid {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 20px;
+}
+
+.seasonal-card {
+	position: relative;
+	display: flex;
+	min-height: 280px;
+	padding: 28px;
+	flex-direction: column;
+	justify-content: flex-end;
+	overflow: hidden;
+	border: 1px solid rgba(52, 66, 50, .14);
+	border-radius: 12px;
+	background: linear-gradient(160deg, rgba(255,255,255,.8), rgba(170,177,154,.35));
+	box-shadow: 0 18px 45px rgba(38, 48, 42, .08);
+	transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.seasonal-card::before {
+	content: "";
+	position: absolute;
+	inset: 20px 20px auto auto;
+	width: 76px;
+	height: 76px;
+	border: 1px solid rgba(183, 132, 67, .45);
+	border-radius: 50%;
+}
+
+.seasonal-card:hover {
+	transform: translateY(-5px);
+	box-shadow: 0 24px 60px rgba(38, 48, 42, .13);
+}
+
+.seasonal-card__label {
+	position: relative;
+	font-family: "Playfair Display", Georgia, serif;
+	font-size: clamp(1.55rem, 2.5vw, 2.25rem);
+	font-weight: 600;
+	line-height: 1.08;
+}
+
+.seasonal-card__link {
+	position: relative;
+	margin-top: 12px;
+	color: var(--color-olive-dark);
+	font-size: .76rem;
+	font-weight: 700;
+	letter-spacing: .1em;
+	text-transform: uppercase;
+}
+
+.seasonal-card--christmas { background: linear-gradient(155deg, #f5eee6, #c8b7a1); }
+.seasonal-card--easter { background: linear-gradient(155deg, #fffaf0, #d8d2ad); }
+.seasonal-card--summer { background: linear-gradient(155deg, #fff8e9, #e6c89c); }
+.seasonal-card--autumn { background: linear-gradient(155deg, #f5eee5, #c89e78); }
+
+.reader-favourites {
+	background: var(--color-white);
+}
+
+.recipe-grid--four {
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.recipe-grid--four .recipe-card__title {
+	font-size: 1.35rem;
+}
+
+@media (max-width: 1000px) {
+	.seasonal-grid,
+	.recipe-grid--four {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 620px) {
+	.seasonal-grid,
+	.recipe-grid--four {
+		grid-template-columns: 1fr;
+	}
+
+	.seasonal-card {
+		min-height: 220px;
+	}
+}
