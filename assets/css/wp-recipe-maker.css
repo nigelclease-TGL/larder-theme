@@ -1,4 +1,10 @@
 /* WP Recipe Maker integration */
+.recipe-anchor {
+	display: block;
+	height: 0;
+	scroll-margin-top: 120px;
+}
+
 .wprm-recipe-container {
 	margin: 52px 0;
 	scroll-margin-top: 120px;
