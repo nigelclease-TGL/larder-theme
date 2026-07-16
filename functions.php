@@ -65,6 +65,7 @@ function larder_enqueue_assets() {
 	wp_enqueue_style( 'nkt-monetization', get_template_directory_uri() . '/assets/css/monetization.css', array( 'nkt-home-editorial' ), $version );
 	wp_enqueue_style( 'nkt-collections', get_template_directory_uri() . '/assets/css/collections.css', array( 'nkt-monetization' ), $version );
 	wp_enqueue_style( 'nkt-editorial-content', get_template_directory_uri() . '/assets/css/editorial-content.css', array( 'nkt-collections' ), $version );
+	wp_enqueue_style( 'nkt-about-contact', get_template_directory_uri() . '/assets/css/about-contact.css', array( 'nkt-editorial-content' ), $version );
 
 	wp_enqueue_script( 'larder-navigation', get_template_directory_uri() . '/assets/js/navigation.js', array(), $version, true );
 
