@@ -31,7 +31,14 @@ get_header();
 
 			<div class="container recipe-layout">
 				<div class="recipe-content">
+					<?php echo do_shortcode( '[nkt_affiliate_disclosure]' ); ?>
 					<?php the_content(); ?>
+
+					<?php if ( is_active_sidebar( 'recipe-inline-ad' ) ) : ?>
+						<aside class="nkt-ad-zone" aria-label="<?php esc_attr_e( 'Advertisement', 'larder' ); ?>">
+							<?php dynamic_sidebar( 'recipe-inline-ad' ); ?>
+						</aside>
+					<?php endif; ?>
 
 					<?php
 					$share_url   = rawurlencode( get_permalink() );
