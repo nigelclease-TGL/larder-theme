@@ -1,0 +1,90 @@
+name: Theme Check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out theme
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          coverage: none
+
+      - name: Lint PHP files
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            php -l "$file"
+          done < <(find . -type f -name '*.php' -not -path './vendor/*' -print0)
+
+      - name: Validate JSON files
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for path in Path('.').rglob('*.json'):
+              if '.git' in path.parts or 'vendor' in path.parts or 'node_modules' in path.parts:
+                  continue
+              with path.open(encoding='utf-8') as handle:
+                  json.load(handle)
+              print(f'valid: {path}')
+          PY
+
+      - name: Check required theme files
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(
+            style.css
+            index.php
+            functions.php
+            header.php
+            footer.php
+            front-page.php
+            single.php
+            search.php
+            404.php
+            theme.json
+          )
+          for file in "${required[@]}"; do
+            test -f "$file" || { echo "Missing required file: $file"; exit 1; }
+          done
+
+      - name: Build installable theme ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/nigels-kitchen-table
+          rsync -a ./ build/nigels-kitchen-table/ \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='build' \
+            --exclude='node_modules' \
+            --exclude='vendor' \
+            --exclude='*.zip' \
+            --exclude='.DS_Store'
+          cd build
+          zip -qr nigels-kitchen-table.zip nigels-kitchen-table
+
+      - name: Upload installable ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: nigels-kitchen-table-theme
+          path: build/nigels-kitchen-table.zip
+          if-no-files-found: error
+          retention-days: 14
