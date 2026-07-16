@@ -10,9 +10,8 @@
 
 <header class="site-header">
 	<div class="container header-inner">
-		<a class="site-branding" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home">
-			<span class="site-title">The Gourmet Larder</span>
-			<span class="site-tagline">Bake · Create · Share</span>
+		<a class="site-branding" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" aria-label="<?php esc_attr_e( "Nigel's Kitchen Table home", 'larder' ); ?>">
+			<img class="site-branding__mark" src="<?php echo esc_url( get_template_directory_uri() . '/assets/images/nkt-logo-horizontal.svg' ); ?>" alt="<?php esc_attr_e( "Nigel's Kitchen Table", 'larder' ); ?>">
 		</a>
 
 		<nav id="primary-navigation" class="primary-navigation" aria-label="<?php esc_attr_e( 'Primary navigation', 'larder' ); ?>">
@@ -49,7 +48,7 @@
 			<span class="screen-reader-text"><?php esc_html_e( 'Close search', 'larder' ); ?></span>
 		</button>
 		<p class="eyebrow"><?php esc_html_e( 'Find a recipe', 'larder' ); ?></p>
-		<h2 id="site-search-title"><?php esc_html_e( 'What would you like to bake?', 'larder' ); ?></h2>
+		<h2 id="site-search-title"><?php esc_html_e( 'What would you like to cook?', 'larder' ); ?></h2>
 		<?php get_search_form(); ?>
 	</div>
 </div>
