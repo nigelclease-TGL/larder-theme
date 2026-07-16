@@ -2,9 +2,11 @@
 Theme Name: Nigel's Kitchen Table
 Theme URI: https://thegourmetlarder.com
 Author: Nigel Clease
-Description: A custom editorial WordPress recipe theme for Nigel's Kitchen Table, hosted at The Gourmet Larder.
-Version: 1.0.0-rc1
+Description: A warm editorial WordPress recipe theme for Nigel's Kitchen Table, preserving the existing The Gourmet Larder content and URLs.
+Version: 1.0.0-rc2
 Requires at least: 6.6
+Tested up to: 6.8
 Requires PHP: 8.1
 Text Domain: larder
+Tags: food-and-drink, blog, custom-logo, custom-menu, featured-images, threaded-comments, translation-ready, wide-blocks
 */
