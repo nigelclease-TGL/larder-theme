@@ -5,8 +5,7 @@
  * @package Larder
  */
 
-$about_page       = get_page_by_path( 'about' );
-$about_url        = $about_page ? get_permalink( $about_page ) : home_url( '/about/' );
+$about_url         = nkt_page_url( array( 'about-nigel', 'my-story', 'about' ), '/my-story/' );
 $portrait_image_id = absint( get_theme_mod( 'larder_portrait_image', 0 ) );
 ?>
 <section class="home-section home-about" aria-labelledby="home-about-title">
@@ -23,7 +22,7 @@ $portrait_image_id = absint( get_theme_mod( 'larder_portrait_image', 0 ) );
 
 		<?php if ( $portrait_image_id ) : ?>
 			<figure class="about-portrait about-portrait--small">
-				<?php echo wp_get_attachment_image( $portrait_image_id, 'medium', false, array( 'loading' => 'lazy', 'alt' => __( 'Nigel', 'larder' ) ) ); ?>
+				<?php echo wp_get_attachment_image( $portrait_image_id, 'medium', false, array( 'loading' => 'lazy', 'sizes' => '(max-width: 620px) 130px, 220px' ) ); ?>
 			</figure>
 		<?php endif; ?>
 	</div>
