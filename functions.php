@@ -12,6 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 require_once get_template_directory() . '/inc/customizer.php';
 require_once get_template_directory() . '/inc/performance.php';
 require_once get_template_directory() . '/inc/seo.php';
+require_once get_template_directory() . '/inc/monetization.php';
 
 function larder_setup() {
 	load_theme_textdomain( 'larder', get_template_directory() . '/languages' );
@@ -58,6 +59,7 @@ function larder_enqueue_assets() {
 	wp_enqueue_style( 'nkt-brand', get_template_directory_uri() . '/assets/css/nkt-brand.css', array( 'larder-mailchimp' ), $version );
 	wp_enqueue_style( 'nkt-social-share', get_template_directory_uri() . '/assets/css/social-share.css', array( 'nkt-brand' ), $version );
 	wp_enqueue_style( 'nkt-home-editorial', get_template_directory_uri() . '/assets/css/home-editorial.css', array( 'nkt-social-share' ), $version );
+	wp_enqueue_style( 'nkt-monetization', get_template_directory_uri() . '/assets/css/monetization.css', array( 'nkt-home-editorial' ), $version );
 
 	wp_enqueue_script( 'larder-navigation', get_template_directory_uri() . '/assets/js/navigation.js', array(), $version, true );
 
@@ -80,6 +82,30 @@ function larder_widgets_init() {
 			'before_widget' => '<section class="recipe-sidebar__card widget %2$s">',
 			'after_widget'  => '</section>',
 			'before_title'  => '<h2 class="widget-title">',
+			'after_title'   => '</h2>',
+		)
+	);
+
+	register_sidebar(
+		array(
+			'name'          => __( 'Recipe Inline Advertisement', 'larder' ),
+			'id'            => 'recipe-inline-ad',
+			'description'   => __( 'Optional advertisement or sponsor block shown after recipe content. Leave empty until an ad network is connected.', 'larder' ),
+			'before_widget' => '<div class="widget %2$s">',
+			'after_widget'  => '</div>',
+			'before_title'  => '<h2 class="screen-reader-text">',
+			'after_title'   => '</h2>',
+		)
+	);
+
+	register_sidebar(
+		array(
+			'name'          => __( 'Homepage Promotion', 'larder' ),
+			'id'            => 'homepage-promotion',
+			'description'   => __( 'Optional space for an ebook, course, sponsor or seasonal promotion.', 'larder' ),
+			'before_widget' => '<section class="nkt-product widget %2$s">',
+			'after_widget'  => '</section>',
+			'before_title'  => '<h2 class="nkt-product__title">',
 			'after_title'   => '</h2>',
 		)
 	);
