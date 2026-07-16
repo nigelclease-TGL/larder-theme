@@ -1,3 +1,9 @@
+<?php
+$instagram_url = get_theme_mod( 'larder_instagram_url', 'https://www.instagram.com/thegourmetlarder/' );
+$pinterest_url = get_theme_mod( 'larder_pinterest_url', 'https://hu.pinterest.com/thegourmetlarder/' );
+$facebook_url  = get_theme_mod( 'larder_facebook_url', 'https://www.facebook.com/thegourmetlarder/' );
+$terms_page    = nkt_setup_find_page( array( 'terms', 'terms-and-conditions' ) );
+?>
 <footer class="site-footer">
 	<div class="container footer-grid">
 		<div class="footer-brand">
@@ -22,9 +28,9 @@
 		<div class="footer-column">
 			<h2><?php esc_html_e( 'Connect', 'larder' ); ?></h2>
 			<ul class="footer-menu">
-				<li><a href="https://www.instagram.com/thegourmetlarder/" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Instagram', 'larder' ); ?></a></li>
-				<li><a href="https://hu.pinterest.com/thegourmetlarder/" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Pinterest', 'larder' ); ?></a></li>
-				<li><a href="https://www.facebook.com/thegourmetlarder/" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Facebook', 'larder' ); ?></a></li>
+				<?php if ( $instagram_url ) : ?><li><a href="<?php echo esc_url( $instagram_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Instagram', 'larder' ); ?></a></li><?php endif; ?>
+				<?php if ( $pinterest_url ) : ?><li><a href="<?php echo esc_url( $pinterest_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Pinterest', 'larder' ); ?></a></li><?php endif; ?>
+				<?php if ( $facebook_url ) : ?><li><a href="<?php echo esc_url( $facebook_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Facebook', 'larder' ); ?></a></li><?php endif; ?>
 				<li><a href="<?php echo esc_url( nkt_page_url( array( 'contact', 'contact-me' ), '/contact/' ) ); ?>"><?php esc_html_e( 'Contact', 'larder' ); ?></a></li>
 			</ul>
 		</div>
@@ -34,8 +40,8 @@
 		<p>&copy; <?php echo esc_html( wp_date( 'Y' ) ); ?> Nigel's Kitchen Table</p>
 		<p class="footer-domain"><?php esc_html_e( 'At thegourmetlarder.com', 'larder' ); ?></p>
 		<div class="footer-legal">
-			<a href="<?php echo esc_url( get_privacy_policy_url() ?: home_url( '/privacy-policy/' ) ); ?>"><?php esc_html_e( 'Privacy', 'larder' ); ?></a>
-			<a href="<?php echo esc_url( home_url( '/terms/' ) ); ?>"><?php esc_html_e( 'Terms', 'larder' ); ?></a>
+			<?php if ( get_privacy_policy_url() ) : ?><a href="<?php echo esc_url( get_privacy_policy_url() ); ?>"><?php esc_html_e( 'Privacy', 'larder' ); ?></a><?php endif; ?>
+			<?php if ( $terms_page ) : ?><a href="<?php echo esc_url( get_permalink( $terms_page ) ); ?>"><?php esc_html_e( 'Terms', 'larder' ); ?></a><?php endif; ?>
 		</div>
 	</div>
 </footer>
