@@ -15,6 +15,7 @@ require_once get_template_directory() . '/inc/seo.php';
 require_once get_template_directory() . '/inc/monetization.php';
 require_once get_template_directory() . '/inc/collections.php';
 require_once get_template_directory() . '/inc/navigation.php';
+require_once get_template_directory() . '/inc/template-tags.php';
 
 function larder_setup() {
 	load_theme_textdomain( 'larder', get_template_directory() . '/languages' );
@@ -63,6 +64,7 @@ function larder_enqueue_assets() {
 	wp_enqueue_style( 'nkt-home-editorial', get_template_directory_uri() . '/assets/css/home-editorial.css', array( 'nkt-social-share' ), $version );
 	wp_enqueue_style( 'nkt-monetization', get_template_directory_uri() . '/assets/css/monetization.css', array( 'nkt-home-editorial' ), $version );
 	wp_enqueue_style( 'nkt-collections', get_template_directory_uri() . '/assets/css/collections.css', array( 'nkt-monetization' ), $version );
+	wp_enqueue_style( 'nkt-editorial-content', get_template_directory_uri() . '/assets/css/editorial-content.css', array( 'nkt-collections' ), $version );
 
 	wp_enqueue_script( 'larder-navigation', get_template_directory_uri() . '/assets/js/navigation.js', array(), $version, true );
 
