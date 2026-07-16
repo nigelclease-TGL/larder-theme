@@ -9,16 +9,25 @@
 
 get_header();
 
+$excluded_category_ids = array_filter( array( (int) get_option( 'default_category' ) ) );
+foreach ( array( 'baking-guides', 'kitchen-notes' ) as $excluded_slug ) {
+	$excluded_category = get_category_by_slug( $excluded_slug );
+	if ( $excluded_category ) {
+		$excluded_category_ids[] = (int) $excluded_category->term_id;
+	}
+}
+
 $featured_categories = get_categories(
 	array(
 		'hide_empty' => true,
 		'orderby'    => 'count',
 		'order'      => 'DESC',
 		'number'     => 10,
+		'exclude'    => array_unique( $excluded_category_ids ),
 	)
 );
 
-$paged = max( 1, get_query_var( 'paged' ) );
+$paged   = max( 1, get_query_var( 'paged' ) );
 $recipes = new WP_Query(
 	array(
 		'post_type'           => 'post',
@@ -51,7 +60,7 @@ $recipes = new WP_Query(
 				<header class="section-heading section-heading--split">
 					<div>
 						<p class="eyebrow"><?php esc_html_e( 'Browse by type', 'larder' ); ?></p>
-						<h2 id="recipes-categories-title"><?php esc_html_e( 'Recipe collections', 'larder' ); ?></h2>
+						<h2 id="recipes-categories-title"><?php esc_html_e( 'Recipe categories', 'larder' ); ?></h2>
 					</div>
 				</header>
 				<div class="recipes-category-list">
@@ -90,9 +99,9 @@ $recipes = new WP_Query(
 					echo wp_kses_post(
 						paginate_links(
 							array(
-								'total'   => $recipes->max_num_pages,
-								'current' => $paged,
-								'mid_size' => 1,
+								'total'     => $recipes->max_num_pages,
+								'current'   => $paged,
+								'mid_size'  => 1,
 								'prev_text' => __( 'Previous', 'larder' ),
 								'next_text' => __( 'Next', 'larder' ),
 							)
@@ -108,4 +117,4 @@ $recipes = new WP_Query(
 	</section>
 </main>
 
-<?php get_footer();
+<?php get_footer(); ?>
