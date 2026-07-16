@@ -22,6 +22,20 @@ jobs:
           php-version: '8.1'
           coverage: none
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check for unresolved merge markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -RIn --exclude-dir=.git --exclude-dir=build -E '^(<<<<<<<|=======|>>>>>>>)' .; then
+            echo 'Unresolved merge markers found.'
+            exit 1
+          fi
+
       - name: Lint PHP files
         shell: bash
         run: |
@@ -29,6 +43,14 @@ jobs:
           while IFS= read -r -d '' file; do
             php -l "$file"
           done < <(find . -type f -name '*.php' -not -path './vendor/*' -print0)
+
+      - name: Check JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            node --check "$file"
+          done < <(find assets/js -type f -name '*.js' -print0)
 
       - name: Validate JSON files
         shell: bash
@@ -51,15 +73,27 @@ jobs:
           set -euo pipefail
           required=(
             style.css
+            readme.txt
             index.php
             functions.php
             header.php
             footer.php
             front-page.php
+            page-recipes.php
+            page-recipe-collections.php
+            page-kitchen-notes.php
+            page-my-story.php
+            page-contact-me.php
             single.php
             search.php
             404.php
             theme.json
+            inc/setup-wizard.php
+            inc/search.php
+            assets/css/nkt-brand.css
+            assets/css/recipe-experience.css
+            assets/js/navigation.js
+            assets/js/recipe-tools.js
           )
           for file in "${required[@]}"; do
             test -f "$file" || { echo "Missing required file: $file"; exit 1; }
