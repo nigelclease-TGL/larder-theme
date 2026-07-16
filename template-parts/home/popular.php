@@ -8,26 +8,19 @@
 $popular_recipes = new WP_Query(
 	array(
 		'post_type'           => 'post',
+		'post_status'         => 'publish',
 		'posts_per_page'      => 4,
 		'ignore_sticky_posts' => true,
-		'meta_key'            => 'post_views_count',
 		'orderby'             => array(
-			'meta_value_num' => 'DESC',
-			'comment_count'  => 'DESC',
-			'date'           => 'DESC',
+			'comment_count' => 'DESC',
+			'date'          => 'DESC',
 		),
+		'no_found_rows'       => true,
 	)
 );
 
 if ( ! $popular_recipes->have_posts() ) {
-	$popular_recipes = new WP_Query(
-		array(
-			'post_type'           => 'post',
-			'posts_per_page'      => 4,
-			'ignore_sticky_posts' => true,
-			'orderby'             => 'comment_count',
-		)
-	);
+	return;
 }
 ?>
 <section class="home-section reader-favourites" aria-labelledby="favourites-title">
@@ -39,15 +32,11 @@ if ( ! $popular_recipes->have_posts() ) {
 			</div>
 		</header>
 
-		<?php if ( $popular_recipes->have_posts() ) : ?>
-			<div class="recipe-grid recipe-grid--four">
-				<?php while ( $popular_recipes->have_posts() ) : $popular_recipes->the_post(); ?>
-					<?php get_template_part( 'template-parts/content', 'card' ); ?>
-				<?php endwhile; ?>
-			</div>
-			<?php wp_reset_postdata(); ?>
-		<?php else : ?>
-			<p><?php esc_html_e( 'Reader favourites will appear here as your audience grows.', 'larder' ); ?></p>
-		<?php endif; ?>
+		<div class="recipe-grid recipe-grid--four">
+			<?php while ( $popular_recipes->have_posts() ) : $popular_recipes->the_post(); ?>
+				<?php get_template_part( 'template-parts/content', 'card' ); ?>
+			<?php endwhile; ?>
+		</div>
+		<?php wp_reset_postdata(); ?>
 	</div>
 </section>
