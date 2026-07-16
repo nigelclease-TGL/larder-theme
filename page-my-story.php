@@ -1,13 +1,14 @@
 <?php
 /**
  * Editorial About Nigel page.
- * Automatically used by the existing "my-story" page.
+ * Automatically used by the my-story, about-nigel and about pages.
  *
  * @package Larder
  */
 
 get_header();
 $portrait_id = absint( get_theme_mod( 'larder_portrait_image', 0 ) );
+$recipes_url = nkt_page_url( array( 'recipes' ), '/recipes/' );
 ?>
 <main id="primary" class="about-page">
 	<?php while ( have_posts() ) : the_post(); ?>
@@ -21,7 +22,7 @@ $portrait_id = absint( get_theme_mod( 'larder_portrait_image', 0 ) );
 
 				<?php if ( $portrait_id ) : ?>
 					<figure class="about-page__portrait">
-						<?php echo wp_get_attachment_image( $portrait_id, 'medium_large', false, array( 'loading' => 'eager' ) ); ?>
+						<?php echo wp_get_attachment_image( $portrait_id, 'medium_large', false, array( 'loading' => 'eager', 'fetchpriority' => 'high', 'sizes' => '(max-width: 720px) 160px, 260px' ) ); ?>
 					</figure>
 				<?php endif; ?>
 			</div>
@@ -38,11 +39,11 @@ $portrait_id = absint( get_theme_mod( 'larder_portrait_image', 0 ) );
 						<p class="eyebrow"><?php esc_html_e( 'At the table', 'larder' ); ?></p>
 						<h2><?php esc_html_e( 'Seasonal recipes. Made to share.', 'larder' ); ?></h2>
 						<p><?php esc_html_e( 'The recipes here are written for real home kitchens: clear instructions, practical advice and food worth making again.', 'larder' ); ?></p>
-						<a class="text-link" href="<?php echo esc_url( get_permalink( get_option( 'page_for_posts' ) ) ?: home_url( '/recipes/' ) ); ?>"><?php esc_html_e( 'Explore the recipes', 'larder' ); ?></a>
+						<a class="text-link" href="<?php echo esc_url( $recipes_url ); ?>"><?php esc_html_e( 'Explore the recipes', 'larder' ); ?></a>
 					</div>
 				</aside>
 			</div>
 		</section>
 	<?php endwhile; ?>
 </main>
-<?php get_footer();
+<?php get_footer(); ?>
