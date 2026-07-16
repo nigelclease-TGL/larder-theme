@@ -6,7 +6,7 @@
  */
 
 get_header();
-$term = get_queried_object();
+$recipes_url = nkt_page_url( array( 'recipes' ), '/recipes/' );
 ?>
 <main id="primary" class="collection-archive">
 	<header class="collection-hero">
@@ -21,20 +21,21 @@ $term = get_queried_object();
 		</div>
 	</header>
 
-	<section class="collection-content">
+	<section class="collection-content" aria-labelledby="collection-recipes-title">
 		<div class="container">
+			<h2 id="collection-recipes-title" class="screen-reader-text"><?php esc_html_e( 'Recipes in this collection', 'larder' ); ?></h2>
 			<?php if ( have_posts() ) : ?>
 				<div class="recipe-grid collection-recipe-grid">
 					<?php while ( have_posts() ) : the_post(); ?>
 						<?php get_template_part( 'template-parts/content', 'card' ); ?>
 					<?php endwhile; ?>
 				</div>
-				<?php the_posts_pagination(); ?>
+				<div class="pagination"><?php the_posts_pagination(); ?></div>
 			<?php else : ?>
 				<div class="collection-empty">
 					<h2><?php esc_html_e( 'Recipes are coming soon', 'larder' ); ?></h2>
 					<p><?php esc_html_e( 'This collection is being prepared. Browse the latest recipes in the meantime.', 'larder' ); ?></p>
-					<a class="button button-primary" href="<?php echo esc_url( get_permalink( get_option( 'page_for_posts' ) ) ?: home_url( '/recipes/' ) ); ?>"><?php esc_html_e( 'Browse recipes', 'larder' ); ?></a>
+					<a class="button button-primary" href="<?php echo esc_url( $recipes_url ); ?>"><?php esc_html_e( 'Browse recipes', 'larder' ); ?></a>
 				</div>
 			<?php endif; ?>
 		</div>
@@ -50,4 +51,4 @@ $term = get_queried_object();
 		</div>
 	</section>
 </main>
-<?php get_footer();
+<?php get_footer(); ?>
