@@ -30,6 +30,13 @@ function larder_setup() {
 	add_theme_support( 'custom-logo', array( 'height' => 120, 'width' => 520, 'flex-height' => true, 'flex-width' => true ) );
 	add_theme_support( 'html5', array( 'search-form', 'comment-form', 'comment-list', 'gallery', 'caption', 'style', 'script' ) );
 
+	add_editor_style(
+		array(
+			'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Instrument+Serif:ital@0;1&family=Source+Sans+3:wght@400;500;600;700&display=swap',
+			'assets/css/editor.css',
+		)
+	);
+
 	register_nav_menus(
 		array(
 			'primary' => __( 'Primary Menu', 'larder' ),
@@ -37,8 +44,8 @@ function larder_setup() {
 		)
 	);
 
-	add_image_size( 'larder-card', 900, 675, true );
-	add_image_size( 'larder-hero', 1400, 1100, true );
+	add_image_size( 'larder-card', 640, 800, true );
+	add_image_size( 'larder-hero', 1000, 1250, true );
 }
 add_action( 'after_setup_theme', 'larder_setup' );
 
