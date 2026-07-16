@@ -13,7 +13,7 @@
 					'theme_location' => 'footer',
 					'container'      => false,
 					'menu_class'     => 'footer-menu',
-					'fallback_cb'    => false,
+					'fallback_cb'    => 'nkt_footer_menu_fallback',
 				)
 			);
 			?>
@@ -25,7 +25,7 @@
 				<li><a href="https://www.instagram.com/thegourmetlarder/" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Instagram', 'larder' ); ?></a></li>
 				<li><a href="https://hu.pinterest.com/thegourmetlarder/" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Pinterest', 'larder' ); ?></a></li>
 				<li><a href="https://www.facebook.com/thegourmetlarder/" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Facebook', 'larder' ); ?></a></li>
-				<li><a href="<?php echo esc_url( home_url( '/contact/' ) ); ?>"><?php esc_html_e( 'Contact', 'larder' ); ?></a></li>
+				<li><a href="<?php echo esc_url( nkt_page_url( array( 'contact', 'contact-me' ), '/contact/' ) ); ?>"><?php esc_html_e( 'Contact', 'larder' ); ?></a></li>
 			</ul>
 		</div>
 	</div>
