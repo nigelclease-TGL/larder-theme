@@ -50,6 +50,13 @@ function larder_enqueue_assets() {
 		$version
 	);
 
+	wp_enqueue_style(
+		'larder-templates',
+		get_template_directory_uri() . '/assets/css/templates.css',
+		array( 'larder-main' ),
+		$version
+	);
+
 	wp_enqueue_script(
 		'larder-navigation',
 		get_template_directory_uri() . '/assets/js/navigation.js',
