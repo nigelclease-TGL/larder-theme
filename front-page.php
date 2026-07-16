@@ -7,6 +7,8 @@
 
 get_header();
 $hero_image_id = absint( get_theme_mod( 'larder_hero_image', 0 ) );
+$recipes_url   = nkt_page_url( array( 'recipes' ), '/recipes/' );
+$about_url     = nkt_page_url( array( 'about-nigel', 'my-story', 'about' ), '/my-story/' );
 ?>
 
 <main id="primary">
@@ -17,10 +19,10 @@ $hero_image_id = absint( get_theme_mod( 'larder_hero_image', 0 ) );
 				<h1><?php echo esc_html( get_theme_mod( 'larder_hero_title', __( 'Timeless recipes. Made to be shared.', 'larder' ) ) ); ?></h1>
 				<p class="hero-copy"><?php echo esc_html( get_theme_mod( 'larder_hero_copy', __( 'Seasonal baking, comforting dinners and beautiful desserts made with simple ingredients and plenty of heart.', 'larder' ) ) ); ?></p>
 				<div class="button-row">
-					<a class="button button-primary" href="<?php echo esc_url( get_permalink( get_option( 'page_for_posts' ) ) ?: home_url( '/recipes/' ) ); ?>">
+					<a class="button button-primary" href="<?php echo esc_url( $recipes_url ); ?>">
 						<?php esc_html_e( 'Browse recipes', 'larder' ); ?>
 					</a>
-					<a class="button button-secondary" href="<?php echo esc_url( home_url( '/my-story/' ) ); ?>">
+					<a class="button button-secondary" href="<?php echo esc_url( $about_url ); ?>">
 						<?php esc_html_e( 'About the kitchen', 'larder' ); ?>
 					</a>
 				</div>
@@ -45,7 +47,7 @@ $hero_image_id = absint( get_theme_mod( 'larder_hero_image', 0 ) );
 					<p class="eyebrow"><?php esc_html_e( 'Fresh from the kitchen', 'larder' ); ?></p>
 					<h2 id="latest-recipes-title"><?php esc_html_e( 'Latest recipes', 'larder' ); ?></h2>
 				</div>
-				<a class="text-link" href="<?php echo esc_url( get_permalink( get_option( 'page_for_posts' ) ) ?: home_url( '/recipes/' ) ); ?>">
+				<a class="text-link" href="<?php echo esc_url( $recipes_url ); ?>">
 					<?php esc_html_e( 'View all recipes', 'larder' ); ?>
 				</a>
 			</header>
