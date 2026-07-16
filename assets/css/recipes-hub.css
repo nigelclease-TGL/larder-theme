@@ -1,0 +1,180 @@
+.recipes-hub__hero {
+	padding: clamp(5rem, 10vw, 9rem) 0 clamp(4rem, 8vw, 7rem);
+	background:
+		radial-gradient(circle at 82% 18%, rgba(183, 132, 67, .14), transparent 24rem),
+		linear-gradient(135deg, #fffdfa 0%, #f5efe4 100%);
+	border-bottom: 1px solid var(--color-border);
+}
+
+.recipes-hub__hero-inner {
+	display: grid;
+	grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr);
+	gap: clamp(2.5rem, 6vw, 7rem);
+	align-items: end;
+}
+
+.recipes-hub__hero h1 {
+	max-width: 760px;
+	margin: .4rem 0 1.25rem;
+	font-family: "Cormorant Garamond", Georgia, serif;
+	font-size: clamp(3.3rem, 7vw, 6.8rem);
+	line-height: .95;
+	letter-spacing: -.045em;
+	color: var(--color-olive-dark);
+}
+
+.recipes-hub__hero p:not(.eyebrow):not(.recipes-hub__search-label) {
+	max-width: 650px;
+	font-size: clamp(1.1rem, 2vw, 1.35rem);
+	color: #566056;
+}
+
+.recipes-hub__search {
+	padding: clamp(1.5rem, 3vw, 2.3rem);
+	background: rgba(255, 253, 250, .78);
+	border: 1px solid rgba(229, 222, 210, .95);
+	box-shadow: 0 22px 50px rgba(38, 48, 42, .08);
+	backdrop-filter: blur(14px);
+}
+
+.recipes-hub__search-label {
+	margin: 0 0 .8rem;
+	font-family: "Instrument Serif", Georgia, serif;
+	font-size: 1.35rem;
+	font-style: italic;
+	color: var(--color-olive);
+}
+
+.recipes-hub__search .search-form {
+	display: flex;
+	gap: .65rem;
+}
+
+.recipes-hub__search .search-field {
+	min-width: 0;
+	width: 100%;
+	padding: .95rem 1rem;
+	border: 1px solid var(--color-border);
+	background: #fff;
+}
+
+.recipes-hub__search .search-submit {
+	padding: .95rem 1.2rem;
+	border: 0;
+	background: var(--color-olive-dark);
+	color: #fff;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.recipes-hub__categories,
+.recipes-hub__latest {
+	padding: clamp(4.5rem, 8vw, 8rem) 0;
+}
+
+.recipes-hub__categories {
+	background: #fffdfa;
+}
+
+.recipes-category-list {
+	display: grid;
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+	gap: 1rem;
+}
+
+.recipes-category-pill {
+	display: flex;
+	min-height: 118px;
+	padding: 1.2rem;
+	flex-direction: column;
+	justify-content: space-between;
+	border: 1px solid var(--color-border);
+	background: #f8f3e9;
+	transition: transform .2s ease, border-color .2s ease, background .2s ease;
+}
+
+.recipes-category-pill:hover,
+.recipes-category-pill:focus-visible {
+	transform: translateY(-4px);
+	border-color: rgba(183, 132, 67, .75);
+	background: #fff;
+}
+
+.recipes-category-pill span {
+	font-family: "Cormorant Garamond", Georgia, serif;
+	font-size: 1.55rem;
+	font-weight: 700;
+	line-height: 1;
+	color: var(--color-olive-dark);
+}
+
+.recipes-category-pill small {
+	color: #6b736b;
+}
+
+.recipes-hub__latest {
+	background: var(--color-cream);
+}
+
+.recipes-pagination {
+	display: flex;
+	gap: .5rem;
+	justify-content: center;
+	margin-top: 3.5rem;
+}
+
+.recipes-pagination .page-numbers {
+	display: inline-flex;
+	min-width: 44px;
+	height: 44px;
+	padding: 0 .85rem;
+	align-items: center;
+	justify-content: center;
+	border: 1px solid var(--color-border);
+	background: #fff;
+}
+
+.recipes-pagination .current,
+.recipes-pagination a:hover,
+.recipes-pagination a:focus-visible {
+	border-color: var(--color-olive-dark);
+	background: var(--color-olive-dark);
+	color: #fff;
+}
+
+@media (max-width: 1050px) {
+	.recipes-category-list {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 800px) {
+	.recipes-hub__hero-inner {
+		grid-template-columns: 1fr;
+	}
+
+	.recipes-hub__search {
+		max-width: 560px;
+	}
+}
+
+@media (max-width: 620px) {
+	.recipes-category-list {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.recipes-hub__search .search-form {
+		align-items: stretch;
+		flex-direction: column;
+	}
+
+	.recipes-hub__search .search-submit {
+		width: 100%;
+	}
+}
+
+@media (max-width: 390px) {
+	.recipes-category-list {
+		grid-template-columns: 1fr;
+	}
+}
