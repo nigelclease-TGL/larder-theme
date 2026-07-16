@@ -8,37 +8,85 @@
       "wideSize": "1280px"
     },
     "color": {
+      "defaultPalette": false,
       "palette": [
-        { "slug": "cream", "name": "Cream", "color": "#faf7f2" },
-        { "slug": "white", "name": "Warm White", "color": "#fffdf9" },
-        { "slug": "sage", "name": "Sage", "color": "#a7b397" },
-        { "slug": "olive", "name": "Olive", "color": "#66785f" },
-        { "slug": "copper", "name": "Copper", "color": "#b8784d" },
-        { "slug": "charcoal", "name": "Charcoal", "color": "#2e2e2e" }
+        { "slug": "warm-cream", "name": "Warm Cream", "color": "#f7f1e7" },
+        { "slug": "linen", "name": "Linen", "color": "#e9dfd0" },
+        { "slug": "warm-white", "name": "Warm White", "color": "#fffdf9" },
+        { "slug": "sage", "name": "Sage", "color": "#98a28d" },
+        { "slug": "deep-olive", "name": "Deep Olive", "color": "#465443" },
+        { "slug": "antique-brass", "name": "Antique Brass", "color": "#a77b46" },
+        { "slug": "terracotta", "name": "Terracotta", "color": "#a85f45" },
+        { "slug": "charcoal", "name": "Charcoal", "color": "#292a27" }
       ]
     },
     "typography": {
       "fluid": true,
       "fontFamilies": [
-        { "slug": "body", "name": "Inter", "fontFamily": "Inter, sans-serif" },
-        { "slug": "heading", "name": "Playfair Display", "fontFamily": "\"Playfair Display\", serif" }
+        {
+          "slug": "body",
+          "name": "Source Sans 3",
+          "fontFamily": "\"Source Sans 3\", system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+        },
+        {
+          "slug": "heading",
+          "name": "Cormorant Garamond",
+          "fontFamily": "\"Cormorant Garamond\", Georgia, serif"
+        },
+        {
+          "slug": "accent",
+          "name": "Instrument Serif",
+          "fontFamily": "\"Instrument Serif\", Georgia, serif"
+        }
+      ],
+      "fontSizes": [
+        { "slug": "small", "name": "Small", "size": "0.875rem" },
+        { "slug": "medium", "name": "Medium", "size": "1rem" },
+        { "slug": "large", "name": "Large", "size": "1.25rem" },
+        { "slug": "x-large", "name": "Extra Large", "size": "clamp(1.8rem, 4vw, 2.8rem)" },
+        { "slug": "display", "name": "Display", "size": "clamp(2.8rem, 7vw, 5.8rem)" }
       ]
+    },
+    "spacing": {
+      "units": ["px", "rem", "em", "%", "vw", "vh"]
     }
   },
   "styles": {
     "color": {
-      "background": "#faf7f2",
-      "text": "#2e2e2e"
+      "background": "#f7f1e7",
+      "text": "#292a27"
+    },
+    "spacing": {
+      "blockGap": "1.5rem"
     },
     "typography": {
       "fontFamily": "var:preset|font-family|body",
+      "fontSize": "1rem",
       "lineHeight": "1.7"
     },
     "elements": {
       "heading": {
+        "color": { "text": "#292a27" },
         "typography": {
-          "fontFamily": "var:preset|font-family|heading"
+          "fontFamily": "var:preset|font-family|heading",
+          "fontWeight": "600",
+          "lineHeight": "1.08"
         }
+      },
+      "link": {
+        "color": { "text": "#465443" },
+        ":hover": { "color": { "text": "#a85f45" } }
+      },
+      "button": {
+        "border": { "radius": "999px" },
+        "color": { "background": "#465443", "text": "#fffdf9" },
+        "typography": { "fontFamily": "var:preset|font-family|body", "fontWeight": "600" }
+      }
+    },
+    "blocks": {
+      "core/quote": {
+        "border": { "left": { "color": "#a77b46", "width": "3px" } },
+        "typography": { "fontFamily": "var:preset|font-family|accent", "fontSize": "1.35rem" }
       }
     }
   }
