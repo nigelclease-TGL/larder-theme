@@ -26,7 +26,13 @@ body {
 	min-width: 190px;
 }
 
+.site-branding picture {
+	display: block;
+	line-height: 0;
+}
+
 .site-branding__mark {
+	display: block;
 	width: 100%;
 	height: auto;
 }
@@ -54,7 +60,7 @@ body {
 .recipe-hero h1,
 .page-hero h1,
 .footer-logo {
-	font-family: "Playfair Display", Georgia, serif;
+	font-family: "Cormorant Garamond", Georgia, serif;
 }
 
 .hero h1 {
@@ -177,7 +183,15 @@ body {
 }
 
 @media (max-width: 620px) {
-	.site-branding { width: 175px; min-width: 160px; }
+	.site-branding {
+		width: 142px;
+		min-width: 142px;
+	}
+
+	.header-inner {
+		gap: 12px;
+	}
+
 	.hero::before { display: none; }
 	.about-portrait--small { width: 135px; }
 }
