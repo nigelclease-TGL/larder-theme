@@ -1,0 +1,42 @@
+.recipe-share {
+	margin-top: 48px;
+	padding: 28px;
+	border: 1px solid var(--color-border);
+	border-radius: 10px;
+	background: var(--color-white);
+}
+
+.recipe-share__title {
+	margin: 0 0 14px;
+	font-family: "Playfair Display", Georgia, serif;
+	font-size: 1.45rem;
+}
+
+.recipe-share__links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+.recipe-share__links a {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 42px;
+	padding: 0 16px;
+	border: 1px solid var(--color-olive);
+	border-radius: 5px;
+	color: var(--color-olive-dark);
+	font-size: .78rem;
+	font-weight: 700;
+	letter-spacing: .07em;
+	text-transform: uppercase;
+	transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.recipe-share__links a:hover,
+.recipe-share__links a:focus-visible {
+	background: var(--color-olive-dark);
+	color: #fff;
+	transform: translateY(-1px);
+}
