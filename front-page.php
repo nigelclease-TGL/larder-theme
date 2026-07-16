@@ -31,7 +31,7 @@ $hero_image_id = absint( get_theme_mod( 'larder_hero_image', 0 ) );
 					<?php echo wp_get_attachment_image( $hero_image_id, 'larder-hero', false, array( 'loading' => 'eager', 'fetchpriority' => 'high' ) ); ?>
 				<?php else : ?>
 					<div class="hero-media__placeholder">
-						<span><?php esc_html_e( 'Add your mango cheesecake image in Appearance → Customise → Larder Homepage.', 'larder' ); ?></span>
+						<span><?php esc_html_e( 'Add your hero recipe image in Appearance → Customise → Nigel’s Kitchen Table Homepage.', 'larder' ); ?></span>
 					</div>
 				<?php endif; ?>
 			</div>
@@ -78,7 +78,9 @@ $hero_image_id = absint( get_theme_mod( 'larder_hero_image', 0 ) );
 		</div>
 	</section>
 
+	<?php get_template_part( 'template-parts/home/seasonal' ); ?>
 	<?php get_template_part( 'template-parts/home/categories' ); ?>
+	<?php get_template_part( 'template-parts/home/popular' ); ?>
 	<?php get_template_part( 'template-parts/home/about' ); ?>
 	<?php get_template_part( 'template-parts/home/newsletter' ); ?>
 </main>
