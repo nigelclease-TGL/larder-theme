@@ -1,9 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
 	const recipeCard = document.querySelector('.wprm-recipe-container');
 	const recipeContent = document.querySelector('.recipe-content');
+	const recipeArticle = document.querySelector('.recipe-article');
+	const progressBar = document.querySelector('.nkt-reading-progress span');
 	const printButtons = document.querySelectorAll('[data-print-recipe]');
 	const cookModeButtons = document.querySelectorAll('[data-cook-mode]');
+	const shareButtons = document.querySelectorAll('[data-share-recipe]');
+	const shareStatus = document.querySelector('[data-share-status]');
 	let wakeLock = null;
+	let shareStatusTimer = null;
 
 	if (recipeCard && !document.getElementById('recipe-card')) {
 		const recipeAnchor = document.createElement('span');
@@ -113,6 +118,67 @@ document.addEventListener('DOMContentLoaded', () => {
 			requestWakeLock();
 		}
 	});
+
+	const announceShareStatus = (message) => {
+		if (!shareStatus) {
+			return;
+		}
+
+		window.clearTimeout(shareStatusTimer);
+		shareStatus.textContent = message;
+		shareStatusTimer = window.setTimeout(() => {
+			shareStatus.textContent = '';
+		}, 3500);
+	};
+
+	const shareRecipe = async () => {
+		const shareData = {
+			title: document.title,
+			text: document.querySelector('.recipe-intro')?.textContent.trim() || '',
+			url: window.location.href,
+		};
+
+		if (navigator.share) {
+			try {
+				await navigator.share(shareData);
+				announceShareStatus('Recipe shared.');
+				return;
+			} catch (error) {
+				if (error?.name === 'AbortError') {
+					return;
+				}
+			}
+		}
+
+		try {
+			await navigator.clipboard.writeText(window.location.href);
+			announceShareStatus('Recipe link copied.');
+		} catch (error) {
+			window.prompt('Copy this recipe link:', window.location.href);
+		}
+	};
+
+	shareButtons.forEach((button) => button.addEventListener('click', shareRecipe));
+
+	const updateReadingProgress = () => {
+		if (!recipeArticle || !progressBar) {
+			return;
+		}
+
+		const articleTop = recipeArticle.getBoundingClientRect().top + window.scrollY;
+		const articleHeight = recipeArticle.offsetHeight;
+		const viewportHeight = window.innerHeight;
+		const availableDistance = Math.max(articleHeight - viewportHeight, 1);
+		const travelledDistance = window.scrollY - articleTop;
+		const progress = Math.min(1, Math.max(0, travelledDistance / availableDistance));
+		progressBar.style.transform = `scaleX(${progress})`;
+	};
+
+	if (recipeArticle && progressBar) {
+		updateReadingProgress();
+		window.addEventListener('scroll', updateReadingProgress, { passive: true });
+		window.addEventListener('resize', updateReadingProgress);
+	}
 
 	document.querySelectorAll('.wprm-recipe-ingredient').forEach((ingredient) => {
 		ingredient.setAttribute('tabindex', '0');
