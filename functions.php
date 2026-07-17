@@ -92,6 +92,7 @@ function larder_enqueue_assets() {
 
 	wp_enqueue_style( 'nkt-brand-system', get_template_directory_uri() . '/assets/css/brand-system.css', array( $brand_dependency ), $version );
 	wp_enqueue_style( 'nkt-brand-v2', get_template_directory_uri() . '/assets/css/brand-v2.css', array( 'nkt-brand-system' ), $version );
+	wp_enqueue_style( 'nkt-home-phase-2', get_template_directory_uri() . '/assets/css/home-phase-2.css', array( 'nkt-brand-v2' ), $version );
 
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
 		wp_enqueue_script( 'comment-reply' );
