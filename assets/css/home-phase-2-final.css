@@ -1,0 +1,24 @@
+/* Phase 2 final quality and accessibility pass. */
+a.hero-feature-card{display:block;color:#344232;text-decoration:none;transition:transform .25s ease,box-shadow .25s ease,background .25s ease}
+a.hero-feature-card:hover{transform:translateY(-5px);background:#fffdfa;box-shadow:0 30px 68px rgba(46,46,46,.2)}
+.hero-feature-card__cta{display:inline-flex;align-items:center;gap:7px;margin-top:16px;padding-bottom:3px;border-bottom:1px solid rgba(52,66,50,.35);color:#344232;font-size:.72rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase}
+.home .hero-media__placeholder{display:grid;min-height:650px;place-items:center;padding:40px;border-radius:6px;background:linear-gradient(145deg,#d8c6b2,#6d7b69);color:rgba(255,255,255,.9);text-align:center}
+.home .hero-media__placeholder span{max-width:340px;font-size:.8rem;font-weight:700;letter-spacing:.08em;line-height:1.6;text-transform:uppercase}
+.home .recipe-card__link,.home .category-card,.home .seasonal-card,.home .home-note-card__link,.home .home-social__links a,.site-footer a{outline-offset:5px}
+.home .recipe-card__link:focus-visible,.home .category-card:focus-visible,.home .seasonal-card:focus-visible,.home .home-note-card__link:focus-visible,.home .home-social__links a:focus-visible,a.hero-feature-card:focus-visible,.site-footer a:focus-visible{outline:2px solid #b87546}
+.home .home-notes .home-note-card__link:focus-visible,.site-footer a:focus-visible{outline-color:#e4b58f}
+.home .section-heading h2,.footer-introduction__statement{text-wrap:balance}
+.home .hero-content h1{text-wrap:balance}
+.home section[id],.home [aria-labelledby]{scroll-margin-top:130px}
+
+@media(hover:none){
+	.home .category-card__cta,.home .seasonal-card__link{opacity:1;transform:none}
+}
+@media(max-width:620px){
+	.home .hero-media__placeholder{min-height:430px}
+	a.hero-feature-card:hover{transform:none}
+	.hero-feature-card__meta{flex-wrap:wrap}
+}
+@media(prefers-reduced-motion:reduce){
+	a.hero-feature-card{transition:none}
+}
