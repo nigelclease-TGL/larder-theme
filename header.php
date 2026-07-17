@@ -3,7 +3,7 @@
 <head>
 	<meta charset="<?php bloginfo( 'charset' ); ?>">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="theme-color" content="#344033">
+	<meta name="theme-color" content="#465443">
 	<?php wp_head(); ?>
 </head>
 <body <?php body_class(); ?>>

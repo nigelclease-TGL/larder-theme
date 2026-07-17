@@ -2,6 +2,8 @@
 
 A custom editorial recipe theme for **Nigel's Kitchen Table**, running at `thegourmetlarder.com` while preserving the existing recipe URLs and search visibility.
 
+The full positioning, visual system, voice, content pillars and business concept are documented in [`docs/brand-master.md`](docs/brand-master.md). Treat that file as the source of truth for future design and content decisions.
+
 ## Design direction
 
 - Warm, modern editorial presentation
@@ -10,7 +12,16 @@ A custom editorial recipe theme for **Nigel's Kitchen Table**, running at `thego
 - Cormorant Garamond headings
 - Source Sans 3 body copy
 - Instrument Serif accents
-- Deep olive, warm cream, linen, antique brass and charcoal palette
+- Warm cream `#FAF7F2`
+- Porcelain `#FDFCF9`
+- Linen `#E7E1D8`
+- Soft sage `#A7B397`
+- Deep olive `#66785F`
+- Forest olive `#465443`
+- Copper `#B87546`
+- Charcoal `#2E2E2E`
+
+The final global tokens and component alignment are applied in `assets/css/brand-system.css`, which loads after the page-specific and recipe-template styles.
 
 ## Main templates
 
@@ -50,6 +61,8 @@ The theme also supports the site's existing UpdraftPlus, WP Super Cache and thum
 8. Regenerate thumbnails.
 9. Clear WP Super Cache.
 
+The homepage must use a static page with **Homepage: Home** selected and the **Posts page left unselected**.
+
 ## Photo assets
 
 The ten selected portrait recipe photographs are mapped in [`docs/photo-asset-plan.md`](docs/photo-asset-plan.md). They should be uploaded through the WordPress Media Library, not committed to the theme repository.
@@ -66,7 +79,7 @@ See [`docs/launch-checklist.md`](docs/launch-checklist.md) for the final staging
 
 ## Automated checks
 
-Every push to `main` runs GitHub Actions to:
+Every push runs GitHub Actions to:
 
 - lint all PHP files,
 - validate JSON files,
