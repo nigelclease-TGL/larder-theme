@@ -1,0 +1,70 @@
+/* Canonical recipe layout for all existing and future recipe posts. */
+.single-recipe {
+	--recipe-content-width: 880px;
+}
+
+.single-recipe .recipe-layout,
+.single-recipe .recipe-content {
+	width: min(92vw, var(--recipe-content-width)) !important;
+	max-width: var(--recipe-content-width) !important;
+	margin-inline: auto !important;
+}
+
+.single-recipe .recipe-content > *,
+.single-recipe .recipe-content > .alignwide,
+.single-recipe .recipe-content > .alignfull,
+.single-recipe .recipe-content .wp-block-group,
+.single-recipe .recipe-content .wp-block-group__inner-container,
+.single-recipe .recipe-content .wp-block-columns,
+.single-recipe .recipe-content .wp-block-gallery,
+.single-recipe .recipe-content .wp-block-image,
+.single-recipe .recipe-content figure,
+.single-recipe .recipe-content hr,
+.single-recipe .recipe-content .wp-block-separator,
+.single-recipe .recipe-content .wprm-recipe-container,
+.single-recipe .recipe-content .wprm-recipe-template-container,
+.single-recipe .recipe-content .wprm-recipe {
+	width: 100% !important;
+	max-width: 100% !important;
+	margin-left: auto !important;
+	margin-right: auto !important;
+}
+
+.single-recipe .recipe-content .alignwide,
+.single-recipe .recipe-content .alignfull {
+	position: static !important;
+	left: auto !important;
+	right: auto !important;
+	margin-inline: auto !important;
+}
+
+.single-recipe .recipe-content hr,
+.single-recipe .recipe-content .wp-block-separator,
+.single-recipe .recipe-content .wp-block-separator.is-style-wide {
+	box-sizing: border-box !important;
+	margin-block: 30px !important;
+}
+
+.single-recipe .recipe-content img {
+	max-width: 100% !important;
+	height: auto !important;
+}
+
+.single-recipe .recipe-content .wp-block-columns {
+	gap: clamp(16px, 3vw, 28px) !important;
+}
+
+.single-recipe .recipe-content .wprm-recipe-container {
+	margin-block: 52px !important;
+}
+
+@media (max-width: 620px) {
+	.single-recipe {
+		--recipe-content-width: 100%;
+	}
+
+	.single-recipe .recipe-layout,
+	.single-recipe .recipe-content {
+		width: 92vw !important;
+	}
+}
