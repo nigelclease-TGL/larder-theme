@@ -35,8 +35,8 @@ get_header();
 				</div>
 			</header>
 
-			<div class="container recipe-layout">
-				<div class="recipe-content">
+			<div class="container recipe-layout" style="grid-template-columns:minmax(0,1fr);">
+				<div class="recipe-content" style="width:100%;max-width:980px;margin-inline:auto;">
 					<?php echo do_shortcode( '[nkt_affiliate_disclosure]' ); ?>
 					<?php the_content(); ?>
 
@@ -60,16 +60,6 @@ get_header();
 						</div>
 					</section>
 				</div>
-				<aside class="recipe-sidebar" aria-label="<?php esc_attr_e( 'Recipe information', 'larder' ); ?>">
-					<?php if ( is_active_sidebar( 'recipe-sidebar' ) ) : ?>
-						<?php dynamic_sidebar( 'recipe-sidebar' ); ?>
-					<?php else : ?>
-						<div class="recipe-sidebar__card">
-							<p class="eyebrow"><?php esc_html_e( 'From the kitchen table', 'larder' ); ?></p>
-							<p><?php esc_html_e( 'Use the recipe card for ingredients, timings, servings and printing options.', 'larder' ); ?></p>
-						</div>
-					<?php endif; ?>
-				</aside>
 			</div>
 
 			<?php
