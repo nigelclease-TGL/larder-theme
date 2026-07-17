@@ -12,12 +12,18 @@
 
 <header class="site-header">
 	<div class="container header-inner">
-		<a class="site-branding" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" aria-label="<?php esc_attr_e( "Nigel's Kitchen Table home", 'larder' ); ?>">
-			<picture>
-				<source media="(max-width: 620px)" srcset="<?php echo esc_url( get_template_directory_uri() . '/assets/images/nkt-logo-compact.svg' ); ?>">
-				<img class="site-branding__mark" src="<?php echo esc_url( get_template_directory_uri() . '/assets/images/nkt-logo-horizontal.svg' ); ?>" alt="<?php esc_attr_e( "Nigel's Kitchen Table", 'larder' ); ?>" width="520" height="118">
-			</picture>
-		</a>
+		<div class="site-branding">
+			<?php if ( has_custom_logo() ) : ?>
+				<?php the_custom_logo(); ?>
+			<?php else : ?>
+				<a class="site-branding__fallback" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" aria-label="<?php esc_attr_e( "Nigel's Kitchen Table home", 'larder' ); ?>">
+					<picture>
+						<source media="(max-width: 620px)" srcset="<?php echo esc_url( get_template_directory_uri() . '/assets/images/nkt-logo-compact.svg' ); ?>">
+						<img class="site-branding__mark" src="<?php echo esc_url( get_template_directory_uri() . '/assets/images/nkt-logo-horizontal.svg' ); ?>" alt="<?php esc_attr_e( "Nigel's Kitchen Table", 'larder' ); ?>" width="520" height="132">
+					</picture>
+				</a>
+			<?php endif; ?>
+		</div>
 
 		<nav id="primary-navigation" class="primary-navigation" aria-label="<?php esc_attr_e( 'Primary navigation', 'larder' ); ?>">
 			<?php
