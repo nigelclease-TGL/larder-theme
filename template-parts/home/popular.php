@@ -5,12 +5,21 @@
  * @package Larder
  */
 
+$excluded_category_ids = array();
+foreach ( array( 'kitchen-notes', 'baking-guides' ) as $excluded_slug ) {
+	$excluded_category = get_category_by_slug( $excluded_slug );
+	if ( $excluded_category ) {
+		$excluded_category_ids[] = (int) $excluded_category->term_id;
+	}
+}
+
 $popular_recipes = new WP_Query(
 	array(
 		'post_type'           => 'post',
 		'post_status'         => 'publish',
 		'posts_per_page'      => 4,
 		'ignore_sticky_posts' => true,
+		'category__not_in'    => $excluded_category_ids,
 		'orderby'             => array(
 			'comment_count' => 'DESC',
 			'date'          => 'DESC',
@@ -35,7 +44,7 @@ $rank        = 1;
 			</div>
 			<div class="reader-favourites__intro">
 				<p><?php esc_html_e( 'Reliable favourites, shared often and made again and again.', 'larder' ); ?></p>
-				<a class="text-link" href="<?php echo esc_url( $recipes_url ); ?>"><?php esc_html_e( 'Browse every recipe', 'larder' ); ?> →</a>
+				<a class="text-link" href="<?php echo esc_url( $recipes_url ); ?>"><?php esc_html_e( 'Browse every recipe', 'larder' ); ?> <span aria-hidden="true">→</span></a>
 			</div>
 		</header>
 
