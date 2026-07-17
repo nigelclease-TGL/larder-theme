@@ -1,23 +1,27 @@
 <?php
 /**
- * Single post template.
+ * Branded single recipe template.
  *
  * @package Larder
  */
 
 get_header();
 ?>
-<main id="primary" class="single-recipe">
+<main id="primary" class="single-recipe nkt-recipe-template">
 	<?php while ( have_posts() ) : the_post(); ?>
 		<?php
 		$current_post_id = get_the_ID();
 		$category_ids    = wp_get_post_categories( $current_post_id );
+		$share_url       = rawurlencode( get_permalink() );
+		$share_title     = rawurlencode( get_the_title() );
+		$share_image     = has_post_thumbnail() ? rawurlencode( get_the_post_thumbnail_url( get_the_ID(), 'large' ) ) : '';
 		?>
 		<article <?php post_class( 'recipe-article' ); ?>>
-			<header class="recipe-hero">
-				<div class="container recipe-hero__grid">
-					<div class="recipe-hero__content">
-						<p class="eyebrow"><?php echo wp_kses_post( get_the_category_list( ' · ' ) ); ?></p>
+			<header class="recipe-hero nkt-recipe-hero">
+				<div class="nkt-recipe-hero__grid">
+					<div class="nkt-recipe-hero__copy">
+						<p class="nkt-recipe-hero__brandline"><?php esc_html_e( "From Nigel's Kitchen Table", 'larder' ); ?></p>
+						<div class="nkt-recipe-hero__categories"><?php echo wp_kses_post( get_the_category_list( ' · ' ) ); ?></div>
 						<h1><?php the_title(); ?></h1>
 						<?php nkt_post_meta(); ?>
 						<?php if ( has_excerpt() ) : ?>
@@ -29,38 +33,70 @@ get_header();
 							<button class="button button-secondary" type="button" data-cook-mode aria-pressed="false"><?php esc_html_e( 'Cook mode', 'larder' ); ?></button>
 						</div>
 					</div>
-					<?php if ( has_post_thumbnail() ) : ?>
-						<div class="recipe-hero__media"><?php the_post_thumbnail( 'larder-hero', array( 'loading' => 'eager', 'fetchpriority' => 'high', 'sizes' => '(max-width: 900px) 92vw, 44vw' ) ); ?></div>
-					<?php endif; ?>
+
+					<div class="nkt-recipe-hero__media-wrap">
+						<?php if ( has_post_thumbnail() ) : ?>
+							<div class="recipe-hero__media nkt-recipe-hero__media">
+								<?php the_post_thumbnail( 'larder-hero', array( 'loading' => 'eager', 'fetchpriority' => 'high', 'sizes' => '(max-width: 900px) 92vw, 42vw' ) ); ?>
+							</div>
+						<?php else : ?>
+							<div class="recipe-hero__media nkt-recipe-hero__media"></div>
+						<?php endif; ?>
+						<div class="nkt-recipe-hero__stamp" aria-hidden="true">
+							<div>
+								<span><?php esc_html_e( 'Kitchen-tested', 'larder' ); ?></span>
+								<strong><?php esc_html_e( 'Made to share', 'larder' ); ?></strong>
+							</div>
+						</div>
+					</div>
 				</div>
 			</header>
 
-			<div class="recipe-layout">
-				<div class="recipe-content">
-					<?php echo do_shortcode( '[nkt_affiliate_disclosure]' ); ?>
-					<?php the_content(); ?>
+			<section class="nkt-recipe-standards" aria-label="<?php esc_attr_e( 'Recipe standards', 'larder' ); ?>">
+				<div class="nkt-recipe-standards__inner">
+					<div class="nkt-recipe-standard">
+						<span class="nkt-recipe-standard__eyebrow"><?php esc_html_e( 'Reliable', 'larder' ); ?></span>
+						<strong><?php esc_html_e( 'Kitchen-tested instructions', 'larder' ); ?></strong>
+					</div>
+					<div class="nkt-recipe-standard">
+						<span class="nkt-recipe-standard__eyebrow"><?php esc_html_e( 'Practical', 'larder' ); ?></span>
+						<strong><?php esc_html_e( 'Clear timings and measurements', 'larder' ); ?></strong>
+					</div>
+					<div class="nkt-recipe-standard">
+						<span class="nkt-recipe-standard__eyebrow"><?php esc_html_e( 'Helpful', 'larder' ); ?></span>
+						<strong><?php esc_html_e( 'Tips, storage and variations', 'larder' ); ?></strong>
+					</div>
+				</div>
+			</section>
 
-					<?php if ( is_active_sidebar( 'recipe-inline-ad' ) ) : ?>
-						<aside class="nkt-ad-zone" aria-label="<?php esc_attr_e( 'Advertisement', 'larder' ); ?>">
-							<?php dynamic_sidebar( 'recipe-inline-ad' ); ?>
-						</aside>
-					<?php endif; ?>
+			<div class="nkt-recipe-body">
+				<div class="recipe-layout">
+					<div class="recipe-content">
+						<?php echo do_shortcode( '[nkt_affiliate_disclosure]' ); ?>
+						<p class="nkt-recipe-story-label"><?php esc_html_e( 'The recipe, step by step', 'larder' ); ?></p>
+						<?php the_content(); ?>
 
-					<?php
-					$share_url   = rawurlencode( get_permalink() );
-					$share_title = rawurlencode( get_the_title() );
-					$share_image = has_post_thumbnail() ? rawurlencode( get_the_post_thumbnail_url( get_the_ID(), 'large' ) ) : '';
-					?>
-					<section class="recipe-share" aria-labelledby="recipe-share-title">
-						<h2 id="recipe-share-title" class="recipe-share__title"><?php esc_html_e( 'Share this recipe', 'larder' ); ?></h2>
-						<div class="recipe-share__links">
-							<a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo esc_attr( $share_url ); ?>" target="_blank" rel="noopener noreferrer">Facebook</a>
-							<a href="https://pinterest.com/pin/create/button/?url=<?php echo esc_attr( $share_url ); ?>&media=<?php echo esc_attr( $share_image ); ?>&description=<?php echo esc_attr( $share_title ); ?>" target="_blank" rel="noopener noreferrer">Pinterest</a>
-							<a href="mailto:?subject=<?php echo esc_attr( $share_title ); ?>&body=<?php echo esc_attr( $share_url ); ?>"><?php esc_html_e( 'Email', 'larder' ); ?></a>
-						</div>
-					</section>
+						<?php if ( is_active_sidebar( 'recipe-inline-ad' ) ) : ?>
+							<aside class="nkt-ad-zone" aria-label="<?php esc_attr_e( 'Advertisement', 'larder' ); ?>">
+								<?php dynamic_sidebar( 'recipe-inline-ad' ); ?>
+							</aside>
+						<?php endif; ?>
+
+						<section class="recipe-share nkt-recipe-share-card" aria-labelledby="recipe-share-title">
+							<p class="eyebrow"><?php esc_html_e( 'Made it?', 'larder' ); ?></p>
+							<h2 id="recipe-share-title" class="recipe-share__title"><?php esc_html_e( 'Share it from your kitchen', 'larder' ); ?></h2>
+							<p><?php esc_html_e( 'Save the recipe or share it with someone who would enjoy making it too.', 'larder' ); ?></p>
+							<div class="recipe-share__links">
+								<a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo esc_attr( $share_url ); ?>" target="_blank" rel="noopener noreferrer">Facebook</a>
+								<a href="https://pinterest.com/pin/create/button/?url=<?php echo esc_attr( $share_url ); ?>&media=<?php echo esc_attr( $share_image ); ?>&description=<?php echo esc_attr( $share_title ); ?>" target="_blank" rel="noopener noreferrer">Pinterest</a>
+								<a href="mailto:?subject=<?php echo esc_attr( $share_title ); ?>&body=<?php echo esc_attr( $share_url ); ?>"><?php esc_html_e( 'Email', 'larder' ); ?></a>
+							</div>
+						</section>
+					</div>
 				</div>
 			</div>
+
+			<?php get_template_part( 'template-parts/home/newsletter' ); ?>
 
 			<?php
 			$related_recipes = new WP_Query(
