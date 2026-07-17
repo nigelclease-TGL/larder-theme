@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
 	const recipeCard = document.querySelector('.wprm-recipe-container');
+	const recipeContent = document.querySelector('.recipe-content');
 	const printButtons = document.querySelectorAll('[data-print-recipe]');
 	const cookModeButtons = document.querySelectorAll('[data-cook-mode]');
 	let wakeLock = null;
@@ -10,6 +11,41 @@ document.addEventListener('DOMContentLoaded', () => {
 		recipeAnchor.className = 'recipe-anchor';
 		recipeAnchor.setAttribute('aria-hidden', 'true');
 		recipeCard.before(recipeAnchor);
+	}
+
+	if (recipeContent) {
+		recipeContent.querySelectorAll('h2, h3').forEach((heading) => {
+			if (heading.closest('.wprm-recipe-container, .nkt-recipe-share-card')) {
+				return;
+			}
+
+			heading.classList.add('nkt-section-heading');
+			const headingText = heading.textContent.trim().toLowerCase();
+			const sectionName = headingText
+				.replace(/[^a-z0-9]+/g, '-')
+				.replace(/^-|-$/g, '');
+
+			if (sectionName) {
+				heading.dataset.recipeSection = sectionName;
+			}
+
+			if (headingText === 'contents') {
+				heading.classList.add('nkt-toc-heading');
+				const panel = heading.closest('.wp-block-group') || heading.parentElement;
+				panel?.classList.add('nkt-toc-panel');
+
+				let tocList = heading.nextElementSibling;
+				while (tocList && !tocList.matches('ul, ol')) {
+					tocList = tocList.nextElementSibling;
+				}
+
+				if (!tocList && panel) {
+					tocList = panel.querySelector('ul, ol');
+				}
+
+				tocList?.classList.add('nkt-toc-list');
+			}
+		});
 	}
 
 	printButtons.forEach((button) => button.addEventListener('click', () => window.print()));
