@@ -16,14 +16,14 @@ $about_url     = nkt_page_url( array( 'about-nigel', 'my-story', 'about' ), '/my
 		<div class="container hero-grid">
 			<div class="hero-content">
 				<p class="eyebrow"><?php esc_html_e( "Welcome to Nigel's Kitchen Table", 'larder' ); ?></p>
-				<h1><?php echo esc_html( get_theme_mod( 'larder_hero_title', __( 'Timeless recipes. Made to be shared.', 'larder' ) ) ); ?></h1>
-				<p class="hero-copy"><?php echo esc_html( get_theme_mod( 'larder_hero_copy', __( 'Seasonal baking, comforting dinners and beautiful desserts made with simple ingredients and plenty of heart.', 'larder' ) ) ); ?></p>
+				<h1><?php echo esc_html( get_theme_mod( 'larder_hero_title', __( 'Seasonal recipes, made to be shared.', 'larder' ) ) ); ?></h1>
+				<p class="hero-copy"><?php echo esc_html( get_theme_mod( 'larder_hero_copy', __( 'Beautiful bakes, comforting food and practical kitchen knowledge—tested carefully and written for real life.', 'larder' ) ) ); ?></p>
 				<div class="button-row">
 					<a class="button button-primary" href="<?php echo esc_url( $recipes_url ); ?>">
 						<?php esc_html_e( 'Browse recipes', 'larder' ); ?>
 					</a>
 					<a class="button button-secondary" href="<?php echo esc_url( $about_url ); ?>">
-						<?php esc_html_e( 'About the kitchen', 'larder' ); ?>
+						<?php esc_html_e( 'About Nigel', 'larder' ); ?>
 					</a>
 				</div>
 			</div>
