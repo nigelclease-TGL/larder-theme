@@ -22,19 +22,19 @@ function larder_customize_register( $wp_customize ) {
 	$settings = array(
 		'larder_hero_title' => array(
 			'label'   => __( 'Hero title', 'larder' ),
-			'default' => __( 'Timeless recipes. Made to be shared.', 'larder' ),
+			'default' => __( 'Seasonal recipes, made to be shared.', 'larder' ),
 		),
 		'larder_hero_copy' => array(
 			'label'   => __( 'Hero introduction', 'larder' ),
-			'default' => __( 'Seasonal baking, comforting dinners and beautiful desserts made with simple ingredients and plenty of heart.', 'larder' ),
+			'default' => __( 'Beautiful bakes, comforting food and practical kitchen knowledge—tested carefully and written for real life.', 'larder' ),
 		),
 		'larder_about_title' => array(
 			'label'   => __( 'About title', 'larder' ),
-			'default' => __( 'A little about the kitchen', 'larder' ),
+			'default' => __( 'From my kitchen table', 'larder' ),
 		),
 		'larder_about_copy' => array(
 			'label'   => __( 'About introduction', 'larder' ),
-			'default' => __( "I'm Nigel. I develop and test approachable recipes for good food that belongs around the table.", 'larder' ),
+			'default' => __( "I'm Nigel. I develop and test reliable recipes for beautiful bakes, comforting food and the everyday kitchen.", 'larder' ),
 		),
 	);
 
