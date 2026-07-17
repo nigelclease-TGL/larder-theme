@@ -1,10 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 96" role="img" aria-labelledby="title desc">
-<title id="title">Nigel's Kitchen Table</title><desc id="desc">Compact wordmark with a botanical sprig.</desc>
-<g fill="none" stroke="#344232" stroke-width="2" stroke-linecap="round">
-<path d="M86 17c13-9 30-8 43-2 12 6 23 6 34 0"/>
-<path d="M99 15c-4-6-9-8-14-8M112 12c-2-6-6-9-11-10M132 13c4-6 8-9 13-10M149 16c5-5 10-7 15-6"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 100" role="img" aria-labelledby="title desc">
+<title id="title">Nigel's Kitchen Table</title>
+<desc id="desc">Compact charcoal and copper wordmark with a botanical sprig.</desc>
+<g fill="none" stroke="#66785f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M118 16c10-7 22-8 32-3 9 4 17 4 25-1"/>
+  <path d="M129 14c-3-5-7-7-11-7M140 11c-2-5-5-7-9-8M156 12c3-5 7-7 11-8M169 14c4-4 8-5 12-5"/>
 </g>
-<text x="130" y="58" text-anchor="middle" fill="#263225" font-family="Georgia, 'Times New Roman', serif" font-size="36" letter-spacing="8">NIGEL'S</text>
-<path d="M42 73h42M176 73h42" stroke="#b78443" stroke-width="1.5"/>
-<text x="130" y="80" text-anchor="middle" fill="#b78443" font-family="Arial, Helvetica, sans-serif" font-size="10" letter-spacing="4.5">KITCHEN TABLE</text>
+<text x="150" y="57" text-anchor="middle" fill="#2E2E2B" font-family="Georgia, 'Times New Roman', serif" font-size="38" letter-spacing="7.5">NIGEL'S</text>
+<path d="M38 78h55M207 78h55" stroke="#9A6B46" stroke-width="1.4"/>
+<circle cx="34" cy="78" r="1.6" fill="#9A6B46"/>
+<circle cx="266" cy="78" r="1.6" fill="#9A6B46"/>
+<text x="150" y="84" text-anchor="middle" fill="#2E2E2B" font-family="Georgia, 'Times New Roman', serif" font-size="12" letter-spacing="3.9">KITCHEN TABLE</text>
 </svg>
