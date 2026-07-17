@@ -34,10 +34,13 @@ $notes_url = nkt_page_url( array( 'kitchen-notes', 'baking-guides' ), '/kitchen-
 	<div class="container">
 		<header class="section-heading section-heading--split">
 			<div>
-				<p class="eyebrow"><?php esc_html_e( 'Learn at the table', 'larder' ); ?></p>
+				<p class="eyebrow"><?php esc_html_e( 'From the notebook', 'larder' ); ?></p>
 				<h2 id="home-notes-title"><?php esc_html_e( 'Kitchen Notes', 'larder' ); ?></h2>
 			</div>
-			<a class="text-link" href="<?php echo esc_url( $notes_url ); ?>"><?php esc_html_e( 'Explore all notes', 'larder' ); ?></a>
+			<div class="home-notes__heading-copy">
+				<p><?php esc_html_e( 'Techniques, ingredients and practical lessons for becoming a more confident cook.', 'larder' ); ?></p>
+				<a class="text-link" href="<?php echo esc_url( $notes_url ); ?>"><?php esc_html_e( 'Explore all notes', 'larder' ); ?> →</a>
+			</div>
 		</header>
 
 		<div class="home-notes__grid">
@@ -48,9 +51,9 @@ $notes_url = nkt_page_url( array( 'kitchen-notes', 'baking-guides' ), '/kitchen-
 							<div class="home-note-card__media"><?php the_post_thumbnail( 'larder-card', array( 'loading' => 'lazy', 'sizes' => '(max-width: 900px) 92vw, 31vw' ) ); ?></div>
 						<?php endif; ?>
 						<div class="home-note-card__body">
-							<p class="home-note-card__meta"><?php echo esc_html( get_the_date() ); ?></p>
+							<p class="home-note-card__meta"><span><?php esc_html_e( 'Kitchen note', 'larder' ); ?></span><span><?php echo esc_html( get_the_date() ); ?></span></p>
 							<h3><?php the_title(); ?></h3>
-							<p><?php echo esc_html( wp_trim_words( get_the_excerpt(), 20 ) ); ?></p>
+							<p><?php echo esc_html( wp_trim_words( get_the_excerpt(), 18 ) ); ?></p>
 							<span class="home-note-card__cta"><?php esc_html_e( 'Read the note', 'larder' ); ?> →</span>
 						</div>
 					</a>
