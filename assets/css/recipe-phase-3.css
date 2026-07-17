@@ -1,0 +1,170 @@
+/* Nigel's Kitchen Table — Phase 3 recipe experience. */
+
+.nkt-reading-progress{
+	position:fixed;
+	top:0;
+	left:0;
+	right:0;
+	z-index:9999;
+	height:3px;
+	background:transparent;
+	pointer-events:none;
+}
+
+.nkt-reading-progress span{
+	display:block;
+	width:100%;
+	height:100%;
+	background:#b87546;
+	transform:scaleX(0);
+	transform-origin:left center;
+	will-change:transform;
+}
+
+.admin-bar .nkt-reading-progress{top:32px}
+
+.single-recipe .nkt-recipe-toolbar{
+	position:sticky;
+	top:0;
+	z-index:80;
+	border-bottom:1px solid rgba(52,66,50,.13);
+	background:rgba(255,253,249,.94);
+	box-shadow:0 10px 28px rgba(39,49,41,.08);
+	backdrop-filter:blur(16px);
+}
+
+.admin-bar .single-recipe .nkt-recipe-toolbar{top:32px}
+
+.single-recipe .nkt-recipe-toolbar__inner{
+	display:flex;
+	align-items:center;
+	gap:8px;
+	width:min(92vw,1240px);
+	min-height:62px;
+	margin-inline:auto;
+	overflow-x:auto;
+	scrollbar-width:none;
+}
+
+.single-recipe .nkt-recipe-toolbar__inner::-webkit-scrollbar{display:none}
+
+.single-recipe .nkt-recipe-toolbar a,
+.single-recipe .nkt-recipe-toolbar button{
+	display:inline-flex;
+	align-items:center;
+	justify-content:center;
+	min-height:38px;
+	padding:9px 15px;
+	border:1px solid rgba(52,66,50,.16);
+	border-radius:999px;
+	background:transparent;
+	color:#344232;
+	font:inherit;
+	font-size:.76rem;
+	font-weight:700;
+	letter-spacing:.06em;
+	line-height:1;
+	text-transform:uppercase;
+	white-space:nowrap;
+	cursor:pointer;
+	transition:background .2s ease,color .2s ease,border-color .2s ease,transform .2s ease;
+}
+
+.single-recipe .nkt-recipe-toolbar a:hover,
+.single-recipe .nkt-recipe-toolbar button:hover,
+.single-recipe .nkt-recipe-toolbar button[aria-pressed="true"]{
+	border-color:#344232;
+	background:#344232;
+	color:#fffdfa;
+	transform:translateY(-1px);
+}
+
+.single-recipe .nkt-recipe-toolbar__primary{
+	border-color:#344232!important;
+	background:#344232!important;
+	color:#fffdfa!important;
+}
+
+.single-recipe .nkt-recipe-toolbar__status{
+	margin-left:auto;
+	color:#8b694f;
+	font-size:.82rem;
+	white-space:nowrap;
+}
+
+.single-recipe .recipe-actions{
+	display:flex;
+	flex-wrap:wrap;
+	gap:10px;
+}
+
+.single-recipe .recipe-actions .button{
+	margin:0;
+}
+
+.single-recipe .recipe-anchor{
+	display:block;
+	position:relative;
+	top:-92px;
+	visibility:hidden;
+}
+
+body.cook-mode .single-recipe .nkt-recipe-toolbar{
+	background:rgba(38,49,40,.97);
+	border-bottom-color:rgba(255,255,255,.14);
+}
+
+body.cook-mode .single-recipe .nkt-recipe-toolbar a,
+body.cook-mode .single-recipe .nkt-recipe-toolbar button{
+	border-color:rgba(255,255,255,.28);
+	color:#fffdfa;
+}
+
+body.cook-mode .single-recipe .nkt-recipe-toolbar__primary,
+body.cook-mode .single-recipe .nkt-recipe-toolbar button[aria-pressed="true"]{
+	border-color:#d6a47e!important;
+	background:#d6a47e!important;
+	color:#263128!important;
+}
+
+body.cook-mode .single-recipe .nkt-recipe-toolbar__status{color:#efd5c1}
+
+@media(max-width:782px){
+	.admin-bar .nkt-reading-progress{top:46px}
+	.admin-bar .single-recipe .nkt-recipe-toolbar{top:46px}
+}
+
+@media(max-width:620px){
+	.single-recipe .nkt-recipe-toolbar__inner{
+		width:100%;
+		min-height:58px;
+		padding-inline:16px;
+	}
+
+	.single-recipe .nkt-recipe-toolbar a,
+	.single-recipe .nkt-recipe-toolbar button{
+		min-height:36px;
+		padding:8px 13px;
+		font-size:.7rem;
+	}
+
+	.single-recipe .nkt-recipe-toolbar__status{
+		display:none;
+	}
+}
+
+@media(prefers-reduced-motion:reduce){
+	.nkt-reading-progress span,
+	.single-recipe .nkt-recipe-toolbar a,
+	.single-recipe .nkt-recipe-toolbar button{
+		transition:none;
+	}
+}
+
+@media print{
+	.nkt-reading-progress,
+	.single-recipe .nkt-recipe-toolbar,
+	.single-recipe .recipe-actions{
+		display:none!important;
+	}
+}
