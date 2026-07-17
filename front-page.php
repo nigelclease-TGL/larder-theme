@@ -8,7 +8,7 @@
 get_header();
 $hero_image_id = absint( get_theme_mod( 'larder_hero_image', 0 ) );
 $recipes_url   = nkt_page_url( array( 'recipes' ), '/recipes/' );
-$about_url     = nkt_page_url( array( 'about-nigel', 'my-story', 'about' ), '/my-story/' );
+$notes_url     = nkt_page_url( array( 'kitchen-notes', 'notes' ), '/kitchen-notes/' );
 ?>
 
 <main id="primary">
@@ -16,14 +16,14 @@ $about_url     = nkt_page_url( array( 'about-nigel', 'my-story', 'about' ), '/my
 		<div class="container hero-grid">
 			<div class="hero-content">
 				<p class="eyebrow"><?php esc_html_e( "Welcome to Nigel's Kitchen Table", 'larder' ); ?></p>
-				<h1><?php echo esc_html( get_theme_mod( 'larder_hero_title', __( 'Seasonal recipes, made to be shared.', 'larder' ) ) ); ?></h1>
-				<p class="hero-copy"><?php echo esc_html( get_theme_mod( 'larder_hero_copy', __( 'Beautiful bakes, comforting food and practical kitchen knowledge—tested carefully and written for real life.', 'larder' ) ) ); ?></p>
+				<h1><?php echo esc_html( get_theme_mod( 'larder_hero_title', __( 'Seasonal cooking. Beautiful recipes. Made for real life.', 'larder' ) ) ); ?></h1>
+				<p class="hero-copy"><?php echo esc_html( get_theme_mod( 'larder_hero_copy', __( 'Discover seasonal recipes, practical kitchen knowledge and thoughtful cooking inspiration—from everyday meals to special occasions.', 'larder' ) ) ); ?></p>
 				<div class="button-row">
 					<a class="button button-primary" href="<?php echo esc_url( $recipes_url ); ?>">
-						<?php esc_html_e( 'Browse recipes', 'larder' ); ?>
+						<?php esc_html_e( 'Explore recipes', 'larder' ); ?>
 					</a>
-					<a class="button button-secondary" href="<?php echo esc_url( $about_url ); ?>">
-						<?php esc_html_e( 'About Nigel', 'larder' ); ?>
+					<a class="button button-secondary" href="<?php echo esc_url( $notes_url ); ?>">
+						<?php esc_html_e( 'Kitchen Notes', 'larder' ); ?>
 					</a>
 				</div>
 			</div>
@@ -36,6 +36,15 @@ $about_url     = nkt_page_url( array( 'about-nigel', 'my-story', 'about' ), '/my
 						<span><?php esc_html_e( 'Add your hero recipe image in Appearance → Customise → Nigel’s Kitchen Table Homepage.', 'larder' ); ?></span>
 					</div>
 				<?php endif; ?>
+
+				<div class="hero-feature-card" aria-label="<?php esc_attr_e( 'Featured seasonal recipe', 'larder' ); ?>">
+					<p class="hero-feature-card__label"><?php esc_html_e( 'Seasonal favourite', 'larder' ); ?></p>
+					<strong><?php esc_html_e( 'Made for sharing', 'larder' ); ?></strong>
+					<div class="hero-feature-card__meta">
+						<span><?php esc_html_e( 'Seasonal', 'larder' ); ?></span>
+						<span><?php esc_html_e( 'Tested carefully', 'larder' ); ?></span>
+					</div>
+				</div>
 			</div>
 		</div>
 	</section>
