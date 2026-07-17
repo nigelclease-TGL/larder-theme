@@ -35,8 +35,8 @@ get_header();
 				</div>
 			</header>
 
-			<div class="container recipe-layout" style="grid-template-columns:minmax(0,1fr);">
-				<div class="recipe-content" style="width:100%;max-width:980px;margin-inline:auto;">
+			<div class="recipe-layout">
+				<div class="recipe-content">
 					<?php echo do_shortcode( '[nkt_affiliate_disclosure]' ); ?>
 					<?php the_content(); ?>
 
