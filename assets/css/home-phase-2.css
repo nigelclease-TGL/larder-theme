@@ -1,0 +1,238 @@
+/* Nigel's Kitchen Table — Phase 2 homepage editorial redesign. */
+
+.home .hero {
+	position: relative;
+	overflow: hidden;
+	padding: clamp(72px, 9vw, 128px) 0 clamp(78px, 10vw, 140px);
+	background:
+		radial-gradient(circle at 11% 16%, rgba(184,117,70,.10), transparent 24rem),
+		radial-gradient(circle at 88% 82%, rgba(167,179,151,.18), transparent 30rem),
+		linear-gradient(145deg, #fdfcf9 0%, #faf7f2 65%, #f2ece4 100%);
+}
+
+.home .hero::after {
+	content: "";
+	position: absolute;
+	right: -90px;
+	bottom: -130px;
+	width: 360px;
+	height: 360px;
+	border: 1px solid rgba(102,120,95,.14);
+	border-radius: 50%;
+	box-shadow: 0 0 0 34px rgba(102,120,95,.035), 0 0 0 68px rgba(184,117,70,.025);
+	pointer-events: none;
+}
+
+.home .hero-grid {
+	grid-template-columns: minmax(0, .92fr) minmax(460px, 1.08fr);
+	gap: clamp(52px, 7vw, 108px);
+	align-items: center;
+}
+
+.home .hero-content {
+	position: relative;
+	z-index: 2;
+	max-width: 650px;
+}
+
+.home .hero-content h1 {
+	max-width: 11.5ch;
+	margin: 16px 0 24px;
+	font-size: clamp(3.65rem, 6.6vw, 7rem);
+	line-height: .88;
+	letter-spacing: -.045em;
+}
+
+.home .hero-copy {
+	max-width: 590px;
+	font-size: clamp(1.08rem, 1.35vw, 1.3rem);
+	line-height: 1.7;
+	color: #596158;
+}
+
+.home .hero .button-row {
+	margin-top: 34px;
+	gap: 14px;
+}
+
+.home .hero-media {
+	position: relative;
+	z-index: 1;
+	min-height: 620px;
+	border-radius: 180px 180px 20px 20px;
+	box-shadow: 0 32px 80px rgba(46,46,46,.15);
+}
+
+.home .hero-media::before {
+	content: "";
+	position: absolute;
+	inset: 18px;
+	z-index: 2;
+	border: 1px solid rgba(255,255,255,.58);
+	border-radius: 164px 164px 12px 12px;
+	pointer-events: none;
+}
+
+.home .hero-media img {
+	width: 100%;
+	height: 100%;
+	min-height: 620px;
+	object-fit: cover;
+}
+
+.hero-feature-card {
+	position: absolute;
+	left: -42px;
+	bottom: 34px;
+	z-index: 3;
+	width: min(300px, 72%);
+	padding: 22px 24px;
+	background: rgba(253,252,249,.94);
+	border: 1px solid rgba(231,225,216,.9);
+	box-shadow: 0 20px 50px rgba(46,46,46,.14);
+	backdrop-filter: blur(14px);
+}
+
+.hero-feature-card__label {
+	margin: 0 0 7px;
+	color: #b87546;
+	font-size: .72rem;
+	font-weight: 700;
+	letter-spacing: .16em;
+	text-transform: uppercase;
+}
+
+.hero-feature-card strong {
+	display: block;
+	font-family: "Cormorant Garamond", Georgia, serif;
+	font-size: 1.65rem;
+	line-height: 1.05;
+}
+
+.hero-feature-card__meta {
+	display: flex;
+	gap: 14px;
+	margin-top: 10px;
+	color: #66635d;
+	font-size: .82rem;
+}
+
+.home .latest-recipes {
+	padding-top: clamp(88px, 10vw, 150px);
+}
+
+.home .latest-recipes .section-heading {
+	margin-bottom: 44px;
+	padding-bottom: 22px;
+	border-bottom: 1px solid #e7e1d8;
+}
+
+.home .latest-recipes .recipe-grid {
+	gap: clamp(24px, 3vw, 42px);
+}
+
+.home .latest-recipes .recipe-card {
+	border: 0;
+	border-radius: 0;
+	box-shadow: none;
+	background: transparent;
+	transition: transform .25s ease;
+}
+
+.home .latest-recipes .recipe-card:hover {
+	transform: translateY(-6px);
+}
+
+.home .latest-recipes .recipe-card__media {
+	border-radius: 4px;
+	overflow: hidden;
+	box-shadow: 0 14px 34px rgba(46,46,46,.09);
+}
+
+.home .latest-recipes .recipe-card__media img {
+	transition: transform .55s ease;
+}
+
+.home .latest-recipes .recipe-card:hover .recipe-card__media img {
+	transform: scale(1.035);
+}
+
+.home .latest-recipes .recipe-card__body {
+	padding: 22px 2px 0;
+}
+
+.home .latest-recipes .recipe-card__title {
+	font-size: clamp(1.75rem, 2.4vw, 2.25rem);
+	line-height: 1.02;
+}
+
+@media (max-width: 980px) {
+	.home .hero-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.home .hero-content {
+		max-width: 760px;
+	}
+
+	.home .hero-content h1 {
+		max-width: 12ch;
+	}
+
+	.home .hero-media {
+		min-height: 540px;
+	}
+
+	.home .hero-media img {
+		min-height: 540px;
+	}
+
+	.hero-feature-card {
+		left: 24px;
+	}
+}
+
+@media (max-width: 620px) {
+	.home .hero {
+		padding: 58px 0 78px;
+	}
+
+	.home .hero-content h1 {
+		font-size: clamp(3rem, 16vw, 4.7rem);
+	}
+
+	.home .hero .button-row {
+		align-items: stretch;
+		flex-direction: column;
+	}
+
+	.home .hero .button {
+		justify-content: center;
+	}
+
+	.home .hero-media,
+	.home .hero-media img {
+		min-height: 430px;
+	}
+
+	.home .hero-media {
+		border-radius: 110px 110px 14px 14px;
+	}
+
+	.home .hero-media::before {
+		border-radius: 96px 96px 8px 8px;
+	}
+
+	.hero-feature-card {
+		left: 16px;
+		bottom: 18px;
+		padding: 18px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.home .latest-recipes .recipe-card,
+	.home .latest-recipes .recipe-card__media img {
+		transition: none;
+	}
+}
