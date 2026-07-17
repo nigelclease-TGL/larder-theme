@@ -29,7 +29,7 @@ function larder_setup() {
 	add_theme_support( 'align-wide' );
 	add_theme_support( 'automatic-feed-links' );
 	add_theme_support( 'customize-selective-refresh-widgets' );
-	add_theme_support( 'custom-logo', array( 'height' => 120, 'width' => 520, 'flex-height' => true, 'flex-width' => true ) );
+	add_theme_support( 'custom-logo', array( 'height' => 132, 'width' => 520, 'flex-height' => true, 'flex-width' => true ) );
 	add_theme_support( 'html5', array( 'search-form', 'comment-form', 'comment-list', 'gallery', 'caption', 'style', 'script' ) );
 
 	add_editor_style(
@@ -91,6 +91,7 @@ function larder_enqueue_assets() {
 	}
 
 	wp_enqueue_style( 'nkt-brand-system', get_template_directory_uri() . '/assets/css/brand-system.css', array( $brand_dependency ), $version );
+	wp_enqueue_style( 'nkt-brand-v2', get_template_directory_uri() . '/assets/css/brand-v2.css', array( 'nkt-brand-system' ), $version );
 
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
 		wp_enqueue_script( 'comment-reply' );
