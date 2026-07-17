@@ -5,8 +5,18 @@
 	scroll-margin-top: 120px;
 }
 
+.single-recipe .wprm-recipe-container,
+.single-recipe .wprm-recipe-template-container,
+.single-recipe .wprm-recipe {
+	width: 100% !important;
+	max-width: 980px !important;
+	margin-left: auto !important;
+	margin-right: auto !important;
+}
+
 .wprm-recipe-container {
-	margin: 52px 0;
+	margin-top: 52px;
+	margin-bottom: 52px;
 	scroll-margin-top: 120px;
 }
 
@@ -14,6 +24,8 @@
 .wprm-recipe-template-compact,
 .wprm-recipe-template-chic,
 .wprm-recipe-template-modern {
+	width: 100% !important;
+	max-width: none !important;
 	padding: clamp(24px, 5vw, 48px) !important;
 	border: 1px solid var(--color-border) !important;
 	border-radius: 18px !important;
