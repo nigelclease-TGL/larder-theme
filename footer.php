@@ -8,7 +8,7 @@ $terms_page    = nkt_setup_find_page( array( 'terms', 'terms-and-conditions' ) )
 	<div class="container footer-grid">
 		<div class="footer-brand">
 			<a class="footer-logo" href="<?php echo esc_url( home_url( '/' ) ); ?>">Nigel's Kitchen Table</a>
-			<p><?php esc_html_e( 'Seasonal recipes, comforting food and beautiful bakes made with simple ingredients and plenty of heart.', 'larder' ); ?></p>
+			<p><?php esc_html_e( "Seasonal recipes, beautiful bakes and practical kitchen knowledge—tested carefully and shared from Nigel's kitchen table.", 'larder' ); ?></p>
 		</div>
 
 		<div class="footer-column">
@@ -38,7 +38,7 @@ $terms_page    = nkt_setup_find_page( array( 'terms', 'terms-and-conditions' ) )
 
 	<div class="container footer-bottom">
 		<p>&copy; <?php echo esc_html( wp_date( 'Y' ) ); ?> Nigel's Kitchen Table</p>
-		<p class="footer-domain"><?php esc_html_e( 'At thegourmetlarder.com', 'larder' ); ?></p>
+		<p class="footer-domain">thegourmetlarder.com</p>
 		<div class="footer-legal">
 			<?php if ( get_privacy_policy_url() ) : ?><a href="<?php echo esc_url( get_privacy_policy_url() ); ?>"><?php esc_html_e( 'Privacy', 'larder' ); ?></a><?php endif; ?>
 			<?php if ( $terms_page ) : ?><a href="<?php echo esc_url( get_permalink( $terms_page ) ); ?>"><?php esc_html_e( 'Terms', 'larder' ); ?></a><?php endif; ?>
