@@ -86,8 +86,9 @@ function larder_enqueue_assets() {
 
 	if ( is_singular( 'post' ) ) {
 		wp_enqueue_style( 'nkt-recipe-brand-template', get_template_directory_uri() . '/assets/css/recipe-brand-template.css', array( 'nkt-recipe-experience' ), $version );
+		wp_enqueue_style( 'nkt-recipe-phase-3', get_template_directory_uri() . '/assets/css/recipe-phase-3.css', array( 'nkt-recipe-brand-template' ), $version );
 		wp_enqueue_script( 'larder-recipe-tools', get_template_directory_uri() . '/assets/js/recipe-tools.js', array(), $version, true );
-		$brand_dependency = 'nkt-recipe-brand-template';
+		$brand_dependency = 'nkt-recipe-phase-3';
 	}
 
 	wp_enqueue_style( 'nkt-brand-system', get_template_directory_uri() . '/assets/css/brand-system.css', array( $brand_dependency ), $version );
