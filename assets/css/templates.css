@@ -4,6 +4,10 @@
 	padding: clamp(70px, 9vw, 120px) 0;
 }
 
+.recipe-hero {
+	padding-bottom: 24px;
+}
+
 .archive-header h1,
 .recipe-hero h1,
 .not-found h1 {
@@ -53,37 +57,95 @@
 	cursor: pointer;
 }
 
-.recipe-layout {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr) 300px;
-	align-items: start;
-	gap: clamp(40px, 7vw, 90px);
-	padding-block: 80px;
+/*
+ * Every recipe post uses one centred editorial column.
+ * Keeping these rules in the theme means existing and future posts match
+ * without page-specific Customizer CSS.
+ */
+.single-recipe .recipe-layout {
+	display: block;
+	width: min(92%, 980px);
+	margin-inline: auto;
+	padding-top: 36px;
+	padding-bottom: 80px;
 }
 
-.recipe-content {
+.single-recipe .recipe-content {
+	width: 100%;
+	max-width: 980px;
 	min-width: 0;
+	margin-inline: auto;
 }
 
-.recipe-content > * {
-	max-width: 780px;
+.single-recipe .recipe-content > * {
+	width: 100%;
+	max-width: 100%;
+	margin-left: auto;
+	margin-right: auto;
 }
 
-.recipe-content h2,
-.recipe-content h3 {
+.single-recipe .recipe-content h2,
+.single-recipe .recipe-content h3 {
 	font-family: "Playfair Display", serif;
 	line-height: 1.15;
 }
 
-.recipe-content h2 {
-	margin-top: 2.4em;
-	font-size: clamp(2rem, 4vw, 3rem);
+.single-recipe .recipe-content h2 {
+	margin-top: 55px;
+	margin-bottom: 20px;
+	font-size: 42px;
+	line-height: 1.08;
 }
 
-.recipe-content a {
+.single-recipe .recipe-content h3 {
+	font-size: 30px;
+}
+
+.single-recipe .recipe-content p,
+.single-recipe .recipe-content li {
+	font-size: 18px;
+	line-height: 1.75;
+}
+
+.single-recipe .recipe-content li {
+	margin-bottom: 14px;
+}
+
+.single-recipe .recipe-content ul,
+.single-recipe .recipe-content ol {
+	padding-left: 1.4em;
+}
+
+.single-recipe .recipe-content a {
 	color: var(--color-olive-dark);
 	text-decoration: underline;
 	text-underline-offset: 3px;
+}
+
+/* All separator blocks share the article centre line and width. */
+.single-recipe .recipe-content hr,
+.single-recipe .recipe-content .wp-block-separator,
+.single-recipe .recipe-content .wp-block-separator.is-style-wide {
+	width: 100% !important;
+	max-width: 100% !important;
+	margin: 25px auto 30px !important;
+	border-left: 0;
+	border-right: 0;
+}
+
+.single-recipe .recipe-content hr + h2,
+.single-recipe .recipe-content .wp-block-separator + h2 {
+	margin-top: 35px;
+}
+
+/* Tighten automatically generated contents sections when present. */
+.single-recipe .recipe-content #contents {
+	margin-bottom: 20px;
+}
+
+.single-recipe .recipe-content #contents + ul,
+.single-recipe .recipe-content #contents + ol {
+	margin-bottom: 35px;
 }
 
 .recipe-sidebar {
@@ -177,8 +239,7 @@
 }
 
 @media (max-width: 900px) {
-	.recipe-hero__grid,
-	.recipe-layout {
+	.recipe-hero__grid {
 		grid-template-columns: 1fr;
 	}
 
@@ -193,8 +254,23 @@
 		flex-direction: column;
 	}
 
-	.recipe-layout {
-		padding-block: 56px;
+	.single-recipe .recipe-layout {
+		width: min(92%, 980px);
+		padding-top: 28px;
+		padding-bottom: 56px;
+	}
+
+	.single-recipe .recipe-content h2 {
+		font-size: 34px;
+	}
+
+	.single-recipe .recipe-content h3 {
+		font-size: 26px;
+	}
+
+	.single-recipe .recipe-content p,
+	.single-recipe .recipe-content li {
+		font-size: 17px;
 	}
 }
 
@@ -211,8 +287,9 @@
 		font-size: 12pt;
 	}
 
-	.recipe-layout {
+	.single-recipe .recipe-layout {
 		display: block;
+		width: 100%;
 		padding: 0;
 	}
 }
