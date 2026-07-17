@@ -7,6 +7,7 @@
 
 get_header();
 ?>
+<div class="nkt-reading-progress" aria-hidden="true"><span></span></div>
 <main id="primary" class="single-recipe nkt-recipe-template">
 	<?php while ( have_posts() ) : the_post(); ?>
 		<?php
@@ -31,6 +32,7 @@ get_header();
 							<a class="button button-primary" href="#recipe-card"><?php esc_html_e( 'Jump to recipe', 'larder' ); ?></a>
 							<button class="button button-secondary" type="button" data-print-recipe><?php esc_html_e( 'Print', 'larder' ); ?></button>
 							<button class="button button-secondary" type="button" data-cook-mode aria-pressed="false"><?php esc_html_e( 'Cook mode', 'larder' ); ?></button>
+							<button class="button button-secondary" type="button" data-share-recipe><?php esc_html_e( 'Share', 'larder' ); ?></button>
 						</div>
 					</div>
 
@@ -68,6 +70,16 @@ get_header();
 					</div>
 				</div>
 			</section>
+
+			<nav class="nkt-recipe-toolbar" aria-label="<?php esc_attr_e( 'Quick recipe actions', 'larder' ); ?>">
+				<div class="nkt-recipe-toolbar__inner">
+					<a class="nkt-recipe-toolbar__primary" href="#recipe-card"><?php esc_html_e( 'Jump to recipe', 'larder' ); ?></a>
+					<button type="button" data-print-recipe><?php esc_html_e( 'Print', 'larder' ); ?></button>
+					<button type="button" data-cook-mode aria-pressed="false"><?php esc_html_e( 'Cook mode', 'larder' ); ?></button>
+					<button type="button" data-share-recipe><?php esc_html_e( 'Share', 'larder' ); ?></button>
+					<span class="nkt-recipe-toolbar__status" data-share-status aria-live="polite"></span>
+				</div>
+			</nav>
 
 			<div class="nkt-recipe-body">
 				<div class="recipe-layout">
