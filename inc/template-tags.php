@@ -72,31 +72,20 @@ function nkt_is_kitchen_note( $post_id = null ) {
  * @return void
  */
 function nkt_post_meta( $post_id = null ) {
-	$post_id        = $post_id ?: get_the_ID();
-	$category       = nkt_get_primary_category( $post_id );
+	$post_id         = $post_id ?: get_the_ID();
+	$category        = nkt_get_primary_category( $post_id );
 	$is_kitchen_note = nkt_is_kitchen_note( $post_id );
-	$items          = array();
-
-	if ( $category ) {
-		$items[] = sprintf(
-			'<a href="%1$s">%2$s</a>',
-			esc_url( get_category_link( $category ) ),
-			esc_html( $category->name )
-		);
-	}
-
-	if ( $is_kitchen_note ) {
-		$items[] = sprintf(
-			'<time datetime="%1$s">%2$s</time>',
-			esc_attr( get_the_date( DATE_W3C, $post_id ) ),
-			esc_html( get_the_date( '', $post_id ) )
-		);
-	}
-
-	$items[] = esc_html( nkt_get_reading_time( $post_id ) );
 	?>
 	<div class="nkt-post-meta">
-		<?php echo wp_kses_post( implode( '<span aria-hidden="true">·</span>', $items ) ); ?>
+		<?php if ( $category ) : ?>
+			<a href="<?php echo esc_url( get_category_link( $category->term_id ) ); ?>"><?php echo esc_html( $category->name ); ?></a>
+			<span aria-hidden="true">·</span>
+		<?php endif; ?>
+		<?php if ( $is_kitchen_note ) : ?>
+			<time datetime="<?php echo esc_attr( get_the_date( DATE_W3C, $post_id ) ); ?>"><?php echo esc_html( get_the_date( '', $post_id ) ); ?></time>
+			<span aria-hidden="true">·</span>
+		<?php endif; ?>
+		<span><?php echo esc_html( nkt_get_reading_time( $post_id ) ); ?></span>
 	</div>
 	<?php
 }
