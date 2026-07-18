@@ -19,7 +19,7 @@
 				<a class="site-branding__fallback" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" aria-label="<?php esc_attr_e( "Nigel's Kitchen Table home", 'larder' ); ?>">
 					<picture>
 						<source media="(max-width: 620px)" srcset="<?php echo esc_url( get_template_directory_uri() . '/assets/images/nkt-logo-compact.svg' ); ?>">
-						<img class="site-branding__mark" src="<?php echo esc_url( get_template_directory_uri() . '/assets/images/nkt-logo-horizontal.svg' ); ?>" alt="<?php esc_attr_e( "Nigel's Kitchen Table", 'larder' ); ?>" width="520" height="132">
+						<img class="site-branding__mark" src="<?php echo esc_url( get_template_directory_uri() . '/assets/images/nkt-logo-horizontal.svg' ); ?>" alt="<?php esc_attr_e( "Nigel's Kitchen Table", 'larder' ); ?>" width="520" height="132" decoding="async">
 					</picture>
 				</a>
 			<?php endif; ?>
@@ -39,19 +39,20 @@
 		</nav>
 
 		<div class="header-actions">
-			<button class="search-toggle" type="button" aria-expanded="false" aria-controls="site-search-dialog">
-				<span class="screen-reader-text"><?php esc_html_e( 'Open search', 'larder' ); ?></span>
-				<span aria-hidden="true">⌕</span>
+			<button class="search-toggle" type="button" aria-expanded="false" aria-controls="site-search-dialog" aria-haspopup="dialog">
+				<span class="screen-reader-text"><?php esc_html_e( 'Open recipe search', 'larder' ); ?></span>
+				<svg aria-hidden="true" viewBox="0 0 24 24" width="21" height="21" focusable="false"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
 			</button>
 
-			<button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation">
-				<?php esc_html_e( 'Menu', 'larder' ); ?>
+			<button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation" aria-label="<?php esc_attr_e( 'Open menu', 'larder' ); ?>">
+				<span class="menu-toggle__label"><?php esc_html_e( 'Menu', 'larder' ); ?></span>
+				<span class="menu-toggle__icon" aria-hidden="true"><span></span><span></span></span>
 			</button>
 		</div>
 	</div>
 </header>
 
-<div id="site-search-dialog" class="search-dialog" aria-hidden="true">
+<div id="site-search-dialog" class="search-dialog" aria-hidden="true" inert>
 	<div class="search-dialog__backdrop" data-search-close></div>
 	<div class="search-dialog__panel" role="dialog" aria-modal="true" aria-labelledby="site-search-title" tabindex="-1">
 		<button class="search-dialog__close" type="button" data-search-close>
@@ -60,6 +61,7 @@
 		</button>
 		<p class="eyebrow"><?php esc_html_e( 'Find a recipe', 'larder' ); ?></p>
 		<h2 id="site-search-title"><?php esc_html_e( 'What would you like to cook?', 'larder' ); ?></h2>
+		<p class="search-dialog__intro"><?php esc_html_e( 'Search by recipe name, ingredient or occasion.', 'larder' ); ?></p>
 		<?php get_search_form(); ?>
 	</div>
 </div>
