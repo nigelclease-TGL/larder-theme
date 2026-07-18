@@ -17,7 +17,7 @@ get_header();
 		$share_title     = rawurlencode( get_the_title() );
 		$share_image     = has_post_thumbnail() ? rawurlencode( get_the_post_thumbnail_url( get_the_ID(), 'large' ) ) : '';
 		?>
-		<article <?php post_class( 'recipe-article' ); ?>>
+		<article <?php post_class( 'recipe-article' ); ?> data-recipe-post-id="<?php echo esc_attr( $current_post_id ); ?>">
 			<header class="recipe-hero nkt-recipe-hero">
 				<div class="nkt-recipe-hero__grid">
 					<div class="nkt-recipe-hero__copy">
@@ -74,12 +74,26 @@ get_header();
 			<nav class="nkt-recipe-toolbar" aria-label="<?php esc_attr_e( 'Quick recipe actions', 'larder' ); ?>">
 				<div class="nkt-recipe-toolbar__inner">
 					<a class="nkt-recipe-toolbar__primary" href="#recipe-card"><?php esc_html_e( 'Jump to recipe', 'larder' ); ?></a>
+					<button type="button" data-toggle-recipe-guide aria-expanded="false" aria-controls="recipe-guide" hidden><?php esc_html_e( 'Sections', 'larder' ); ?></button>
 					<button type="button" data-print-recipe><?php esc_html_e( 'Print', 'larder' ); ?></button>
 					<button type="button" data-cook-mode aria-pressed="false"><?php esc_html_e( 'Cook mode', 'larder' ); ?></button>
 					<button type="button" data-share-recipe><?php esc_html_e( 'Share', 'larder' ); ?></button>
+					<button type="button" data-reset-ingredients hidden><?php esc_html_e( 'Reset ingredients', 'larder' ); ?></button>
 					<span class="nkt-recipe-toolbar__status" data-share-status aria-live="polite"></span>
 				</div>
 			</nav>
+
+			<section id="recipe-guide" class="nkt-recipe-guide" data-recipe-guide hidden aria-labelledby="recipe-guide-title">
+				<div class="nkt-recipe-guide__inner">
+					<div class="nkt-recipe-guide__intro">
+						<p><?php esc_html_e( 'Navigate the recipe', 'larder' ); ?></p>
+						<h2 id="recipe-guide-title"><?php esc_html_e( 'On this page', 'larder' ); ?></h2>
+					</div>
+					<nav aria-label="<?php esc_attr_e( 'Recipe sections', 'larder' ); ?>">
+						<ol class="nkt-recipe-guide__list" data-recipe-toc></ol>
+					</nav>
+				</div>
+			</section>
 
 			<div class="nkt-recipe-body">
 				<div class="recipe-layout">
@@ -141,9 +155,16 @@ get_header();
 
 			<?php if ( comments_open() || get_comments_number() ) : ?>
 				<div class="container recipe-comments">
+					<header class="recipe-comments__intro">
+						<p class="eyebrow"><?php esc_html_e( 'Around the table', 'larder' ); ?></p>
+						<h2><?php esc_html_e( 'Questions and kitchen notes', 'larder' ); ?></h2>
+						<p><?php esc_html_e( 'Share how the recipe went, ask a question or leave a useful tip for the next person making it.', 'larder' ); ?></p>
+					</header>
 					<?php comments_template(); ?>
 				</div>
 			<?php endif; ?>
+
+			<button class="nkt-back-to-top" type="button" data-back-to-top hidden aria-label="<?php esc_attr_e( 'Back to top', 'larder' ); ?>">↑</button>
 		</article>
 	<?php endwhile; ?>
 </main>
