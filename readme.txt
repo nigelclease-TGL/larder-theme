@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 1.6.0
+Stable tag: 1.7.0
 License: Proprietary project theme
 
 A warm editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -23,7 +23,8 @@ Key features include:
 * Mailchimp for WordPress integration
 * Cook mode, print controls and ingredient checking
 * Responsive navigation and accessible search dialog
-* Yoast SEO compatibility
+* SEO plugin compatibility and fallback metadata
+* Launch checks under WordPress Site Health
 * Staging setup assistant under Appearance
 
 == Installation ==
@@ -36,9 +37,18 @@ Key features include:
 6. Assign Primary and Footer menus.
 7. Connect Mailchimp for WordPress and enter the numeric form ID.
 8. Regenerate thumbnails and clear caches.
-9. Complete the launch checklist in docs/launch-checklist.md.
+9. Resolve critical Nigel's Kitchen Table items under Tools > Site Health.
+10. Complete the launch checklist in docs/launch-checklist.md.
 
 == Changelog ==
+
+= 1.7.0 =
+* Added launch-readiness checks to WordPress Site Health and the theme setup screen.
+* Improved fallback SEO metadata, social image details, canonical URLs and structured data.
+* Added accessible focus management for the search dialog and mobile navigation.
+* Fixed footer links so unpublished Newsletter or legacy Collection URLs cannot create avoidable 404s.
+* Added conservative performance, reduced-motion, print and final accessibility refinements.
+* Added final site-wide archive, standard-page, About and Contact polish.
 
 = 1.6.0 =
 * Added the complete Phase 4 recipe discovery and archive experience.
@@ -57,5 +67,5 @@ Key features include:
 
 == Upgrade Notice ==
 
-= 1.6.0 =
-Install on a staging copy, clear all caches and complete visual QA before production activation.
+= 1.7.0 =
+Install on staging, clear all caches and complete the Site Health and visual QA checks before production activation.
