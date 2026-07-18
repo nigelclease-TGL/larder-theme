@@ -69,3 +69,15 @@
 		display: none !important;
 	}
 }
+
+.nkt-disclosure--sponsored {
+	border-left-color: var(--color-olive-dark);
+	background: rgba(102, 120, 95, 0.1);
+}
+
+.nkt-disclosure a {
+	color: inherit;
+	font-weight: 700;
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
