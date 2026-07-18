@@ -34,13 +34,15 @@ The final global tokens and component alignment are applied in `assets/css/brand
 - Contact
 - Search results
 - 404 page
+- Newsletter landing page and optional welcome gift
+- Work with Nigel, Editorial Standards and Affiliate Disclosure pages
 
 ## WordPress requirements
 
 - WordPress 6.6 or newer
 - PHP 8.1 or newer
 - WP Recipe Maker
-- An SEO plugin such as Yoast SEO, Rank Math or All in One SEO
+- Yoast SEO
 - Contact Form 7
 - Mailchimp for WordPress for the newsletter form
 
@@ -53,14 +55,11 @@ The theme also supports the site's existing UpdraftPlus, WP Super Cache and thum
 3. Upload and activate the ZIP.
 4. Open **Appearance → Kitchen Table Setup**.
 5. Run **Create missing pages and set homepage**.
-6. Open the Customizer and select:
-   - the mango and passion fruit cheesecake as the homepage hero,
-   - Nigel's portrait as the small About image,
-   - the numeric Mailchimp for WordPress form ID.
+6. Open the Customizer and select the hero image, Nigel portrait and Mailchimp form ID.
 7. Assign the Primary and Footer menus.
 8. Regenerate thumbnails.
-9. Clear WP Super Cache.
-10. Open **Tools → Site Health** and resolve critical Nigel's Kitchen Table checks.
+9. Open **Tools → Recipe Content Audit**.
+10. Clear WP Super Cache.
 
 The homepage must use a static page with **Homepage: Home** selected and the **Posts page left unselected**.
 
@@ -70,7 +69,7 @@ The ten selected portrait recipe photographs are mapped in [`docs/photo-asset-pl
 
 ## Launch readiness
 
-Version 1.7.0 adds theme-specific checks under **Tools → Site Health** for page structure, WP Recipe Maker, staging/production search visibility, HTTPS, permalinks, privacy and the recommended SEO/contact/newsletter integrations.
+Version 1.9.0 adds theme-specific checks under **Tools → Site Health** for page structure, WP Recipe Maker, staging/production search visibility, HTTPS, permalinks, privacy, newsletter readiness, commercial transparency and editorial content readiness.
 
 ## Launch safeguards
 
@@ -79,16 +78,19 @@ Version 1.7.0 adds theme-specific checks under **Tools → Site Health** for pag
 - Safe menu fallbacks remain available until WordPress menus are assigned.
 - Newsletter signup is displayed only when a valid MC4WP form is configured, or when an existing Newsletter page is available.
 - Legal links are displayed only when the corresponding WordPress pages exist.
-- Search and mobile navigation restore keyboard focus correctly after closing.
-- A fallback SEO layer runs only when a dedicated SEO plugin is not active.
+- Welcome-gift and homepage-promotion sections stay hidden until a destination URL or widget is configured.
+- Conversion events contain no form-field values and are sent only to an analytics data layer that already exists.
+- Visible publication dates are omitted from evergreen recipe pages and recipe cards; Kitchen Notes keep their editorial dates.
+- A read-only audit under **Tools → Recipe Content Audit** highlights missing featured images, alt text, excerpts, categories, recipe cards and supporting copy without changing posts or URLs.
 
-See [`docs/launch-checklist.md`](docs/launch-checklist.md) for the final staging and go-live procedure.
+See [`docs/editorial-workflow.md`](docs/editorial-workflow.md) and [`docs/launch-checklist.md`](docs/launch-checklist.md).
 
 ## Automated checks
 
 Every push runs GitHub Actions to:
 
 - lint all PHP files,
-- validate JavaScript and JSON files,
-- check required theme templates and launch files,
+- validate JSON files,
+- check required theme templates,
+- check the editorial-audit files required by the release,
 - build an installable WordPress ZIP artifact.
