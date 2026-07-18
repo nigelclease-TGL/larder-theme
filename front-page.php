@@ -62,8 +62,8 @@ $featured_label      = ! empty( $featured_categories ) ? $featured_categories[0]
 				<h1><span><?php esc_html_e( 'Seasonal cooking.', 'larder' ); ?></span><span><?php esc_html_e( 'Beautiful recipes.', 'larder' ); ?></span><span><?php esc_html_e( 'Made for real life.', 'larder' ); ?></span></h1>
 				<p class="hero-copy"><?php esc_html_e( 'Discover seasonal recipes, practical kitchen knowledge and thoughtful cooking inspiration—from everyday meals to special occasions.', 'larder' ); ?></p>
 				<div class="button-row">
-					<a class="button button-primary" href="<?php echo esc_url( $recipes_url ); ?>"><?php esc_html_e( 'Explore recipes', 'larder' ); ?> <span aria-hidden="true">→</span></a>
-					<a class="button button-secondary" href="<?php echo esc_url( $notes_url ); ?>"><?php esc_html_e( 'Kitchen Notes', 'larder' ); ?></a>
+					<a class="button button-primary" href="<?php echo esc_url( $recipes_url ); ?>" data-nkt-event="recipes_open" data-nkt-label="homepage_hero"><?php esc_html_e( 'Explore recipes', 'larder' ); ?> <span aria-hidden="true">→</span></a>
+					<a class="button button-secondary" href="<?php echo esc_url( $notes_url ); ?>" data-nkt-event="kitchen_notes_open" data-nkt-label="homepage_hero"><?php esc_html_e( 'Kitchen Notes', 'larder' ); ?></a>
 				</div>
 			</div>
 
@@ -75,7 +75,7 @@ $featured_label      = ! empty( $featured_categories ) ? $featured_categories[0]
 				<?php endif; ?>
 
 				<?php if ( $featured_recipe_id ) : ?>
-					<a class="hero-feature-card" href="<?php echo esc_url( $featured_url ); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'View featured recipe: %s', 'larder' ), $featured_title ) ); ?>">
+					<a class="hero-feature-card" href="<?php echo esc_url( $featured_url ); ?>" data-nkt-event="featured_recipe_open" data-nkt-label="homepage_hero" aria-label="<?php echo esc_attr( sprintf( __( 'View featured recipe: %s', 'larder' ), $featured_title ) ); ?>">
 						<p class="hero-feature-card__label"><?php echo esc_html( $featured_label ); ?></p>
 						<strong><?php echo esc_html( $featured_title ); ?></strong>
 						<div class="hero-feature-card__meta">
@@ -127,6 +127,7 @@ $featured_label      = ! empty( $featured_categories ) ? $featured_categories[0]
 	<?php get_template_part( 'template-parts/home/categories' ); ?>
 	<?php get_template_part( 'template-parts/home/popular' ); ?>
 	<?php get_template_part( 'template-parts/home/kitchen-notes' ); ?>
+	<?php get_template_part( 'template-parts/home/promotion' ); ?>
 	<?php get_template_part( 'template-parts/home/about' ); ?>
 	<?php get_template_part( 'template-parts/home/newsletter' ); ?>
 	<?php get_template_part( 'template-parts/home/social' ); ?>
