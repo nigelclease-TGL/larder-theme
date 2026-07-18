@@ -18,7 +18,8 @@ Use this checklist on a staging copy of `thegourmetlarder.com`. Do not activate 
 - [ ] Activate only on staging.
 - [ ] Open **Appearance → Kitchen Table Setup**.
 - [ ] Run **Create missing pages and set homepage**.
-- [ ] Confirm the homepage, Recipes, Kitchen Notes, About Nigel and Contact pages resolve correctly.
+- [ ] Confirm the homepage, Recipes, Recipe Collections, Kitchen Notes, About Nigel and Contact pages resolve correctly.
+- [ ] Open **Tools → Site Health** and resolve every critical Nigel’s Kitchen Table item after activation.
 
 ## 3. Brand and media
 
@@ -38,6 +39,8 @@ Use this checklist on a staging copy of `thegourmetlarder.com`. Do not activate 
 - [ ] Confirm all old recipe URLs remain unchanged.
 - [ ] Confirm legacy collection pages still open or redirect intentionally.
 - [ ] Check category archives for Cakes, Biscuits & Cookies, Brownies & Bars, Bread, Pastry, Desserts & Puddings, Ice Cream and Breakfast.
+- [ ] Open and close mobile navigation using keyboard only; confirm focus returns to the Menu button.
+- [ ] Open and close recipe search using keyboard only; confirm focus returns to the Search button.
 
 ## 5. Plugin integration
 
@@ -45,7 +48,7 @@ Use this checklist on a staging copy of `thegourmetlarder.com`. Do not activate 
 - [ ] Jump to Recipe reaches the recipe card on representative posts.
 - [ ] WP Recipe Maker print view is clean and readable.
 - [ ] Recipe ratings and structured data remain enabled.
-- [ ] Yoast SEO titles, descriptions, canonical URLs and XML sitemap still work.
+- [ ] The chosen SEO plugin outputs titles, descriptions, canonical URLs and XML sitemaps correctly.
 - [ ] Contact Form 7 sends a successful test message.
 - [ ] Mailchimp for WordPress is connected to the correct audience.
 - [ ] Enter the numeric MC4WP form ID in the theme Customizer.
@@ -73,7 +76,9 @@ For each recipe confirm:
 - [ ] Ingredients and instructions display completely.
 - [ ] Timings and servings are present.
 - [ ] Print works.
-- [ ] Social sharing links open the correct recipe URL.
+- [ ] Cook Mode stays active and the screen remains awake where supported.
+- [ ] Ingredient checkboxes work with mouse, touch and keyboard.
+- [ ] Social sharing opens or copies the correct recipe URL.
 - [ ] Related recipes are relevant.
 - [ ] Comments and ratings work where enabled.
 
@@ -91,6 +96,7 @@ For each recipe confirm:
 - [ ] Keyboard-only navigation
 - [ ] Visible focus states
 - [ ] Reduced-motion preference
+- [ ] Browser back/forward navigation after applying recipe filters
 
 ## 8. Performance and accessibility
 
@@ -103,14 +109,17 @@ For each recipe confirm:
 - [ ] Every meaningful image has useful alt text.
 - [ ] Heading order is logical.
 - [ ] Forms have visible labels or accessible names.
+- [ ] Search and menu dialogs do not allow keyboard focus behind them.
 - [ ] Clear WP Super Cache and retest logged out.
 
-## 9. SEO and analytics
+## 9. Privacy, SEO and analytics
 
+- [ ] WordPress Privacy Policy page is assigned.
+- [ ] Cookie/consent configuration is reviewed for Analytics, advertising, embedded media and Mailchimp.
 - [ ] Staging remains noindex until launch.
 - [ ] Production remains indexable after launch.
-- [ ] Existing Google Analytics / Site Kit tracking still fires.
-- [ ] Yoast sitemap returns successfully.
+- [ ] Existing Google Analytics / Site Kit tracking still fires after consent.
+- [ ] SEO sitemap returns successfully.
 - [ ] Recipe schema validates on representative recipes.
 - [ ] Open Graph images and titles are correct.
 - [ ] Pinterest sharing uses the intended portrait image.
@@ -125,6 +134,7 @@ For each recipe confirm:
 - [ ] Assign menus and Customizer images.
 - [ ] Enter the Mailchimp form ID.
 - [ ] Regenerate thumbnails if production does not already have them.
+- [ ] Confirm **Settings → Reading → Search engine visibility** allows indexing on production.
 - [ ] Clear all caches.
 - [ ] Test homepage, Recipes, one collection, About, Contact and five recipes while logged out.
 - [ ] Confirm the old Kale Child theme remains installed for immediate rollback.
