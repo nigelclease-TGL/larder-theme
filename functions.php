@@ -19,6 +19,9 @@ require_once get_template_directory() . '/inc/navigation.php';
 require_once get_template_directory() . '/inc/template-tags.php';
 require_once get_template_directory() . '/inc/search.php';
 require_once get_template_directory() . '/inc/discovery.php';
+require_once get_template_directory() . '/inc/content-audit.php';
+require_once get_template_directory() . '/inc/content-audit-screen.php';
+require_once get_template_directory() . '/inc/content-audit-integrations.php';
 require_once get_template_directory() . '/inc/setup-wizard.php';
 require_once get_template_directory() . '/inc/site-health.php';
 
