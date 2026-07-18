@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 1.0.0-rc2
+Stable tag: 1.6.0
 License: Proprietary project theme
 
 A warm editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -40,6 +40,13 @@ Key features include:
 
 == Changelog ==
 
+= 1.6.0 =
+* Added the complete Phase 4 recipe discovery and archive experience.
+* Added category filters, sorting controls and result counts to the recipe hub.
+* Redesigned search, category, collection, Kitchen Notes and posts archive pages.
+* Added useful empty states, 404 recipe suggestions and content-type card labels.
+* Preserved the Phase 2 homepage and Phase 3 recipe reading tools.
+
 = 1.0.0-rc2 =
 * Added final Nigel's Kitchen Table brand system.
 * Added homepage, recipes hub, collections, Kitchen Notes, About and Contact templates.
@@ -50,5 +57,5 @@ Key features include:
 
 == Upgrade Notice ==
 
-= 1.0.0-rc2 =
-Install on a staging copy and complete all QA checks before production activation.
+= 1.6.0 =
+Install on a staging copy, clear all caches and complete visual QA before production activation.
