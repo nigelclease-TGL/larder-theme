@@ -54,7 +54,6 @@
 }
 
 .single-recipe .nkt-recipe-guide__list a{
-	dis:grid;
 	display:grid;
 	grid-template-columns:auto 1fr;
 	gap:14px;
@@ -84,7 +83,8 @@
 	line-height:1.35;
 }
 
-.single-recipe .nkt-section-heading{
+.single-recipe .nkt-section-heading,
+.single-recipe #recipe-card{
 	scroll-margin-top:118px;
 }
 
