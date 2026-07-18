@@ -114,6 +114,10 @@ function nkt_handle_quick_setup() {
 	nkt_setup_ensure_page( __( 'Kitchen Notes', 'larder' ), 'kitchen-notes', array( 'baking-guides' ) );
 	nkt_setup_ensure_page( __( 'About Nigel', 'larder' ), 'about-nigel', array( 'my-story', 'about' ) );
 	nkt_setup_ensure_page( __( 'Contact', 'larder' ), 'contact', array( 'contact-me' ) );
+	nkt_setup_ensure_page( __( 'Newsletter', 'larder' ), 'newsletter' );
+	nkt_setup_ensure_page( __( 'Work with Nigel', 'larder' ), 'work-with-nigel', array( 'partnerships', 'work-with-me' ) );
+	nkt_setup_ensure_page( __( 'Editorial Standards', 'larder' ), 'editorial-standards', array( 'recipe-standards' ) );
+	nkt_setup_ensure_page( __( 'Affiliate Disclosure', 'larder' ), 'affiliate-disclosure', array( 'disclosure' ) );
 
 	if ( $home_id ) {
 		update_option( 'show_on_front', 'page' );
@@ -156,23 +160,30 @@ function nkt_render_setup_page() {
 	);
 
 	$pages = array(
-		'Recipes'            => (bool) nkt_setup_find_page( array( 'recipes' ) ),
-		'Recipe Collections' => (bool) nkt_setup_find_page( array( 'recipe-collections', 'collections', 'seasons' ) ),
-		'Kitchen Notes'      => (bool) nkt_setup_find_page( array( 'kitchen-notes', 'baking-guides' ) ),
-		'About Nigel'        => (bool) nkt_setup_find_page( array( 'about-nigel', 'my-story', 'about' ) ),
-		'Contact'            => (bool) nkt_setup_find_page( array( 'contact', 'contact-me' ) ),
+		'Recipes'              => (bool) nkt_setup_find_page( array( 'recipes' ) ),
+		'Recipe Collections'   => (bool) nkt_setup_find_page( array( 'recipe-collections', 'collections', 'seasons' ) ),
+		'Kitchen Notes'        => (bool) nkt_setup_find_page( array( 'kitchen-notes', 'baking-guides' ) ),
+		'About Nigel'          => (bool) nkt_setup_find_page( array( 'about-nigel', 'my-story', 'about' ) ),
+		'Contact'              => (bool) nkt_setup_find_page( array( 'contact', 'contact-me' ) ),
+		'Newsletter'           => (bool) nkt_setup_find_page( array( 'newsletter' ) ),
+		'Work with Nigel'      => (bool) nkt_setup_find_page( array( 'work-with-nigel', 'partnerships', 'work-with-me' ) ),
+		'Editorial Standards'  => (bool) nkt_setup_find_page( array( 'editorial-standards', 'recipe-standards' ) ),
+		'Affiliate Disclosure' => (bool) nkt_setup_find_page( array( 'affiliate-disclosure', 'disclosure' ) ),
 	);
 
-	$hero_ready       = (bool) absint( get_theme_mod( 'larder_hero_image', 0 ) );
-	$portrait_ready   = (bool) absint( get_theme_mod( 'larder_portrait_image', 0 ) );
-	$primary_menu     = has_nav_menu( 'primary' );
-	$footer_menu      = has_nav_menu( 'footer' );
-	$static_homepage  = 'page' === get_option( 'show_on_front' ) && (int) get_option( 'page_on_front' ) > 0;
-	$mailchimp_form   = absint( get_theme_mod( 'larder_mailchimp_form_id', 0 ) );
-	$privacy_ready    = (bool) get_privacy_policy_url();
-	$permalinks_ready = '' !== (string) get_option( 'permalink_structure' );
-	$visibility_ready = nkt_is_staging_site() ? ! (bool) get_option( 'blog_public' ) : (bool) get_option( 'blog_public' );
-	$https_ready      = is_ssl();
+	$hero_ready        = (bool) absint( get_theme_mod( 'larder_hero_image', 0 ) );
+	$portrait_ready    = (bool) absint( get_theme_mod( 'larder_portrait_image', 0 ) );
+	$primary_menu      = has_nav_menu( 'primary' );
+	$footer_menu       = has_nav_menu( 'footer' );
+	$static_homepage   = 'page' === get_option( 'show_on_front' ) && (int) get_option( 'page_on_front' ) > 0;
+	$mailchimp_form     = absint( get_theme_mod( 'larder_mailchimp_form_id', 0 ) );
+	$lead_magnet        = nkt_get_lead_magnet();
+	$home_promotion     = nkt_get_home_promotion();
+	$measurement_ready  = nkt_has_measurement_integration();
+	$privacy_ready      = (bool) get_privacy_policy_url();
+	$permalinks_ready   = '' !== (string) get_option( 'permalink_structure' );
+	$visibility_ready   = nkt_is_staging_site() ? ! (bool) get_option( 'blog_public' ) : (bool) get_option( 'blog_public' );
+	$https_ready        = is_ssl();
 	?>
 	<div class="wrap nkt-setup-wrap">
 		<h1><?php esc_html_e( "Nigel's Kitchen Table Setup", 'larder' ); ?></h1>
@@ -218,7 +229,18 @@ function nkt_render_setup_page() {
 			</section>
 
 			<section class="nkt-setup-card">
-				<h2><?php esc_html_e( '4. Launch readiness', 'larder' ); ?></h2>
+				<h2><?php esc_html_e( '4. Business growth', 'larder' ); ?></h2>
+				<ul class="nkt-status-list">
+					<?php nkt_setup_status_item( $mailchimp_form > 0, __( 'Newsletter form is connected', 'larder' ), __( 'A dedicated newsletter landing page and homepage invitation are included.', 'larder' ) ); ?>
+					<?php nkt_setup_status_item( $lead_magnet['enabled'], __( 'Optional welcome gift is configured', 'larder' ), __( 'Leave it unconfigured when no lead magnet is ready.', 'larder' ) ); ?>
+					<?php nkt_setup_status_item( $home_promotion['enabled'] || is_active_sidebar( 'homepage-promotion' ), __( 'Optional homepage promotion is configured', 'larder' ), __( 'The promotion remains hidden until a URL or widget is added.', 'larder' ) ); ?>
+					<?php nkt_setup_status_item( $measurement_ready, __( 'Measurement integration detected', 'larder' ), __( 'The theme emits privacy-conscious conversion events but does not install a tracker itself.', 'larder' ) ); ?>
+				</ul>
+				<p><a class="button" href="<?php echo esc_url( admin_url( 'customize.php?autofocus[section]=larder_newsletter' ) ); ?>"><?php esc_html_e( 'Configure newsletter', 'larder' ); ?></a> <a class="button" href="<?php echo esc_url( admin_url( 'customize.php?autofocus[section]=larder_growth' ) ); ?>"><?php esc_html_e( 'Configure promotion', 'larder' ); ?></a></p>
+			</section>
+
+			<section class="nkt-setup-card">
+				<h2><?php esc_html_e( '5. Launch readiness', 'larder' ); ?></h2>
 				<ul class="nkt-status-list">
 					<?php nkt_setup_status_item( $https_ready, __( 'HTTPS is active', 'larder' ) ); ?>
 					<?php nkt_setup_status_item( $permalinks_ready, __( 'Pretty permalinks are configured', 'larder' ) ); ?>
@@ -229,13 +251,15 @@ function nkt_render_setup_page() {
 			</section>
 
 			<section class="nkt-setup-card">
-				<h2><?php esc_html_e( '5. Final manual checks', 'larder' ); ?></h2>
+				<h2><?php esc_html_e( '6. Final manual checks', 'larder' ); ?></h2>
 				<ol>
 					<li><?php esc_html_e( 'Run an UpdraftPlus backup.', 'larder' ); ?></li>
 					<li><?php esc_html_e( 'Regenerate thumbnails for the new portrait card and hero sizes.', 'larder' ); ?></li>
 					<li><?php esc_html_e( 'Check ten representative recipes on desktop and mobile.', 'larder' ); ?></li>
 					<li><?php esc_html_e( 'Confirm WP Recipe Maker print, ratings and schema output.', 'larder' ); ?></li>
-					<li><?php esc_html_e( 'Test the contact form and Mailchimp confirmation email.', 'larder' ); ?></li>
+					<li><?php esc_html_e( 'Test the contact form, Mailchimp confirmation email and newsletter privacy wording.', 'larder' ); ?></li>
+					<li><?php esc_html_e( 'Review Editorial Standards and Affiliate Disclosure before publishing commercial content.', 'larder' ); ?></li>
+					<li><?php esc_html_e( 'Confirm conversion events reach the chosen analytics platform without collecting form-field values.', 'larder' ); ?></li>
 					<li><?php esc_html_e( 'Clear WP Super Cache after the final review.', 'larder' ); ?></li>
 				</ol>
 			</section>
