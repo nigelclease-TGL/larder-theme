@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 1.7.0
+Stable tag: 1.8.0
 License: Proprietary project theme
 
 A warm editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -23,9 +23,11 @@ Key features include:
 * Mailchimp for WordPress integration
 * Cook mode, print controls and ingredient checking
 * Responsive navigation and accessible search dialog
-* SEO plugin compatibility and fallback metadata
-* Launch checks under WordPress Site Health
+* Yoast SEO compatibility
 * Staging setup assistant under Appearance
+* Dedicated newsletter, welcome gift and homepage promotion options
+* Editorial Standards, Affiliate Disclosure and partnership page templates
+* Privacy-conscious conversion events for existing analytics integrations
 
 == Installation ==
 
@@ -37,10 +39,18 @@ Key features include:
 6. Assign Primary and Footer menus.
 7. Connect Mailchimp for WordPress and enter the numeric form ID.
 8. Regenerate thumbnails and clear caches.
-9. Resolve critical Nigel's Kitchen Table items under Tools > Site Health.
-10. Complete the launch checklist in docs/launch-checklist.md.
+9. Complete the launch checklist in docs/launch-checklist.md.
 
 == Changelog ==
+
+= 1.8.0 =
+* Added the complete business-growth and trust-page system.
+* Added a dedicated newsletter landing page, configurable newsletter copy and optional welcome gift.
+* Added an optional homepage promotion that remains hidden until configured.
+* Added Work with Nigel, Editorial Standards and Affiliate Disclosure page templates.
+* Added privacy-conscious conversion events for existing analytics integrations without loading a tracker.
+* Removed visible publication dates from recipe pages and recipe cards while retaining dates on Kitchen Notes and in hidden SEO metadata.
+* Expanded setup and Site Health checks for newsletter, commercial transparency and measurement readiness.
 
 = 1.7.0 =
 * Added launch-readiness checks to WordPress Site Health and the theme setup screen.
@@ -48,14 +58,6 @@ Key features include:
 * Added accessible focus management for the search dialog and mobile navigation.
 * Fixed footer links so unpublished Newsletter or legacy Collection URLs cannot create avoidable 404s.
 * Added conservative performance, reduced-motion, print and final accessibility refinements.
-* Added final site-wide archive, standard-page, About and Contact polish.
-
-= 1.6.0 =
-* Added the complete Phase 4 recipe discovery and archive experience.
-* Added category filters, sorting controls and result counts to the recipe hub.
-* Redesigned search, category, collection, Kitchen Notes and posts archive pages.
-* Added useful empty states, 404 recipe suggestions and content-type card labels.
-* Preserved the Phase 2 homepage and Phase 3 recipe reading tools.
 
 = 1.0.0-rc2 =
 * Added final Nigel's Kitchen Table brand system.
@@ -67,5 +69,5 @@ Key features include:
 
 == Upgrade Notice ==
 
-= 1.7.0 =
-Install on staging, clear all caches and complete the Site Health and visual QA checks before production activation.
+= 1.8.0 =
+Replace the current theme on staging, clear all caches and review the newsletter, trust pages and optional promotion before production activation.
