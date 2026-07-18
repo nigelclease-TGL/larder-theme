@@ -13,6 +13,7 @@ require_once get_template_directory() . '/inc/customizer.php';
 require_once get_template_directory() . '/inc/performance.php';
 require_once get_template_directory() . '/inc/seo.php';
 require_once get_template_directory() . '/inc/monetization.php';
+require_once get_template_directory() . '/inc/growth.php';
 require_once get_template_directory() . '/inc/collections.php';
 require_once get_template_directory() . '/inc/navigation.php';
 require_once get_template_directory() . '/inc/template-tags.php';
@@ -67,24 +68,55 @@ function larder_enqueue_assets() {
 	wp_enqueue_style( 'larder-main', get_template_directory_uri() . '/assets/css/main.css', array( 'larder-style' ), $version );
 	wp_enqueue_style( 'larder-templates', get_template_directory_uri() . '/assets/css/templates.css', array( 'larder-main' ), $version );
 	wp_enqueue_style( 'larder-pages', get_template_directory_uri() . '/assets/css/pages.css', array( 'larder-templates' ), $version );
-	wp_enqueue_style( 'larder-wprm', get_template_directory_uri() . '/assets/css/wp-recipe-maker.css', array( 'larder-pages' ), $version );
-	wp_enqueue_style( 'larder-header-tools', get_template_directory_uri() . '/assets/css/header-tools.css', array( 'larder-wprm' ), $version );
+	wp_enqueue_style( 'larder-header-tools', get_template_directory_uri() . '/assets/css/header-tools.css', array( 'larder-pages' ), $version );
 	wp_enqueue_style( 'larder-final-polish', get_template_directory_uri() . '/assets/css/final-polish.css', array( 'larder-header-tools' ), $version );
-	wp_enqueue_style( 'larder-mailchimp', get_template_directory_uri() . '/assets/css/mailchimp.css', array( 'larder-final-polish' ), $version );
-	wp_enqueue_style( 'nkt-brand', get_template_directory_uri() . '/assets/css/nkt-brand.css', array( 'larder-mailchimp' ), $version );
-	wp_enqueue_style( 'nkt-social-share', get_template_directory_uri() . '/assets/css/social-share.css', array( 'nkt-brand' ), $version );
-	wp_enqueue_style( 'nkt-home-editorial', get_template_directory_uri() . '/assets/css/home-editorial.css', array( 'nkt-social-share' ), $version );
-	wp_enqueue_style( 'nkt-monetization', get_template_directory_uri() . '/assets/css/monetization.css', array( 'nkt-home-editorial' ), $version );
-	wp_enqueue_style( 'nkt-collections', get_template_directory_uri() . '/assets/css/collections.css', array( 'nkt-monetization' ), $version );
-	wp_enqueue_style( 'nkt-editorial-content', get_template_directory_uri() . '/assets/css/editorial-content.css', array( 'nkt-collections' ), $version );
-	wp_enqueue_style( 'nkt-about-contact', get_template_directory_uri() . '/assets/css/about-contact.css', array( 'nkt-editorial-content' ), $version );
-	wp_enqueue_style( 'nkt-recipes-hub', get_template_directory_uri() . '/assets/css/recipes-hub.css', array( 'nkt-about-contact' ), $version );
-	wp_enqueue_style( 'nkt-home-finishing', get_template_directory_uri() . '/assets/css/home-finishing.css', array( 'nkt-recipes-hub' ), $version );
-	wp_enqueue_style( 'nkt-recipe-experience', get_template_directory_uri() . '/assets/css/recipe-experience.css', array( 'nkt-home-finishing' ), $version );
+	wp_enqueue_style( 'nkt-brand', get_template_directory_uri() . '/assets/css/nkt-brand.css', array( 'larder-final-polish' ), $version );
+	wp_enqueue_style( 'nkt-editorial-content', get_template_directory_uri() . '/assets/css/editorial-content.css', array( 'nkt-brand' ), $version );
 
-	$brand_dependency = 'nkt-recipe-experience';
+	$brand_dependency = 'nkt-editorial-content';
+	$is_front          = is_front_page();
+	$is_recipe         = is_singular( 'post' );
+	$is_singular       = is_singular();
+	$is_about_contact  = is_page( array( 'about', 'about-nigel', 'my-story', 'contact', 'contact-me' ) );
+	$is_recipes_hub    = is_page( 'recipes' );
+	$is_collections    = is_page( array( 'recipe-collections', 'collections', 'seasons' ) ) || is_tax( 'recipe_collection' );
+	$needs_newsletter  = $is_front || $is_recipe || is_page( 'newsletter' );
 
-	if ( is_singular( 'post' ) ) {
+	if ( $needs_newsletter ) {
+		wp_enqueue_style( 'larder-mailchimp', get_template_directory_uri() . '/assets/css/mailchimp.css', array( $brand_dependency ), $version );
+		$brand_dependency = 'larder-mailchimp';
+	}
+
+	if ( $is_front || $is_singular ) {
+		wp_enqueue_style( 'nkt-monetization', get_template_directory_uri() . '/assets/css/monetization.css', array( $brand_dependency ), $version );
+		$brand_dependency = 'nkt-monetization';
+	}
+
+	if ( $is_collections ) {
+		wp_enqueue_style( 'nkt-collections', get_template_directory_uri() . '/assets/css/collections.css', array( $brand_dependency ), $version );
+		$brand_dependency = 'nkt-collections';
+	}
+
+	if ( $is_about_contact ) {
+		wp_enqueue_style( 'nkt-about-contact', get_template_directory_uri() . '/assets/css/about-contact.css', array( $brand_dependency ), $version );
+		$brand_dependency = 'nkt-about-contact';
+	}
+
+	if ( $is_recipes_hub ) {
+		wp_enqueue_style( 'nkt-recipes-hub', get_template_directory_uri() . '/assets/css/recipes-hub.css', array( $brand_dependency ), $version );
+		$brand_dependency = 'nkt-recipes-hub';
+	}
+
+	if ( $is_front ) {
+		wp_enqueue_style( 'nkt-home-editorial', get_template_directory_uri() . '/assets/css/home-editorial.css', array( $brand_dependency ), $version );
+		wp_enqueue_style( 'nkt-home-finishing', get_template_directory_uri() . '/assets/css/home-finishing.css', array( 'nkt-home-editorial' ), $version );
+		$brand_dependency = 'nkt-home-finishing';
+	}
+
+	if ( $is_recipe ) {
+		wp_enqueue_style( 'larder-wprm', get_template_directory_uri() . '/assets/css/wp-recipe-maker.css', array( $brand_dependency ), $version );
+		wp_enqueue_style( 'nkt-social-share', get_template_directory_uri() . '/assets/css/social-share.css', array( 'larder-wprm' ), $version );
+		wp_enqueue_style( 'nkt-recipe-experience', get_template_directory_uri() . '/assets/css/recipe-experience.css', array( 'nkt-social-share' ), $version );
 		wp_enqueue_style( 'nkt-recipe-brand-template', get_template_directory_uri() . '/assets/css/recipe-brand-template.css', array( 'nkt-recipe-experience' ), $version );
 		wp_enqueue_style( 'nkt-recipe-phase-3', get_template_directory_uri() . '/assets/css/recipe-phase-3.css', array( 'nkt-recipe-brand-template' ), $version );
 		wp_enqueue_style( 'nkt-recipe-phase-3-guide', get_template_directory_uri() . '/assets/css/recipe-phase-3-guide.css', array( 'nkt-recipe-phase-3' ), $version );
@@ -93,12 +125,24 @@ function larder_enqueue_assets() {
 
 	wp_enqueue_style( 'nkt-brand-system', get_template_directory_uri() . '/assets/css/brand-system.css', array( $brand_dependency ), $version );
 	wp_enqueue_style( 'nkt-brand-v2', get_template_directory_uri() . '/assets/css/brand-v2.css', array( 'nkt-brand-system' ), $version );
-	wp_enqueue_style( 'nkt-home-phase-2', get_template_directory_uri() . '/assets/css/home-phase-2.css', array( 'nkt-brand-v2' ), $version );
-	wp_enqueue_style( 'nkt-home-phase-2-finish', get_template_directory_uri() . '/assets/css/home-phase-2-finish.css', array( 'nkt-home-phase-2' ), $version );
-	wp_enqueue_style( 'nkt-home-phase-2-final', get_template_directory_uri() . '/assets/css/home-phase-2-final.css', array( 'nkt-home-phase-2-finish' ), $version );
-	wp_enqueue_style( 'nkt-discovery-phase-4', get_template_directory_uri() . '/assets/css/discovery-phase-4.css', array( 'nkt-home-phase-2-final' ), $version );
-	wp_enqueue_style( 'nkt-site-phase-4', get_template_directory_uri() . '/assets/css/site-phase-4.css', array( 'nkt-discovery-phase-4' ), $version );
+
+	$final_dependency = 'nkt-brand-v2';
+	if ( $is_front ) {
+		wp_enqueue_style( 'nkt-home-phase-2', get_template_directory_uri() . '/assets/css/home-phase-2.css', array( $final_dependency ), $version );
+		wp_enqueue_style( 'nkt-home-phase-2-finish', get_template_directory_uri() . '/assets/css/home-phase-2-finish.css', array( 'nkt-home-phase-2' ), $version );
+		wp_enqueue_style( 'nkt-home-phase-2-final', get_template_directory_uri() . '/assets/css/home-phase-2-final.css', array( 'nkt-home-phase-2-finish' ), $version );
+		$final_dependency = 'nkt-home-phase-2-final';
+	}
+
+	$needs_discovery = $is_recipes_hub || $is_collections || is_archive() || is_search() || is_home() || is_404();
+	if ( $needs_discovery ) {
+		wp_enqueue_style( 'nkt-discovery-phase-4', get_template_directory_uri() . '/assets/css/discovery-phase-4.css', array( $final_dependency ), $version );
+		$final_dependency = 'nkt-discovery-phase-4';
+	}
+
+	wp_enqueue_style( 'nkt-site-phase-4', get_template_directory_uri() . '/assets/css/site-phase-4.css', array( $final_dependency ), $version );
 	wp_enqueue_style( 'nkt-launch-phase-5', get_template_directory_uri() . '/assets/css/launch-phase-5.css', array( 'nkt-site-phase-4' ), $version );
+	wp_enqueue_style( 'nkt-growth-phase-6', get_template_directory_uri() . '/assets/css/growth-phase-6.css', array( 'nkt-launch-phase-5' ), $version );
 
 	wp_enqueue_script(
 		'larder-navigation',
@@ -111,7 +155,18 @@ function larder_enqueue_assets() {
 		)
 	);
 
-	if ( is_singular( 'post' ) ) {
+	wp_enqueue_script(
+		'nkt-growth-events',
+		get_template_directory_uri() . '/assets/js/growth-events.js',
+		array(),
+		$version,
+		array(
+			'strategy'  => 'defer',
+			'in_footer' => true,
+		)
+	);
+
+	if ( $is_recipe ) {
 		wp_enqueue_script(
 			'larder-recipe-tools',
 			get_template_directory_uri() . '/assets/js/recipe-tools.js',
