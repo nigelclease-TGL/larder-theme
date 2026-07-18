@@ -17,6 +17,7 @@ require_once get_template_directory() . '/inc/collections.php';
 require_once get_template_directory() . '/inc/navigation.php';
 require_once get_template_directory() . '/inc/template-tags.php';
 require_once get_template_directory() . '/inc/search.php';
+require_once get_template_directory() . '/inc/discovery.php';
 require_once get_template_directory() . '/inc/setup-wizard.php';
 
 function larder_setup() {
@@ -97,6 +98,7 @@ function larder_enqueue_assets() {
 	wp_enqueue_style( 'nkt-home-phase-2', get_template_directory_uri() . '/assets/css/home-phase-2.css', array( 'nkt-brand-v2' ), $version );
 	wp_enqueue_style( 'nkt-home-phase-2-finish', get_template_directory_uri() . '/assets/css/home-phase-2-finish.css', array( 'nkt-home-phase-2' ), $version );
 	wp_enqueue_style( 'nkt-home-phase-2-final', get_template_directory_uri() . '/assets/css/home-phase-2-final.css', array( 'nkt-home-phase-2-finish' ), $version );
+	wp_enqueue_style( 'nkt-discovery-phase-4', get_template_directory_uri() . '/assets/css/discovery-phase-4.css', array( 'nkt-home-phase-2-final' ), $version );
 
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
 		wp_enqueue_script( 'comment-reply' );
