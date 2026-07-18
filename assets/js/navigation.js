@@ -7,7 +7,12 @@ document.addEventListener('DOMContentLoaded', () => {
 	const searchPanel = searchDialog?.querySelector('.search-dialog__panel');
 	const searchInput = searchDialog?.querySelector('input[type="search"]');
 	const searchCloseButtons = searchDialog?.querySelectorAll('[data-search-close]') || [];
-	let lastFocusedElement = null;
+	let lastSearchFocus = null;
+	let lastMenuFocus = null;
+
+	const focusableElements = (container) => [...container.querySelectorAll(
+		'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+	)].filter((element) => element.offsetParent !== null && !element.hasAttribute('inert'));
 
 	const updateHeader = () => {
 		header?.classList.toggle('is-scrolled', window.scrollY > 20);
@@ -19,7 +24,19 @@ document.addEventListener('DOMContentLoaded', () => {
 		navigation.classList.remove('is-open');
 		menuToggle.setAttribute('aria-expanded', 'false');
 		document.body.classList.remove('menu-is-open');
-		if (restoreFocus && wasOpen) menuToggle.focus();
+		if (restoreFocus && wasOpen && lastMenuFocus instanceof HTMLElement) lastMenuFocus.focus();
+	};
+
+	const openMenu = () => {
+		if (!menuToggle || !navigation) return;
+		closeSearch(false);
+		lastMenuFocus = document.activeElement;
+		navigation.classList.add('is-open');
+		menuToggle.setAttribute('aria-expanded', 'true');
+		document.body.classList.add('menu-is-open');
+		if (window.innerWidth <= 900) {
+			window.setTimeout(() => focusableElements(navigation)[0]?.focus(), 30);
+		}
 	};
 
 	const isSearchOpen = () => searchDialog?.classList.contains('is-open');
@@ -27,7 +44,8 @@ document.addEventListener('DOMContentLoaded', () => {
 	const openSearch = () => {
 		if (!searchDialog || !searchToggle) return;
 		closeMenu();
-		lastFocusedElement = document.activeElement;
+		lastSearchFocus = document.activeElement;
+		searchDialog.removeAttribute('inert');
 		searchDialog.classList.add('is-open');
 		searchDialog.setAttribute('aria-hidden', 'false');
 		searchToggle.setAttribute('aria-expanded', 'true');
@@ -39,29 +57,22 @@ document.addEventListener('DOMContentLoaded', () => {
 		if (!searchDialog || !searchToggle || !isSearchOpen()) return;
 		searchDialog.classList.remove('is-open');
 		searchDialog.setAttribute('aria-hidden', 'true');
+		searchDialog.setAttribute('inert', '');
 		searchToggle.setAttribute('aria-expanded', 'false');
 		document.body.classList.remove('search-is-open');
-		if (restoreFocus && lastFocusedElement instanceof HTMLElement) {
-			lastFocusedElement.focus();
-		}
+		if (restoreFocus && lastSearchFocus instanceof HTMLElement) lastSearchFocus.focus();
 	};
 
-	const trapSearchFocus = (event) => {
-		if (event.key !== 'Tab' || !isSearchOpen() || !searchPanel) return;
-
-		const focusable = [...searchPanel.querySelectorAll(
-			'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-		)].filter((element) => element.offsetParent !== null);
-
+	const trapFocus = (event, container) => {
+		if (event.key !== 'Tab' || !container) return;
+		const focusable = focusableElements(container);
 		if (!focusable.length) {
 			event.preventDefault();
-			searchPanel.focus();
+			container.focus?.();
 			return;
 		}
-
 		const first = focusable[0];
 		const last = focusable[focusable.length - 1];
-
 		if (event.shiftKey && document.activeElement === first) {
 			event.preventDefault();
 			last.focus();
@@ -76,10 +87,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	menuToggle?.addEventListener('click', () => {
 		if (!navigation) return;
-		closeSearch(false);
-		const isOpen = navigation.classList.toggle('is-open');
-		menuToggle.setAttribute('aria-expanded', String(isOpen));
-		document.body.classList.toggle('menu-is-open', isOpen);
+		if (navigation.classList.contains('is-open')) closeMenu(true);
+		else openMenu();
 	});
 
 	navigation?.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => closeMenu()));
@@ -93,13 +102,12 @@ document.addEventListener('DOMContentLoaded', () => {
 	});
 
 	document.addEventListener('keydown', (event) => {
-		trapSearchFocus(event);
+		if (isSearchOpen()) trapFocus(event, searchPanel);
+		else if (navigation?.classList.contains('is-open') && window.innerWidth <= 900) trapFocus(event, navigation);
+
 		if (event.key === 'Escape') {
-			if (isSearchOpen()) {
-				closeSearch();
-			} else {
-				closeMenu(true);
-			}
+			if (isSearchOpen()) closeSearch();
+			else closeMenu(true);
 		}
 	});
 
