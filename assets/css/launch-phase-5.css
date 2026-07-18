@@ -1,0 +1,57 @@
+/* Nigel's Kitchen Table — Phase 5 launch and accessibility polish. */
+
+html{
+	scroll-padding-top:clamp(86px,9vw,118px);
+}
+
+:where(a,button,input,select,textarea,[tabindex]):focus-visible{
+	outline:3px solid #b87546;
+	outline-offset:3px;
+}
+
+.search-dialog[inert]{
+	visibility:hidden;
+}
+
+.primary-navigation.is-open{
+	overscroll-behavior:contain;
+}
+
+.site-footer .footer-legal:empty{
+	display:none;
+}
+
+@media(max-width:900px){
+	.primary-navigation.is-open{
+		max-height:calc(100dvh - 96px);
+		overflow-y:auto;
+	}
+}
+
+@media(prefers-reduced-motion:reduce){
+	html{
+		scroll-behavior:auto!important;
+	}
+
+	*,*::before,*::after{
+		animation-delay:0s!important;
+		animation-duration:.01ms!important;
+		animation-iteration-count:1!important;
+		scroll-behavior:auto!important;
+		transition-duration:.01ms!important;
+	}
+}
+
+@media print{
+	.site-header,
+	.site-footer,
+	.search-dialog,
+	.nkt-back-to-top{
+		display:none!important;
+	}
+
+	body{
+		background:#fff!important;
+		color:#000!important;
+	}
+}
