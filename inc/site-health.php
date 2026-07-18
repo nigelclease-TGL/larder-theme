@@ -213,6 +213,40 @@ function nkt_site_health_integrations() {
 }
 
 /**
+ * Check business-growth and transparency readiness.
+ *
+ * @return array
+ */
+function nkt_site_health_growth_readiness() {
+	$mailchimp_ready = ( defined( 'MC4WP_VERSION' ) || function_exists( 'mc4wp_show_form' ) ) && absint( get_theme_mod( 'larder_mailchimp_form_id', 0 ) ) > 0;
+	$newsletter_page = (bool) nkt_setup_find_page( array( 'newsletter' ) );
+	$standards_page  = (bool) nkt_setup_find_page( array( 'editorial-standards', 'recipe-standards' ) );
+	$disclosure_page = (bool) nkt_setup_find_page( array( 'affiliate-disclosure', 'disclosure' ) );
+	$privacy_ready   = (bool) get_privacy_policy_url();
+	$measurement     = nkt_has_measurement_integration();
+	$core_ready      = $mailchimp_ready && $newsletter_page && $standards_page && $disclosure_page && $privacy_ready;
+
+	if ( $core_ready ) {
+		return nkt_site_health_result(
+			'nkt_growth_readiness',
+			__( 'Newsletter and commercial transparency are ready', 'larder' ),
+			'good',
+			$measurement
+				? __( 'The newsletter, privacy and trust pages are configured, and an existing measurement integration can receive the theme’s conversion events.', 'larder' )
+				: __( 'The newsletter, privacy and trust pages are configured. Conversion events are available for a future analytics integration, but the theme does not install tracking itself.', 'larder' )
+		);
+	}
+
+	return nkt_site_health_result(
+		'nkt_growth_readiness',
+		__( 'Complete newsletter and commercial transparency setup', 'larder' ),
+		'recommended',
+		__( 'Before promoting products, partnerships or a lead magnet, connect the newsletter and publish the Privacy, Editorial Standards and Affiliate Disclosure pages.', 'larder' ),
+		'<p><a href="' . esc_url( admin_url( 'themes.php?page=nkt-setup' ) ) . '">' . esc_html__( 'Open Kitchen Table Setup', 'larder' ) . '</a></p>'
+	);
+}
+
+/**
  * Register the theme-specific Site Health tests.
  *
  * @param array $tests Existing tests.
@@ -238,6 +272,10 @@ function nkt_register_site_health_tests( $tests ) {
 	$tests['direct']['nkt_integrations'] = array(
 		'label' => __( 'Launch integrations', 'larder' ),
 		'test'  => 'nkt_site_health_integrations',
+	);
+	$tests['direct']['nkt_growth_readiness'] = array(
+		'label' => __( 'Business growth and transparency', 'larder' ),
+		'test'  => 'nkt_site_health_growth_readiness',
 	);
 
 	return $tests;
@@ -275,6 +313,18 @@ function nkt_site_health_debug_information( $info ) {
 			'newsletter_form' => array(
 				'label' => __( 'Mailchimp form ID', 'larder' ),
 				'value' => absint( get_theme_mod( 'larder_mailchimp_form_id', 0 ) ) ?: __( 'Not configured', 'larder' ),
+			),
+			'lead_magnet' => array(
+				'label' => __( 'Welcome gift configured', 'larder' ),
+				'value' => nkt_get_lead_magnet()['enabled'] ? __( 'Yes', 'larder' ) : __( 'No', 'larder' ),
+			),
+			'homepage_promotion' => array(
+				'label' => __( 'Homepage promotion configured', 'larder' ),
+				'value' => ( nkt_get_home_promotion()['enabled'] || is_active_sidebar( 'homepage-promotion' ) ) ? __( 'Yes', 'larder' ) : __( 'No', 'larder' ),
+			),
+			'measurement_integration' => array(
+				'label' => __( 'Measurement integration detected', 'larder' ),
+				'value' => nkt_has_measurement_integration() ? __( 'Yes', 'larder' ) : __( 'No — theme events remain available', 'larder' ),
 			),
 		),
 	);
