@@ -40,7 +40,7 @@ The final global tokens and component alignment are applied in `assets/css/brand
 - WordPress 6.6 or newer
 - PHP 8.1 or newer
 - WP Recipe Maker
-- Yoast SEO
+- An SEO plugin such as Yoast SEO, Rank Math or All in One SEO
 - Contact Form 7
 - Mailchimp for WordPress for the newsletter form
 
@@ -60,12 +60,17 @@ The theme also supports the site's existing UpdraftPlus, WP Super Cache and thum
 7. Assign the Primary and Footer menus.
 8. Regenerate thumbnails.
 9. Clear WP Super Cache.
+10. Open **Tools → Site Health** and resolve critical Nigel's Kitchen Table checks.
 
 The homepage must use a static page with **Homepage: Home** selected and the **Posts page left unselected**.
 
 ## Photo assets
 
 The ten selected portrait recipe photographs are mapped in [`docs/photo-asset-plan.md`](docs/photo-asset-plan.md). They should be uploaded through the WordPress Media Library, not committed to the theme repository.
+
+## Launch readiness
+
+Version 1.7.0 adds theme-specific checks under **Tools → Site Health** for page structure, WP Recipe Maker, staging/production search visibility, HTTPS, permalinks, privacy and the recommended SEO/contact/newsletter integrations.
 
 ## Launch safeguards
 
@@ -74,6 +79,8 @@ The ten selected portrait recipe photographs are mapped in [`docs/photo-asset-pl
 - Safe menu fallbacks remain available until WordPress menus are assigned.
 - Newsletter signup is displayed only when a valid MC4WP form is configured, or when an existing Newsletter page is available.
 - Legal links are displayed only when the corresponding WordPress pages exist.
+- Search and mobile navigation restore keyboard focus correctly after closing.
+- A fallback SEO layer runs only when a dedicated SEO plugin is not active.
 
 See [`docs/launch-checklist.md`](docs/launch-checklist.md) for the final staging and go-live procedure.
 
@@ -82,6 +89,6 @@ See [`docs/launch-checklist.md`](docs/launch-checklist.md) for the final staging
 Every push runs GitHub Actions to:
 
 - lint all PHP files,
-- validate JSON files,
-- check required theme templates,
+- validate JavaScript and JSON files,
+- check required theme templates and launch files,
 - build an installable WordPress ZIP artifact.
