@@ -79,13 +79,20 @@ if ( empty( $collection_cards ) ) {
 	}
 }
 ?>
-<main id="primary" class="collections-index">
-	<header class="collection-hero">
-		<div class="container collection-hero__inner">
-			<p class="eyebrow"><?php esc_html_e( 'Browse by mood, season and occasion', 'larder' ); ?></p>
-			<h1><?php esc_html_e( 'Recipe collections', 'larder' ); ?></h1>
-			<div class="collection-description">
-				<p><?php esc_html_e( 'Explore seasonal favourites, dependable bakes and useful collections designed to help you find the right recipe quickly.', 'larder' ); ?></p>
+<main id="primary" class="collections-index nkt-discovery-page">
+	<header class="collection-hero nkt-discovery-hero nkt-discovery-hero--compact">
+		<div class="container nkt-discovery-hero__grid">
+			<div class="nkt-discovery-hero__copy">
+				<p class="eyebrow"><?php esc_html_e( 'Browse by mood, season and occasion', 'larder' ); ?></p>
+				<h1><?php esc_html_e( 'Recipe collections', 'larder' ); ?></h1>
+				<div class="collection-description">
+					<p><?php esc_html_e( 'Explore seasonal favourites, dependable bakes and useful collections designed to help you find the right recipe quickly.', 'larder' ); ?></p>
+				</div>
+			</div>
+			<div class="nkt-discovery-search-card">
+				<p class="nkt-discovery-search-card__eyebrow"><?php esc_html_e( 'Search the recipe box', 'larder' ); ?></p>
+				<h2><?php esc_html_e( 'Know what you are looking for?', 'larder' ); ?></h2>
+				<?php get_search_form(); ?>
 			</div>
 		</div>
 	</header>
