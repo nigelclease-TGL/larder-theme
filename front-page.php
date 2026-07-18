@@ -50,7 +50,6 @@ $featured_recipe_id = $featured_recipe->have_posts() ? (int) $featured_recipe->p
 $display_image_id    = $hero_image_id ? $hero_image_id : ( $featured_recipe_id ? get_post_thumbnail_id( $featured_recipe_id ) : 0 );
 $featured_title      = $featured_recipe_id ? get_the_title( $featured_recipe_id ) : '';
 $featured_url        = $featured_recipe_id ? get_permalink( $featured_recipe_id ) : '';
-$featured_date       = $featured_recipe_id ? get_the_date( 'j F Y', $featured_recipe_id ) : '';
 $featured_categories = $featured_recipe_id ? get_the_category( $featured_recipe_id ) : array();
 $featured_label      = ! empty( $featured_categories ) ? $featured_categories[0]->name : __( 'Featured recipe', 'larder' );
 ?>
@@ -81,7 +80,7 @@ $featured_label      = ! empty( $featured_categories ) ? $featured_categories[0]
 						<strong><?php echo esc_html( $featured_title ); ?></strong>
 						<div class="hero-feature-card__meta">
 							<span><?php esc_html_e( 'Featured recipe', 'larder' ); ?></span>
-							<span><?php echo esc_html( $featured_date ); ?></span>
+							<span><?php esc_html_e( 'Tested carefully', 'larder' ); ?></span>
 						</div>
 						<span class="hero-feature-card__cta"><?php esc_html_e( 'View recipe', 'larder' ); ?> <span aria-hidden="true">→</span></span>
 					</a>
