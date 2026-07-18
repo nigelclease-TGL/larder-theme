@@ -1,0 +1,226 @@
+/* Nigel's Kitchen Table — Phase 3 guided recipe navigation. */
+
+.single-recipe .nkt-recipe-toolbar [hidden],
+.single-recipe .nkt-recipe-guide[hidden],
+.nkt-back-to-top[hidden]{
+	display:none!important;
+}
+
+.single-recipe .nkt-recipe-guide{
+	border-bottom:1px solid rgba(52,66,50,.12);
+	background:#f4ede3;
+}
+
+.single-recipe .nkt-recipe-guide__inner{
+	display:grid;
+	grid-template-columns:minmax(190px,.38fr) minmax(0,1.62fr);
+	gap:clamp(28px,5vw,76px);
+	align-items:start;
+	width:min(92vw,1240px);
+	margin-inline:auto;
+	padding:clamp(28px,4vw,48px) 0;
+}
+
+.single-recipe .nkt-recipe-guide__intro p{
+	margin:0 0 8px;
+	color:#b87546;
+	font-size:.7rem;
+	font-weight:700;
+	letter-spacing:.16em;
+	text-transform:uppercase;
+}
+
+.single-recipe .nkt-recipe-guide__intro h2{
+	margin:0;
+	font-family:"Cormorant Garamond",Georgia,serif;
+	font-size:clamp(2rem,3vw,3.2rem);
+	line-height:.96;
+}
+
+.single-recipe .nkt-recipe-guide__list{
+	display:grid;
+	grid-template-columns:repeat(2,minmax(0,1fr));
+	gap:1px;
+	margin:0;
+	padding:0;
+	border:1px solid rgba(52,66,50,.12);
+	background:rgba(52,66,50,.12);
+	list-style:none;
+}
+
+.single-recipe .nkt-recipe-guide__list li{
+	margin:0;
+	background:#fbf8f2;
+}
+
+.single-recipe .nkt-recipe-guide__list a{
+	dis:grid;
+	display:grid;
+	grid-template-columns:auto 1fr;
+	gap:14px;
+	align-items:start;
+	min-height:72px;
+	padding:18px 20px;
+	color:#344232;
+	text-decoration:none;
+	transition:background .2s ease,color .2s ease;
+}
+
+.single-recipe .nkt-recipe-guide__list a:hover,
+.single-recipe .nkt-recipe-guide__list a[aria-current="true"]{
+	background:#344232;
+	color:#fffdfa;
+}
+
+.single-recipe .nkt-recipe-guide__number{
+	color:#b87546;
+	font-family:"Cormorant Garamond",Georgia,serif;
+	font-size:1.08rem;
+	line-height:1;
+}
+
+.single-recipe .nkt-recipe-guide__label{
+	font-weight:600;
+	line-height:1.35;
+}
+
+.single-recipe .nkt-section-heading{
+	scroll-margin-top:118px;
+}
+
+.single-recipe .wprm-recipe-ingredient{
+	cursor:pointer;
+	transition:opacity .2s ease,background .2s ease;
+}
+
+.single-recipe .wprm-recipe-ingredient:focus-visible{
+	outline:2px solid #b87546;
+	outline-offset:4px;
+}
+
+.single-recipe .wprm-recipe-ingredient.is-checked{
+	opacity:.54;
+	text-decoration:line-through;
+	text-decoration-thickness:1px;
+}
+
+.single-recipe .recipe-comments{
+	padding-top:clamp(74px,9vw,120px);
+	padding-bottom:clamp(78px,9vw,128px);
+}
+
+.single-recipe .recipe-comments__intro{
+	max-width:860px;
+	margin:0 auto 42px;
+	padding-bottom:28px;
+	border-bottom:1px solid #e4ddd2;
+}
+
+.single-recipe .recipe-comments__intro h2{
+	margin:10px 0 14px;
+	font-family:"Cormorant Garamond",Georgia,serif;
+	font-size:clamp(2.8rem,5vw,5rem);
+	line-height:.94;
+}
+
+.single-recipe .recipe-comments__intro p:last-child{
+	max-width:660px;
+	margin:0;
+	color:#626b62;
+	font-size:1.05rem;
+	line-height:1.7;
+}
+
+.nkt-back-to-top{
+	position:fixed;
+	right:22px;
+	bottom:22px;
+	z-index:75;
+	display:grid;
+	place-items:center;
+	width:50px;
+	height:50px;
+	padding:0;
+	border:1px solid rgba(255,255,255,.28);
+	border-radius:50%;
+	background:#344232;
+	box-shadow:0 14px 34px rgba(39,49,41,.2);
+	color:#fffdfa;
+	font:inherit;
+	font-size:1.2rem;
+	cursor:pointer;
+	transition:transform .2s ease,background .2s ease;
+}
+
+.nkt-back-to-top:hover{
+	background:#b87546;
+	transform:translateY(-3px);
+}
+
+.nkt-back-to-top:focus-visible{
+	outline:3px solid #efd5c1;
+	outline-offset:3px;
+}
+
+body.cook-mode .single-recipe .nkt-recipe-guide{
+	border-bottom-color:rgba(255,255,255,.13);
+	background:#303b32;
+	color:#fffdfa;
+}
+
+body.cook-mode .single-recipe .nkt-recipe-guide__list{
+	border-color:rgba(255,255,255,.14);
+	background:rgba(255,255,255,.14);
+}
+
+body.cook-mode .single-recipe .nkt-recipe-guide__list li,
+body.cook-mode .single-recipe .nkt-recipe-guide__list a{
+	background:#263128;
+	color:#fffdfa;
+}
+
+body.cook-mode .single-recipe .nkt-recipe-guide__list a:hover,
+body.cook-mode .single-recipe .nkt-recipe-guide__list a[aria-current="true"]{
+	background:#d6a47e;
+	color:#263128;
+}
+
+@media(max-width:760px){
+	.single-recipe .nkt-recipe-guide__inner{
+		grid-template-columns:1fr;
+		gap:22px;
+	}
+
+	.single-recipe .nkt-recipe-guide__list{
+		grid-template-columns:1fr;
+	}
+
+	.single-recipe .nkt-recipe-guide__list a{
+		min-height:62px;
+	}
+}
+
+@media(max-width:620px){
+	.nkt-back-to-top{
+		right:14px;
+		bottom:14px;
+		width:46px;
+		height:46px;
+	}
+}
+
+@media(prefers-reduced-motion:reduce){
+	.single-recipe .nkt-recipe-guide__list a,
+	.single-recipe .wprm-recipe-ingredient,
+	.nkt-back-to-top{
+		transition:none;
+	}
+}
+
+@media print{
+	.single-recipe .nkt-recipe-guide,
+	.nkt-back-to-top,
+	.single-recipe .recipe-comments__intro{
+		display:none!important;
+	}
+}
