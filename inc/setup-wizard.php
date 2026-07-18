@@ -150,7 +150,7 @@ function nkt_setup_status_item( $complete, $label, $help = '' ) {
 function nkt_render_setup_page() {
 	$required_plugins = array(
 		'WP Recipe Maker'         => class_exists( 'WPRM_Recipe_Manager' ) || defined( 'WPRM_VERSION' ),
-		'Yoast SEO'               => defined( 'WPSEO_VERSION' ),
+		'SEO plugin'              => nkt_has_seo_plugin(),
 		'Contact Form 7'          => defined( 'WPCF7_VERSION' ),
 		'Mailchimp for WordPress' => defined( 'MC4WP_VERSION' ) || function_exists( 'mc4wp_show_form' ),
 	);
@@ -163,12 +163,16 @@ function nkt_render_setup_page() {
 		'Contact'            => (bool) nkt_setup_find_page( array( 'contact', 'contact-me' ) ),
 	);
 
-	$hero_ready      = (bool) absint( get_theme_mod( 'larder_hero_image', 0 ) );
-	$portrait_ready  = (bool) absint( get_theme_mod( 'larder_portrait_image', 0 ) );
-	$primary_menu    = has_nav_menu( 'primary' );
-	$footer_menu     = has_nav_menu( 'footer' );
-	$static_homepage = 'page' === get_option( 'show_on_front' ) && (int) get_option( 'page_on_front' ) > 0;
-	$mailchimp_form  = absint( get_theme_mod( 'larder_mailchimp_form_id', 0 ) );
+	$hero_ready       = (bool) absint( get_theme_mod( 'larder_hero_image', 0 ) );
+	$portrait_ready   = (bool) absint( get_theme_mod( 'larder_portrait_image', 0 ) );
+	$primary_menu     = has_nav_menu( 'primary' );
+	$footer_menu      = has_nav_menu( 'footer' );
+	$static_homepage  = 'page' === get_option( 'show_on_front' ) && (int) get_option( 'page_on_front' ) > 0;
+	$mailchimp_form   = absint( get_theme_mod( 'larder_mailchimp_form_id', 0 ) );
+	$privacy_ready    = (bool) get_privacy_policy_url();
+	$permalinks_ready = '' !== (string) get_option( 'permalink_structure' );
+	$visibility_ready = nkt_is_staging_site() ? ! (bool) get_option( 'blog_public' ) : (bool) get_option( 'blog_public' );
+	$https_ready      = is_ssl();
 	?>
 	<div class="wrap nkt-setup-wrap">
 		<h1><?php esc_html_e( "Nigel's Kitchen Table Setup", 'larder' ); ?></h1>
@@ -214,7 +218,18 @@ function nkt_render_setup_page() {
 			</section>
 
 			<section class="nkt-setup-card">
-				<h2><?php esc_html_e( '4. Before launch', 'larder' ); ?></h2>
+				<h2><?php esc_html_e( '4. Launch readiness', 'larder' ); ?></h2>
+				<ul class="nkt-status-list">
+					<?php nkt_setup_status_item( $https_ready, __( 'HTTPS is active', 'larder' ) ); ?>
+					<?php nkt_setup_status_item( $permalinks_ready, __( 'Pretty permalinks are configured', 'larder' ) ); ?>
+					<?php nkt_setup_status_item( $privacy_ready, __( 'Privacy Policy page is assigned', 'larder' ) ); ?>
+					<?php nkt_setup_status_item( $visibility_ready, nkt_is_staging_site() ? __( 'Staging is hidden from search engines', 'larder' ) : __( 'Production is visible to search engines', 'larder' ) ); ?>
+				</ul>
+				<p><a class="button" href="<?php echo esc_url( admin_url( 'site-health.php' ) ); ?>"><?php esc_html_e( 'Run full Site Health checks', 'larder' ); ?></a></p>
+			</section>
+
+			<section class="nkt-setup-card">
+				<h2><?php esc_html_e( '5. Final manual checks', 'larder' ); ?></h2>
 				<ol>
 					<li><?php esc_html_e( 'Run an UpdraftPlus backup.', 'larder' ); ?></li>
 					<li><?php esc_html_e( 'Regenerate thumbnails for the new portrait card and hero sizes.', 'larder' ); ?></li>
@@ -223,7 +238,6 @@ function nkt_render_setup_page() {
 					<li><?php esc_html_e( 'Test the contact form and Mailchimp confirmation email.', 'larder' ); ?></li>
 					<li><?php esc_html_e( 'Clear WP Super Cache after the final review.', 'larder' ); ?></li>
 				</ol>
-				<p><a class="button" href="<?php echo esc_url( admin_url( 'site-health.php' ) ); ?>"><?php esc_html_e( 'Open Site Health', 'larder' ); ?></a></p>
 			</section>
 		</div>
 	</div>
