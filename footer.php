@@ -3,10 +3,11 @@ $instagram_url   = get_theme_mod( 'larder_instagram_url', 'https://www.instagram
 $pinterest_url   = get_theme_mod( 'larder_pinterest_url', 'https://hu.pinterest.com/thegourmetlarder/' );
 $facebook_url    = get_theme_mod( 'larder_facebook_url', 'https://www.facebook.com/thegourmetlarder/' );
 $terms_page      = nkt_setup_find_page( array( 'terms', 'terms-and-conditions' ) );
-$collections_url = nkt_page_url( array( 'collections' ), '/collections/' );
+$collections_url = nkt_page_url( array( 'recipe-collections', 'collections', 'seasons' ), '/recipe-collections/' );
 $notes_url       = nkt_page_url( array( 'kitchen-notes', 'baking-guides' ), '/kitchen-notes/' );
 $about_url       = nkt_page_url( array( 'about-nigel', 'my-story', 'about' ), '/my-story/' );
-$newsletter_url  = nkt_page_url( array( 'newsletter' ), '/newsletter/' );
+$newsletter_page = nkt_setup_find_page( array( 'newsletter' ) );
+$newsletter_url  = $newsletter_page ? get_permalink( $newsletter_page ) : '';
 ?>
 <footer class="site-footer">
 	<div class="container footer-introduction">
@@ -40,7 +41,7 @@ $newsletter_url  = nkt_page_url( array( 'newsletter' ), '/newsletter/' );
 				<li><a href="<?php echo esc_url( $collections_url ); ?>"><?php esc_html_e( 'Collections', 'larder' ); ?></a></li>
 				<li><a href="<?php echo esc_url( $notes_url ); ?>"><?php esc_html_e( 'Kitchen Notes', 'larder' ); ?></a></li>
 				<li><a href="<?php echo esc_url( $about_url ); ?>"><?php esc_html_e( 'About Nigel', 'larder' ); ?></a></li>
-				<li><a href="<?php echo esc_url( $newsletter_url ); ?>"><?php esc_html_e( 'Newsletter', 'larder' ); ?></a></li>
+				<?php if ( $newsletter_url ) : ?><li><a href="<?php echo esc_url( $newsletter_url ); ?>"><?php esc_html_e( 'Newsletter', 'larder' ); ?></a></li><?php endif; ?>
 			</ul>
 		</div>
 
@@ -61,6 +62,7 @@ $newsletter_url  = nkt_page_url( array( 'newsletter' ), '/newsletter/' );
 		<div class="footer-legal">
 			<?php if ( get_privacy_policy_url() ) : ?><a href="<?php echo esc_url( get_privacy_policy_url() ); ?>"><?php esc_html_e( 'Privacy', 'larder' ); ?></a><?php endif; ?>
 			<?php if ( $terms_page ) : ?><a href="<?php echo esc_url( get_permalink( $terms_page ) ); ?>"><?php esc_html_e( 'Terms', 'larder' ); ?></a><?php endif; ?>
+			<?php do_action( 'nkt_footer_legal_links' ); ?>
 		</div>
 	</div>
 </footer>
