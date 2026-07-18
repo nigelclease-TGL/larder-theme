@@ -8,6 +8,10 @@ $notes_url       = nkt_page_url( array( 'kitchen-notes', 'baking-guides' ), '/ki
 $about_url       = nkt_page_url( array( 'about-nigel', 'my-story', 'about' ), '/my-story/' );
 $newsletter_page = nkt_setup_find_page( array( 'newsletter' ) );
 $newsletter_url  = $newsletter_page ? get_permalink( $newsletter_page ) : '';
+$work_page       = nkt_setup_find_page( array( 'work-with-nigel', 'partnerships', 'work-with-me' ) );
+$work_url        = $work_page ? get_permalink( $work_page ) : '';
+$standards_page  = nkt_setup_find_page( array( 'editorial-standards', 'recipe-standards' ) );
+$disclosure_page = nkt_setup_find_page( array( 'affiliate-disclosure', 'disclosure' ) );
 ?>
 <footer class="site-footer">
 	<div class="container footer-introduction">
@@ -41,7 +45,7 @@ $newsletter_url  = $newsletter_page ? get_permalink( $newsletter_page ) : '';
 				<li><a href="<?php echo esc_url( $collections_url ); ?>"><?php esc_html_e( 'Collections', 'larder' ); ?></a></li>
 				<li><a href="<?php echo esc_url( $notes_url ); ?>"><?php esc_html_e( 'Kitchen Notes', 'larder' ); ?></a></li>
 				<li><a href="<?php echo esc_url( $about_url ); ?>"><?php esc_html_e( 'About Nigel', 'larder' ); ?></a></li>
-				<?php if ( $newsletter_url ) : ?><li><a href="<?php echo esc_url( $newsletter_url ); ?>"><?php esc_html_e( 'Newsletter', 'larder' ); ?></a></li><?php endif; ?>
+				<?php if ( $newsletter_url ) : ?><li><a href="<?php echo esc_url( $newsletter_url ); ?>" data-nkt-event="newsletter_open" data-nkt-label="footer"><?php esc_html_e( 'Newsletter', 'larder' ); ?></a></li><?php endif; ?>
 			</ul>
 		</div>
 
@@ -51,7 +55,8 @@ $newsletter_url  = $newsletter_page ? get_permalink( $newsletter_page ) : '';
 				<?php if ( $instagram_url ) : ?><li><a href="<?php echo esc_url( $instagram_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Instagram', 'larder' ); ?> ↗</a></li><?php endif; ?>
 				<?php if ( $pinterest_url ) : ?><li><a href="<?php echo esc_url( $pinterest_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Pinterest', 'larder' ); ?> ↗</a></li><?php endif; ?>
 				<?php if ( $facebook_url ) : ?><li><a href="<?php echo esc_url( $facebook_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Facebook', 'larder' ); ?> ↗</a></li><?php endif; ?>
-				<li><a href="<?php echo esc_url( nkt_page_url( array( 'contact', 'contact-me' ), '/contact/' ) ); ?>"><?php esc_html_e( 'Contact', 'larder' ); ?></a></li>
+				<?php if ( $work_url ) : ?><li><a href="<?php echo esc_url( $work_url ); ?>" data-nkt-event="partnership_open" data-nkt-label="footer"><?php esc_html_e( 'Work with Nigel', 'larder' ); ?></a></li><?php endif; ?>
+				<li><a href="<?php echo esc_url( nkt_page_url( array( 'contact', 'contact-me' ), '/contact/' ) ); ?>" data-nkt-event="contact_open" data-nkt-label="footer"><?php esc_html_e( 'Contact', 'larder' ); ?></a></li>
 			</ul>
 		</div>
 	</div>
@@ -62,6 +67,8 @@ $newsletter_url  = $newsletter_page ? get_permalink( $newsletter_page ) : '';
 		<div class="footer-legal">
 			<?php if ( get_privacy_policy_url() ) : ?><a href="<?php echo esc_url( get_privacy_policy_url() ); ?>"><?php esc_html_e( 'Privacy', 'larder' ); ?></a><?php endif; ?>
 			<?php if ( $terms_page ) : ?><a href="<?php echo esc_url( get_permalink( $terms_page ) ); ?>"><?php esc_html_e( 'Terms', 'larder' ); ?></a><?php endif; ?>
+			<?php if ( $standards_page ) : ?><a href="<?php echo esc_url( get_permalink( $standards_page ) ); ?>"><?php esc_html_e( 'Editorial Standards', 'larder' ); ?></a><?php endif; ?>
+			<?php if ( $disclosure_page ) : ?><a href="<?php echo esc_url( get_permalink( $disclosure_page ) ); ?>"><?php esc_html_e( 'Affiliate Disclosure', 'larder' ); ?></a><?php endif; ?>
 			<?php do_action( 'nkt_footer_legal_links' ); ?>
 		</div>
 	</div>
