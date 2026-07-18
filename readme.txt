@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 1.8.0
+Stable tag: 1.9.0
 License: Proprietary project theme
 
 A warm editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -28,6 +28,7 @@ Key features include:
 * Dedicated newsletter, welcome gift and homepage promotion options
 * Editorial Standards, Affiliate Disclosure and partnership page templates
 * Privacy-conscious conversion events for existing analytics integrations
+* Read-only recipe and Kitchen Note content audit with CSV export
 
 == Installation ==
 
@@ -39,9 +40,18 @@ Key features include:
 6. Assign Primary and Footer menus.
 7. Connect Mailchimp for WordPress and enter the numeric form ID.
 8. Regenerate thumbnails and clear caches.
-9. Complete the launch checklist in docs/launch-checklist.md.
+9. Open Tools > Recipe Content Audit.
+10. Complete the launch checklist in docs/launch-checklist.md.
 
 == Changelog ==
+
+= 1.9.0 =
+* Added a read-only Recipe Content Audit under Tools.
+* Added recipe and Kitchen Note readiness columns to the Posts screen.
+* Added a Kitchen Table readiness checklist to the post editor.
+* Added CSV export for editorial planning and content-improvement sprints.
+* Added Site Health and setup checks for missing featured images, excerpts, categories and WP Recipe Maker cards.
+* Preserved the date-free evergreen recipe presentation introduced in v1.8.0.
 
 = 1.8.0 =
 * Added the complete business-growth and trust-page system.
@@ -69,5 +79,5 @@ Key features include:
 
 == Upgrade Notice ==
 
-= 1.8.0 =
-Replace the current theme on staging, clear all caches and review the newsletter, trust pages and optional promotion before production activation.
+= 1.9.0 =
+Replace the current theme on staging, clear all caches, then open Tools → Recipe Content Audit to plan any remaining content work.
