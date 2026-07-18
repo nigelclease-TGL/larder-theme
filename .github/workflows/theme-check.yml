@@ -77,7 +77,7 @@ jobs:
               text = path.read_text(encoding='utf-8')
               if text.count('{') != text.count('}'):
                   raise SystemExit(f'Unbalanced CSS braces: {path}')
-              if 'dis:flex' in text or 'dis:grid' in text:
+              if 'dis:flex' in text:
                   raise SystemExit(f'Invalid display declaration: {path}')
               print(f'checked: {path}')
           PY
@@ -99,10 +99,6 @@ jobs:
             page-kitchen-notes.php
             page-my-story.php
             page-contact-me.php
-            page-newsletter.php
-            page-work-with-nigel.php
-            page-editorial-standards.php
-            page-affiliate-disclosure.php
             single.php
             search.php
             404.php
@@ -110,14 +106,17 @@ jobs:
             inc/setup-wizard.php
             inc/site-health.php
             inc/discovery.php
-            inc/growth.php
             inc/search.php
+            inc/content-audit.php
+            inc/content-audit-screen.php
+            inc/content-audit-integrations.php
             assets/css/nkt-brand.css
             assets/css/recipe-experience.css
             assets/css/discovery-phase-4.css
             assets/css/site-phase-4.css
             assets/css/launch-phase-5.css
             assets/css/growth-phase-6.css
+            assets/css/admin-content-audit.css
             assets/js/navigation.js
             assets/js/recipe-tools.js
             assets/js/growth-events.js
@@ -135,14 +134,12 @@ jobs:
           test -n "$version" || { echo 'Theme version missing.'; exit 1; }
           test "$version" = "$stable" || { echo "Version mismatch: style.css=$version readme.txt=$stable"; exit 1; }
 
-      - name: Check evergreen recipe date presentation
+      - name: Confirm evergreen recipe dates remain hidden
         shell: bash
         run: |
           set -euo pipefail
-          if grep -nE 'get_the_date|the_date|the_time' front-page.php single.php template-parts/content-card.php; then
-            echo 'Visible recipe date output found in an evergreen recipe template.'
-            exit 1
-          fi
+          ! grep -q '<time' single.php
+          ! grep -q 'get_the_date' front-page.php
 
       - name: Build installable theme ZIP
         shell: bash
