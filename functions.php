@@ -123,7 +123,8 @@ function larder_enqueue_assets() {
 		wp_enqueue_style( 'nkt-recipe-brand-template', get_template_directory_uri() . '/assets/css/recipe-brand-template.css', array( 'nkt-recipe-experience' ), $version );
 		wp_enqueue_style( 'nkt-recipe-phase-3', get_template_directory_uri() . '/assets/css/recipe-phase-3.css', array( 'nkt-recipe-brand-template' ), $version );
 		wp_enqueue_style( 'nkt-recipe-phase-3-guide', get_template_directory_uri() . '/assets/css/recipe-phase-3-guide.css', array( 'nkt-recipe-phase-3' ), $version );
-		$brand_dependency = 'nkt-recipe-phase-3-guide';
+		wp_enqueue_style( 'nkt-recipe-heading-hierarchy', get_template_directory_uri() . '/assets/css/recipe-heading-hierarchy.css', array( 'nkt-recipe-phase-3-guide' ), $version );
+		$brand_dependency = 'nkt-recipe-heading-hierarchy';
 	}
 
 	wp_enqueue_style( 'nkt-brand-system', get_template_directory_uri() . '/assets/css/brand-system.css', array( $brand_dependency ), $version );
