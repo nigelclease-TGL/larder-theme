@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 2.0.0
+Stable tag: 2.0.1
 License: Proprietary project theme
 
 A premium editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -49,6 +49,11 @@ Key features include:
 
 == Changelog ==
 
+= 2.0.1 =
+* Switched the website header to the approved bundled Nigel's Kitchen Table wordmark.
+* Prevented an older WordPress custom-logo upload with excess transparent space from making the header branding appear too small.
+* Kept the compact approved logo for mobile screens.
+
 = 2.0.0 =
 * Completed brand alignment across browser icons, app icons, the WordPress editor palette and visible social branding.
 * Added a branded SVG favicon, multi-size ICO, Apple touch icon, Android shortcut icon and web app manifest.
@@ -90,5 +95,5 @@ Key features include:
 
 == Upgrade Notice ==
 
-= 2.0.0 =
-Replace the current theme on staging, clear all caches, then confirm the favicon, header logo, editor palette and representative pages on desktop and mobile.
+= 2.0.1 =
+Replace the current theme on staging, clear all caches, then confirm the larger approved header logo on desktop and mobile.
