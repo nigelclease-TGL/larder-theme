@@ -25,7 +25,7 @@
 }
 
 .site-branding {
-	flex: 0 1 390px;
+	flex: 0 0 390px;
 	max-width: 390px;
 	line-height: 0;
 }
@@ -33,6 +33,7 @@
 .site-branding a,
 .site-branding picture {
 	display: block;
+	width: 100%;
 }
 
 .site-branding__mark,
