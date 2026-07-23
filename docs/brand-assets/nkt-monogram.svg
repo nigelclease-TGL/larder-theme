@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">Nigel's Kitchen Table monogram</title>
+  <desc id="desc">NKT monogram in ivory, olive and copper.</desc>
+  <rect width="128" height="128" rx="24" fill="#F8F5EF"/>
+  <circle cx="64" cy="64" r="54" fill="#66785F" stroke="#9A6B46" stroke-width="4"/>
+  <circle cx="64" cy="64" r="46.5" fill="none" stroke="#F8F5EF" stroke-width="1.25" opacity="0.85"/>
+  <text x="64" y="71" text-anchor="middle" fill="#F8F5EF" font-family="Georgia, 'Times New Roman', serif" font-size="33" font-weight="700" letter-spacing="3.2">NKT</text>
+  <path d="M42 84h44" stroke="#9A6B46" stroke-width="2.4" stroke-linecap="round"/>
+</svg>
