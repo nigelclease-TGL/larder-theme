@@ -3,7 +3,15 @@
 <head>
 	<meta charset="<?php bloginfo( 'charset' ); ?>">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="theme-color" content="#465443">
+	<meta name="theme-color" content="#66785F">
+	<meta name="application-name" content="<?php esc_attr_e( "Nigel's Kitchen Table", 'larder' ); ?>">
+	<meta name="apple-mobile-web-app-title" content="<?php esc_attr_e( "Nigel's Kitchen Table", 'larder' ); ?>">
+	<link rel="manifest" href="<?php echo esc_url( get_template_directory_uri() . '/assets/images/site.webmanifest' ); ?>">
+	<?php if ( ! has_site_icon() ) : ?>
+		<link rel="icon" href="<?php echo esc_url( get_template_directory_uri() . '/assets/images/favicon.ico' ); ?>" sizes="any">
+		<link rel="icon" href="<?php echo esc_url( get_template_directory_uri() . '/assets/images/favicon.svg' ); ?>" type="image/svg+xml">
+		<link rel="apple-touch-icon" href="<?php echo esc_url( get_template_directory_uri() . '/assets/images/apple-touch-icon.png' ); ?>">
+	<?php endif; ?>
 	<?php wp_head(); ?>
 </head>
 <body <?php body_class(); ?>>
