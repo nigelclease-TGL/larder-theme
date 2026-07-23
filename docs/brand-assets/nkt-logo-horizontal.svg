@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 132" role="img" aria-labelledby="title desc">
+<title id="title">Nigel's Kitchen Table</title>
+<desc id="desc">Elegant charcoal and copper wordmark with a small botanical sprig.</desc>
+<g fill="none" stroke="#66785f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M226 19c12-9 27-10 39-4 10 5 20 5 30-1"/>
+  <path d="M239 17c-4-6-9-9-14-9M252 13c-2-6-6-9-11-10M272 14c4-6 8-9 13-10M287 17c5-5 10-7 15-6"/>
+</g>
+<text x="260" y="72" text-anchor="middle" fill="#2E2E2B" font-family="Georgia, 'Times New Roman', serif" font-size="52" letter-spacing="11">NIGEL'S</text>
+<path d="M118 86h284" stroke="#9A6B46" stroke-width="1.5"/>
+<text x="260" y="104" text-anchor="middle" fill="#2E2E2B" font-family="Georgia, 'Times New Roman', serif" font-size="17" letter-spacing="5.6">KITCHEN TABLE</text>
+<path d="M118 112h284" stroke="#9A6B46" stroke-width="1.5"/>
+<text x="260" y="128" text-anchor="middle" fill="#66635D" font-family="Georgia, 'Times New Roman', serif" font-size="10.5" font-style="italic" letter-spacing="1.15">Seasonal Recipes • Made to Share</text>
+</svg>
