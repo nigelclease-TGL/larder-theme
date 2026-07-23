@@ -4,7 +4,7 @@ A custom editorial recipe theme for **Nigel's Kitchen Table**, developed at:
 
 **Repository:** https://github.com/nigelclease-TGL/larder-theme  
 **Website:** https://thegourmetlarder.com  
-**Current theme version:** `2.0.1`
+**Current theme version:** `2.0.2`
 
 The theme presents Nigel's Kitchen Table as the public-facing brand while preserving the existing domain, recipe URLs, structured data and search visibility.
 
@@ -109,6 +109,8 @@ The homepage must use a static page with **Homepage: Home** selected and the **P
 The selected portrait recipe photographs are mapped in [`docs/photo-asset-plan.md`](docs/photo-asset-plan.md). They should be uploaded through the WordPress Media Library rather than committed to this repository.
 
 ## Release and launch readiness
+
+Version `2.0.2` fixes recipe-card link behaviour so the image, recipe title and **View recipe** or **Read the note** action are valid, separate links. This avoids nested links around category metadata and improves accessibility and browser consistency.
 
 Version `2.0.1` includes the approved Nigel's Kitchen Table brand system, responsive horizontal and compact logos, the NKT monogram, favicon package and final header logo sizing.
 
