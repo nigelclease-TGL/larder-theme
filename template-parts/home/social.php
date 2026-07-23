@@ -25,7 +25,7 @@ $facebook_url  = get_theme_mod( 'larder_facebook_url', 'https://www.facebook.com
 					<span class="home-social__number">01</span>
 					<span class="home-social__platform">
 						<small>Instagram</small>
-						<strong>@thegourmetlarder</strong>
+						<strong><?php esc_html_e( "Nigel's Kitchen Table", 'larder' ); ?></strong>
 					</span>
 					<span class="home-social__arrow" aria-hidden="true">↗</span>
 				</a>

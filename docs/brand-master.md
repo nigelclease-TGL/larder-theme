@@ -6,7 +6,7 @@ This document is the single source of truth for the Nigel's Kitchen Table brand,
 
 - **Public-facing brand:** Nigel's Kitchen Table
 - **Website domain:** `thegourmetlarder.com`
-- **Legacy brand role:** The Gourmet Larder remains relevant only where needed for domain continuity, existing social handles, historic recognition and SEO. It should not compete with Nigel's Kitchen Table in prominent website copy.
+- **Legacy brand role:** The Gourmet Larder remains relevant only where needed for domain continuity, existing social URLs, historic recognition and SEO. It must not compete with Nigel's Kitchen Table in prominent website copy.
 - **Brand signature:** Seasonal recipes, beautiful bakes and practical kitchen knowledge, shared from Nigel's kitchen table.
 
 ## 2. Positioning
@@ -38,21 +38,21 @@ Nigel's portrait must remain small and secondary. Food photography, recipes and 
 
 ## 4. Final visual system
 
-### Core palette
+### Canonical palette
 
 | Token | Hex | Use |
 |---|---:|---|
-| Warm cream | `#FAF7F2` | Main page background |
-| Porcelain | `#FDFCF9` | Cards, panels and light surfaces |
-| Linen | `#E7E1D8` | Borders, separators and quiet panels |
+| Ivory | `#F8F5EF` | Main page and editor background |
+| Porcelain | `#FDFCF9` | Cards, forms and light surfaces |
+| Linen | `#EFE9DF` | Borders, separators and quiet panels |
 | Soft sage | `#A7B397` | Secondary backgrounds and subtle accents |
-| Deep olive | `#66785F` | Brand colour, headings and selected states |
+| Olive | `#66785F` | Primary brand colour, botanical marks and selected states |
 | Forest olive | `#465443` | Primary buttons, footer and high-contrast brand areas |
-| Copper | `#B87546` | Links, labels, details and restrained highlights |
-| Charcoal | `#2E2E2E` | Primary text |
-| Muted ink | `#596158` | Secondary text |
+| Copper | `#9A6B46` | Dividers, links, labels and restrained highlights |
+| Charcoal | `#2E2E2B` | Primary text and logo lettering |
+| Muted grey | `#66635D` | Secondary text and supporting details |
 
-Use copper sparingly. Olive and cream should dominate. Avoid bright greens, saturated orange, pure black and cold grey backgrounds.
+Olive and ivory should dominate. Copper is an accent, not a large background colour. Avoid bright greens, saturated orange, pure black, cold grey backgrounds and unapproved colour substitutions.
 
 ### Typography
 
@@ -75,9 +75,23 @@ Typography should feel spacious and editorial, but headings must not become so l
 
 - Use the horizontal Nigel's Kitchen Table logo in the desktop header.
 - Use the compact logo on small screens.
-- Use the NKT monogram for the site icon and small social applications.
+- Use the NKT monogram for browser tabs, shortcuts and small social applications.
 - Preserve clear space around every mark.
 - Do not combine the Nigel's Kitchen Table logo with a second prominent The Gourmet Larder logo.
+- Do not recolour or redraw the supplied marks outside this palette.
+
+### Favicon and app-icon system
+
+The bundled favicon package is part of the core identity and must ship with every theme release:
+
+- `favicon.svg` for modern browsers.
+- `favicon.ico` for legacy browser compatibility.
+- `apple-touch-icon.png` for Apple home-screen shortcuts.
+- `favicon-192x192.png` for Android and installable shortcuts.
+- `site.webmanifest` with the approved ivory and olive colours.
+- `nkt-monogram.svg` as the WordPress and admin fallback mark.
+
+A WordPress Site Icon may override the bundled package, but it should use the approved NKT monogram rather than unrelated artwork.
 
 ## 5. Tone of voice
 
@@ -141,7 +155,7 @@ The homepage must remain a static page, with **Homepage: Home** selected and the
 6. Kitchen Notes.
 7. Small About Nigel section.
 8. Newsletter invitation.
-9. Social recipe imagery.
+9. Social recipe section.
 10. Branded footer.
 
 ## 8. Recipe experience
@@ -163,11 +177,11 @@ Every recipe page should provide:
 
 ### Buttons
 
-- Primary: forest olive background, warm-white text.
-- Secondary: transparent or porcelain background, olive border and text.
-- Text link: copper or olive, restrained underline or arrow treatment.
+- Primary: forest olive background with porcelain text.
+- Secondary: transparent or porcelain background with olive border and text.
+- Text link: copper or olive with a restrained underline or arrow treatment.
 - Uppercase Source Sans 3 with modest letter spacing.
-- Small corner radius; avoid pill-shaped buttons.
+- Corner radius: `5px`; avoid pill-shaped buttons.
 
 ### Cards
 
@@ -181,9 +195,16 @@ Every recipe page should provide:
 ### Forms
 
 - Visible labels or accessible names.
-- Porcelain or warm-white fields with linen borders.
+- Porcelain fields with linen borders.
 - Copper focus ring or border.
 - Newsletter sections should feel intentional and should use only the configured Mailchimp form.
+
+### Social presentation
+
+- Keep existing social URLs until handles are deliberately changed on those platforms.
+- Present **Nigel's Kitchen Table** as the visible brand on the website rather than foregrounding the legacy handle.
+- Profile images should use the NKT monogram or approved wordmark.
+- Social posts should use the same palette, typography hierarchy and calm editorial tone.
 
 ## 10. Business concept
 
@@ -215,17 +236,18 @@ Commercial elements must never interrupt the recipe steps, obscure essential con
 - Keep `thegourmetlarder.com` and all valuable existing recipe URLs.
 - Do not change the permalink structure during the redesign.
 - Preserve Yoast metadata, canonical URLs, XML sitemaps and recipe schema.
-- Update visible titles, descriptions and Open Graph presentation to Nigel's Kitchen Table progressively.
+- Use Nigel's Kitchen Table in visible titles, descriptions and social presentation.
 - Use redirects only where a page is intentionally replaced.
-- Maintain The Gourmet Larder references only where they are operationally necessary during transition.
+- Maintain The Gourmet Larder references only where operationally necessary during transition.
 
 ## 12. Brand quality test
 
-Before publishing a new page or component, check:
+Before publishing a page, component or marketing asset, check:
 
 1. Does it look as though it belongs beside the completed recipe template?
 2. Is the food or useful content more prominent than Nigel's portrait?
-3. Are the final palette and type roles used consistently?
+3. Are the canonical palette and type roles used consistently?
 4. Is the page warm, calm and editorial rather than busy or generic?
 5. Can the reader immediately understand what to do next?
 6. Does the content strengthen trust and support the long-term business concept?
+7. Does the browser tab, shortcut or social presentation display the approved NKT identity?

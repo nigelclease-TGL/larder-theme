@@ -3,17 +3,20 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 1.9.0
+Stable tag: 2.0.0
 License: Proprietary project theme
 
-A warm editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
+A premium editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
 
 == Description ==
 
-Nigel's Kitchen Table is a custom recipe-publishing theme designed to preserve the existing Gourmet Larder content and recipe URLs while introducing a modern editorial identity.
+Nigel's Kitchen Table is a custom recipe-publishing theme designed to preserve the existing content and recipe URLs while presenting one complete, consistent editorial identity.
 
 Key features include:
 
+* Complete Nigel's Kitchen Table logo, favicon and app-icon system
+* Canonical olive, copper, ivory, linen and charcoal brand palette
+* Cormorant Garamond, Source Sans 3 and Instrument Serif typography system
 * Editorial homepage and portrait food photography
 * WP Recipe Maker styling
 * Recipe-focused search
@@ -41,9 +44,17 @@ Key features include:
 7. Connect Mailchimp for WordPress and enter the numeric form ID.
 8. Regenerate thumbnails and clear caches.
 9. Open Tools > Recipe Content Audit.
-10. Complete the launch checklist in docs/launch-checklist.md.
+10. Confirm the NKT favicon appears in the browser tab and on a mobile shortcut.
+11. Complete the launch checklist in docs/launch-checklist.md.
 
 == Changelog ==
+
+= 2.0.0 =
+* Completed brand alignment across browser icons, app icons, the WordPress editor palette and visible social branding.
+* Added a branded SVG favicon, multi-size ICO, Apple touch icon, Android shortcut icon and web app manifest.
+* Reconciled the published brand colours with the premium logo system.
+* Removed the conflicting pill-button default from the editor and restored the approved compact button radius.
+* Retained existing social URLs while presenting Nigel's Kitchen Table as the visible brand.
 
 = 1.9.0 =
 * Added a read-only Recipe Content Audit under Tools.
@@ -79,5 +90,5 @@ Key features include:
 
 == Upgrade Notice ==
 
-= 1.9.0 =
-Replace the current theme on staging, clear all caches, then open Tools → Recipe Content Audit to plan any remaining content work.
+= 2.0.0 =
+Replace the current theme on staging, clear all caches, then confirm the favicon, header logo, editor palette and representative pages on desktop and mobile.
