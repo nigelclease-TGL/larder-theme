@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 2.0.1
+Stable tag: 2.0.2
 License: Proprietary project theme
 
 A premium editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -48,6 +48,10 @@ Key features include:
 11. Complete the launch checklist in docs/launch-checklist.md.
 
 == Changelog ==
+
+= 2.0.2 =
+* Fixed recipe-card link markup so the image, recipe title and View recipe or Read the note action are all clickable.
+* Removed invalid nested links around category metadata for better browser consistency and accessibility.
 
 = 2.0.1 =
 * Switched the website header to the approved bundled Nigel's Kitchen Table wordmark.
@@ -95,5 +99,5 @@ Key features include:
 
 == Upgrade Notice ==
 
-= 2.0.1 =
-Replace the current theme on staging, clear all caches, then confirm the larger approved header logo on desktop and mobile.
+= 2.0.2 =
+Replace the current theme on staging, clear all caches, then confirm that recipe images, titles and View recipe or Read the note links all open the correct post.
