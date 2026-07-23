@@ -38,8 +38,16 @@ get_header();
 
 					<div class="nkt-recipe-hero__media-wrap">
 						<?php if ( has_post_thumbnail() ) : ?>
+							<?php
+							$hero_image_id  = get_post_thumbnail_id();
+							$hero_image_url = wp_get_attachment_url( $hero_image_id );
+							$hero_image_alt = trim( (string) get_post_meta( $hero_image_id, '_wp_attachment_image_alt', true ) );
+							if ( '' === $hero_image_alt ) {
+								$hero_image_alt = get_the_title();
+							}
+							?>
 							<div class="recipe-hero__media nkt-recipe-hero__media">
-								<?php the_post_thumbnail( 'larder-hero', array( 'loading' => 'eager', 'fetchpriority' => 'high', 'sizes' => '(max-width: 900px) 92vw, 42vw' ) ); ?>
+								<img class="wp-post-image skip-lazy" src="<?php echo esc_url( $hero_image_url ); ?>" alt="<?php echo esc_attr( $hero_image_alt ); ?>" loading="eager" fetchpriority="high" decoding="async" data-no-lazy="1">
 							</div>
 						<?php else : ?>
 							<div class="recipe-hero__media nkt-recipe-hero__media"></div>
