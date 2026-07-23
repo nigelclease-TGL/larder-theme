@@ -1,0 +1,39 @@
+name: Package WordPress theme
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Build installable theme ZIP
+        run: |
+          mkdir -p build/larder-theme
+          rsync -av \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='build' \
+            --exclude='docs' \
+            --exclude='*.md' \
+            ./ build/larder-theme/
+          cd build
+          zip -r nigels-kitchen-table.zip larder-theme
+
+      - name: Upload theme package
+        uses: actions/upload-artifact@v4
+        with:
+          name: nigels-kitchen-table-theme
+          path: build/nigels-kitchen-table.zip
+          if-no-files-found: error
+          retention-days: 30
