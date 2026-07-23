@@ -108,5 +108,6 @@ function nkt_disable_self_pingbacks( &$links ) {
 		if ( str_starts_with( $link, $home ) ) {
 			unset( $links[ $key ] );
 		}
+	}
 }
 add_action( 'pre_ping', 'nkt_disable_self_pingbacks' );
