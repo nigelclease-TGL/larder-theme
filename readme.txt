@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 2.0.11
+Stable tag: 2.0.12
 License: Proprietary project theme
 
 A premium editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -50,6 +50,11 @@ Key features include:
 12. Complete the launch checklist in docs/launch-checklist.md.
 
 == Changelog ==
+
+= 2.0.12 =
+* Corrected the Public brand identity Site Health test so harmless apostrophe, entity and whitespace differences do not create a false critical result.
+* Allowed the site owner to use a custom non-empty tagline provided it does not use the former brand or the WordPress default tagline.
+* Preserved the approved Nigel's Kitchen Table site title, browser-title and Yoast branding safeguards.
 
 = 2.0.11 =
 * Restored separate recipe selectors for the Spring & Summer, Autumn & Winter, Cakes, Biscuits and Bread collection-card covers.
@@ -140,5 +145,5 @@ Key features include:
 
 == Upgrade Notice ==
 
-= 2.0.11 =
-Replace the current theme, clear all caches, then open Appearance > Customise > Nigel's Kitchen Table Homepage and choose one cover recipe for each of the five collection cards.
+= 2.0.12 =
+Replace the current theme, clear all caches, then refresh Tools > Site Health. The Public brand identity test should pass when the site title is Nigel's Kitchen Table and the tagline is present without legacy branding.
