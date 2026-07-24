@@ -37,27 +37,113 @@ function nkt_get_non_recipe_category_ids() {
 }
 
 /**
- * Return the most useful top-level recipe categories for navigation.
+ * Count published recipes in a category, including child categories.
  *
- * Child categories remain part of their parent category results, but do not
- * appear as duplicate standalone boxes in the main recipe discovery area.
- * Parent counts include recipes assigned to their child categories.
+ * @param int $category_id Category ID.
+ * @return int
+ */
+function nkt_get_discovery_category_recipe_count( $category_id ) {
+	static $counts = array();
+
+	$category_id = absint( $category_id );
+
+	if ( ! $category_id ) {
+		return 0;
+	}
+
+	if ( isset( $counts[ $category_id ] ) ) {
+		return $counts[ $category_id ];
+	}
+
+	$count_query = new WP_Query(
+		array(
+			'post_type'           => 'post',
+			'post_status'         => 'publish',
+			'posts_per_page'      => 1,
+			'ignore_sticky_posts' => true,
+			'cat'                 => $category_id,
+			'fields'              => 'ids',
+			'no_found_rows'       => false,
+			'suppress_filters'    => false,
+		)
+	);
+
+	$counts[ $category_id ] = (int) $count_query->found_posts;
+	wp_reset_postdata();
+
+	return $counts[ $category_id ];
+}
+
+/**
+ * Return the most useful recipe categories for navigation.
+ *
+ * Standard child categories remain inside their parent category results and do
+ * not appear as duplicate boxes. The Seasons organising category is different:
+ * its two useful child collections are displayed instead of an empty Seasons box.
  *
  * @param int $limit Maximum number of categories.
  * @return WP_Term[]
  */
 function nkt_get_recipe_discovery_categories( $limit = 10 ) {
-	return get_categories(
+	$excluded_ids  = nkt_get_non_recipe_category_ids();
+	$top_categories = get_categories(
 		array(
-			'hide_empty' => true,
+			'hide_empty' => false,
 			'parent'     => 0,
-			'pad_counts' => true,
-			'orderby'    => 'count',
-			'order'      => 'DESC',
-			'number'     => absint( $limit ),
-			'exclude'    => nkt_get_non_recipe_category_ids(),
+			'orderby'    => 'name',
+			'order'      => 'ASC',
+			'exclude'    => $excluded_ids,
 		)
 	);
+	$categories = array();
+
+	foreach ( $top_categories as $category ) {
+		$is_seasons_group = in_array( $category->slug, array( 'season', 'seasons' ), true )
+			|| 'seasons' === strtolower( trim( (string) $category->name ) );
+
+		if ( $is_seasons_group ) {
+			$season_categories = get_categories(
+				array(
+					'hide_empty' => false,
+					'parent'     => (int) $category->term_id,
+					'orderby'    => 'name',
+					'order'      => 'ASC',
+					'exclude'    => $excluded_ids,
+				)
+			);
+
+			foreach ( $season_categories as $season_category ) {
+				$count = nkt_get_discovery_category_recipe_count( $season_category->term_id );
+
+				if ( $count > 0 ) {
+					$season_category->count = $count;
+					$categories[]           = $season_category;
+				}
+			}
+
+			continue;
+		}
+
+		$count = nkt_get_discovery_category_recipe_count( $category->term_id );
+
+		if ( $count > 0 ) {
+			$category->count = $count;
+			$categories[]    = $category;
+		}
+	}
+
+	usort(
+		$categories,
+		static function ( $first, $second ) {
+			if ( (int) $first->count === (int) $second->count ) {
+				return strcasecmp( (string) $first->name, (string) $second->name );
+			}
+
+			return (int) $second->count <=> (int) $first->count;
+		}
+	);
+
+	return array_slice( $categories, 0, absint( $limit ) );
 }
 
 /**

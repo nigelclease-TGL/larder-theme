@@ -16,6 +16,7 @@ $selected_category_slug = isset( $_GET['recipe_category'] ) ? sanitize_title( wp
 $selected_category      = $selected_category_slug ? get_category_by_slug( $selected_category_slug ) : null;
 $sort                   = nkt_get_requested_discovery_sort( 'newest' );
 $paged                  = max( 1, get_query_var( 'paged' ), get_query_var( 'page' ) );
+$results_anchor         = '#recipe-results';
 
 if ( $selected_category && in_array( (int) $selected_category->term_id, $excluded_category_ids, true ) ) {
 	$selected_category = null;
@@ -83,7 +84,7 @@ if ( 'newest' !== $sort ) {
 				</header>
 
 				<div class="nkt-category-links">
-					<a class="nkt-category-link<?php echo $selected_category ? '' : ' is-active'; ?>" href="<?php echo esc_url( $page_url ); ?>">
+					<a class="nkt-category-link<?php echo $selected_category ? '' : ' is-active'; ?>" href="<?php echo esc_url( $page_url . $results_anchor ); ?>">
 						<span><?php esc_html_e( 'All recipes', 'larder' ); ?></span>
 						<small><?php esc_html_e( 'Browse everything', 'larder' ); ?></small>
 					</a>
@@ -97,7 +98,7 @@ if ( 'newest' !== $sort ) {
 								)
 							),
 							$page_url
-						);
+						) . $results_anchor;
 						?>
 						<a class="nkt-category-link<?php echo $selected_category && (int) $selected_category->term_id === (int) $category->term_id ? ' is-active' : ''; ?>" href="<?php echo esc_url( $category_url ); ?>">
 							<span><?php echo esc_html( $category->name ); ?></span>
@@ -109,7 +110,7 @@ if ( 'newest' !== $sort ) {
 		</section>
 	<?php endif; ?>
 
-	<section class="nkt-discovery-results" aria-labelledby="all-recipes-title">
+	<section id="recipe-results" class="nkt-discovery-results" aria-labelledby="all-recipes-title">
 		<div class="container">
 			<header class="nkt-results-header">
 				<div>
@@ -126,7 +127,7 @@ if ( 'newest' !== $sort ) {
 					<p class="nkt-results-count"><?php echo esc_html( nkt_get_recipe_count_label( $recipes->found_posts ) ); ?></p>
 				</div>
 
-				<form class="nkt-discovery-toolbar" method="get" action="<?php echo esc_url( $page_url ); ?>">
+				<form class="nkt-discovery-toolbar" method="get" action="<?php echo esc_url( $page_url . $results_anchor ); ?>">
 					<label>
 						<span><?php esc_html_e( 'Category', 'larder' ); ?></span>
 						<select name="recipe_category">
@@ -146,7 +147,7 @@ if ( 'newest' !== $sort ) {
 					</label>
 					<button class="button button-primary" type="submit"><?php esc_html_e( 'Apply', 'larder' ); ?></button>
 					<?php if ( $selected_category || 'newest' !== $sort ) : ?>
-						<a class="nkt-clear-filters" href="<?php echo esc_url( $page_url ); ?>"><?php esc_html_e( 'Clear', 'larder' ); ?></a>
+						<a class="nkt-clear-filters" href="<?php echo esc_url( $page_url . $results_anchor ); ?>"><?php esc_html_e( 'Clear', 'larder' ); ?></a>
 					<?php endif; ?>
 				</form>
 			</header>
@@ -166,12 +167,13 @@ if ( 'newest' !== $sort ) {
 					echo wp_kses_post(
 						paginate_links(
 							array(
-								'total'     => $recipes->max_num_pages,
-								'current'   => $paged,
-								'mid_size'  => 1,
-								'prev_text' => __( 'Previous', 'larder' ),
-								'next_text' => __( 'Next', 'larder' ),
-								'add_args'  => $pagination_args,
+								'total'        => $recipes->max_num_pages,
+								'current'      => $paged,
+								'mid_size'     => 1,
+								'prev_text'    => __( 'Previous', 'larder' ),
+								'next_text'    => __( 'Next', 'larder' ),
+								'add_args'     => $pagination_args,
+								'add_fragment' => $results_anchor,
 							)
 						)
 					);
@@ -183,7 +185,7 @@ if ( 'newest' !== $sort ) {
 					<p class="eyebrow"><?php esc_html_e( 'Nothing here yet', 'larder' ); ?></p>
 					<h2><?php esc_html_e( 'Try another category.', 'larder' ); ?></h2>
 					<p><?php esc_html_e( 'This part of the recipe box is still being filled. Browse all recipes to find something delicious.', 'larder' ); ?></p>
-					<a class="button button-primary" href="<?php echo esc_url( $page_url ); ?>"><?php esc_html_e( 'Browse all recipes', 'larder' ); ?></a>
+					<a class="button button-primary" href="<?php echo esc_url( $page_url . $results_anchor ); ?>"><?php esc_html_e( 'Browse all recipes', 'larder' ); ?></a>
 				</div>
 			<?php endif; ?>
 		</div>
