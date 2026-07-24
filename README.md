@@ -4,7 +4,7 @@ A custom editorial recipe theme for **Nigel's Kitchen Table**, developed at:
 
 **Repository:** https://github.com/nigelclease-TGL/larder-theme  
 **Website:** https://thegourmetlarder.com  
-**Current theme version:** `2.0.2`
+**Current theme version:** `2.0.7`
 
 The theme presents Nigel's Kitchen Table as the public-facing brand while preserving the existing domain, recipe URLs, structured data and search visibility.
 
@@ -102,7 +102,8 @@ The theme also supports the site's existing UpdraftPlus, WP Super Cache and thum
 7. Assign the Primary and Footer menus.
 8. Regenerate thumbnails.
 9. Open **Tools → Recipe Content Audit**.
-10. Clear WP Super Cache.
+10. Open **Tools → Site Health** and confirm the **Public brand identity** test passes.
+11. Clear WP Super Cache.
 
 The homepage must use a static page with **Homepage: Home** selected and the **Posts page left unselected**.
 
@@ -112,12 +113,17 @@ The selected portrait recipe photographs are mapped in [`docs/photo-asset-plan.m
 
 ## Release and launch readiness
 
+Version `2.0.7` safeguards the public identity by migrating clearly legacy WordPress site-title and tagline settings, keeping browser titles and Yoast site-name metadata on Nigel's Kitchen Table, and adding a dedicated Site Health test.
+
+Version `2.0.6` corrects the final recipe heading hierarchy so only main H2 sections use the copper accent treatment.
+
 Version `2.0.2` fixes recipe-card link behaviour so the image, recipe title and **View recipe** or **Read the note** action are valid, separate links. This avoids nested links around category metadata and improves accessibility and browser consistency.
 
 Version `2.0.1` includes the approved Nigel's Kitchen Table brand system, responsive horizontal and compact logos, the NKT monogram, favicon package and final header logo sizing.
 
 Theme-specific checks under **Tools → Site Health** cover:
 
+- public brand identity,
 - page structure,
 - WP Recipe Maker,
 - staging and production search visibility,
@@ -139,6 +145,7 @@ Theme-specific checks under **Tools → Site Health** cover:
 - Conversion events contain no form-field values and are sent only to an analytics data layer that already exists.
 - Visible publication dates are omitted from evergreen recipe pages and recipe cards; Kitchen Notes retain editorial dates.
 - A read-only audit under **Tools → Recipe Content Audit** highlights missing featured images, alt text, excerpts, categories, recipe cards and supporting copy without changing posts or URLs.
+- The public site title, tagline, browser titles and Yoast site-name metadata are checked against the approved Nigel's Kitchen Table identity.
 
 See [`docs/editorial-workflow.md`](docs/editorial-workflow.md) and [`docs/launch-checklist.md`](docs/launch-checklist.md).
 

@@ -12,6 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 require_once get_template_directory() . '/inc/customizer.php';
 require_once get_template_directory() . '/inc/performance.php';
 require_once get_template_directory() . '/inc/seo.php';
+require_once get_template_directory() . '/inc/branding.php';
 require_once get_template_directory() . '/inc/monetization.php';
 require_once get_template_directory() . '/inc/growth.php';
 require_once get_template_directory() . '/inc/collections.php';
