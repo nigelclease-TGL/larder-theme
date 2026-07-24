@@ -19,6 +19,44 @@ function nkt_has_seo_plugin() {
 }
 
 /**
+ * Detect a non-production request after all theme includes have loaded.
+ *
+ * @return bool
+ */
+function nkt_is_nonproduction_request() {
+	return function_exists( 'nkt_is_staging_site' ) && nkt_is_staging_site();
+}
+
+/**
+ * Add an HTTP-level indexing safeguard on staging and development hosts.
+ */
+function nkt_send_nonproduction_robots_header() {
+	if ( is_admin() || ! nkt_is_nonproduction_request() || headers_sent() ) {
+		return;
+	}
+
+	header( 'X-Robots-Tag: noindex, nofollow, noarchive, noimageindex', true );
+}
+add_action( 'send_headers', 'nkt_send_nonproduction_robots_header', 1 );
+
+/**
+ * The editorial homepage is not paginated, so URLs such as /page/12/ are
+ * duplicate homepages and should resolve to the canonical root URL.
+ */
+function nkt_redirect_invalid_front_page_pagination() {
+	if ( is_admin() || ! is_front_page() ) {
+		return;
+	}
+
+	$paged = max( (int) get_query_var( 'paged' ), (int) get_query_var( 'page' ) );
+	if ( $paged > 1 ) {
+		wp_safe_redirect( home_url( '/' ), 301 );
+		exit;
+	}
+}
+add_action( 'template_redirect', 'nkt_redirect_invalid_front_page_pagination', 1 );
+
+/**
  * Build a useful description for the current request.
  *
  * @return string
@@ -237,12 +275,21 @@ function nkt_output_structured_data() {
 add_action( 'wp_head', 'nkt_output_structured_data', 20 );
 
 /**
- * Search and error pages should not be indexed as standalone content.
+ * Search and error pages should not be indexed as standalone content. Staging
+ * and development hosts must never be indexed, even when an SEO plugin is active.
  *
  * @param array $robots Existing robot directives.
  * @return array
  */
 function nkt_robots_directives( $robots ) {
+	if ( nkt_is_nonproduction_request() ) {
+		$robots['noindex']      = true;
+		$robots['nofollow']     = true;
+		$robots['noarchive']    = true;
+		$robots['noimageindex'] = true;
+		return $robots;
+	}
+
 	if ( nkt_has_seo_plugin() ) {
 		return $robots;
 	}
