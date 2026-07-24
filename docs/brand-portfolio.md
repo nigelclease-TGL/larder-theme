@@ -11,6 +11,10 @@ The working presentation uses these filenames:
 
 The approved version is the presentation with the compact cream, olive and copper editorial layout shown in the project review. It must be treated as the master presentation format unless Nigel explicitly approves a redesign.
 
+A detailed artifact manifest, compressed-copy checksums and preservation rules are recorded in:
+
+- [`brand-portfolio/README.md`](brand-portfolio/README.md)
+
 ## Approved slide structure
 
 1. Brand portfolio overview
@@ -31,6 +35,7 @@ The approved version is the presentation with the compact cream, olive and coppe
 - Avoid excessive empty space, oversized headings and decorative additions that reduce readability.
 - Update audience figures before sharing the portfolio with a partner.
 - Use only genuine recipe, website or approved social-media images. Do not substitute AI-generated food photography.
+- Preserve the original proportions of photographs and avoid distorted or awkward crops.
 - Do not invent partner testimonials, campaign results or demographic percentages.
 
 ## Current audience figures
