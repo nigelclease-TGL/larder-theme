@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 2.0.16
+Stable tag: 2.0.17
 License: Proprietary project theme
 
 A premium editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -33,6 +33,7 @@ Key features include:
 * Privacy-conscious conversion events for existing analytics integrations
 * Read-only recipe and Kitchen Note content audit with CSV export
 * Public brand identity safeguards for the site title, tagline, browser titles and Yoast metadata
+* Automatic indexing protection for detected staging and development hosts
 
 == Installation ==
 
@@ -50,6 +51,11 @@ Key features include:
 12. Complete the launch checklist in docs/launch-checklist.md.
 
 == Changelog ==
+
+= 2.0.17 =
+* Added automatic noindex, nofollow, noarchive and noimageindex protection for detected staging and development hosts.
+* Added an HTTP X-Robots-Tag safeguard so staging remains protected even when an SEO plugin is active.
+* Redirected invalid paginated homepage URLs such as /page/12/ to the canonical homepage.
 
 = 2.0.16 =
 * Rebuilt the Collections page from the same five curated collection definitions used on the homepage.
@@ -171,5 +177,5 @@ Key features include:
 
 == Upgrade Notice ==
 
-= 2.0.16 =
-Replace the current theme, clear all caches, then confirm that the Collections page shows five image-led cards using the same saved cover recipes as the homepage.
+= 2.0.17 =
+Update the theme on staging and production, clear every page cache, then confirm staging sends noindex headers and paginated homepage URLs redirect to the canonical homepage.
