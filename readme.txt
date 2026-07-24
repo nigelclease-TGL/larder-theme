@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 2.0.5
+Stable tag: 2.0.6
 License: Proprietary project theme
 
 A premium editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -49,15 +49,18 @@ Key features include:
 
 == Changelog ==
 
+= 2.0.6 =
+* Corrected recipe heading styling so H3-H6 subsection headings never inherit the copper H2 accent line, including headings inside Groups and Columns.
+* Preserved the copper accent and larger typography for main H2 recipe sections only.
+
 = 2.0.5 =
-* Corrected recipe subsection styling when H3-H6 headings are nested inside Group or Columns blocks.
-* Ensured nested subsection headings no longer inherit the copper accent line intended for main H2 sections.
+* Corrected nested recipe heading hierarchy styling for subsection headings inside Group and Columns blocks.
 
 = 2.0.4 =
-* Updated recipe hero images to use the original featured-image attachment URL directly.
+* Improved recipe hero image loading by using the selected original featured-image attachment directly.
 
 = 2.0.3 =
-* Added the recipe heading hierarchy stylesheet for H2 main sections and smaller H3-H6 subsections.
+* Corrected recipe heading hierarchy so subsection headings use smaller styling without the copper accent line.
 
 = 2.0.2 =
 * Fixed recipe-card link markup so the image, recipe title and View recipe or Read the note action are all clickable.
@@ -109,5 +112,5 @@ Key features include:
 
 == Upgrade Notice ==
 
-= 2.0.5 =
-Replace the current theme, clear all caches, then confirm that nested H3-H6 recipe subsection headings display without the copper accent line while H2 section headings keep it.
+= 2.0.6 =
+Replace the current theme, clear all caches, then confirm that only H2 recipe section headings display the copper accent line and H3-H6 subsection headings do not.
