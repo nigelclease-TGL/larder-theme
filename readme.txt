@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 2.0.10
+Stable tag: 2.0.11
 License: Proprietary project theme
 
 A premium editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -50,6 +50,12 @@ Key features include:
 12. Complete the launch checklist in docs/launch-checklist.md.
 
 == Changelog ==
+
+= 2.0.11 =
+* Restored separate recipe selectors for the Spring & Summer, Autumn & Winter, Cakes, Biscuits and Bread collection-card covers.
+* Fixed the collection-card order so it no longer changes according to category post counts.
+* Kept each card linked to its collection while allowing its background image to come from a selected recipe in that collection.
+* Added conservative migration support for earlier collection-cover recipe settings.
 
 = 2.0.10 =
 * Restored manual homepage recipe selectors for the hero, Latest recipes and “This is what everyone’s cooking” sections.
@@ -134,5 +140,5 @@ Key features include:
 
 == Upgrade Notice ==
 
-= 2.0.10 =
-Replace the current theme, clear all caches, then confirm the saved hero and portrait images remain selected, the embedded Mailchimp form appears inside the panel, and the homepage recipe selectors are available under Appearance > Customise > Nigel's Kitchen Table Homepage.
+= 2.0.11 =
+Replace the current theme, clear all caches, then open Appearance > Customise > Nigel's Kitchen Table Homepage and choose one cover recipe for each of the five collection cards.
