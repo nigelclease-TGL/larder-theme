@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 2.0.12
+Stable tag: 2.0.13
 License: Proprietary project theme
 
 A premium editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -50,6 +50,12 @@ Key features include:
 12. Complete the launch checklist in docs/launch-checklist.md.
 
 == Changelog ==
+
+= 2.0.13 =
+* Changed the Recipes page category boxes and filters to show top-level categories only.
+* Kept child-category recipes included inside their parent category results.
+* Included child-category recipes in the displayed parent category counts.
+* Prevented child categories such as Scones from remaining as separate recipe-box entries after being moved beneath Pastry.
 
 = 2.0.12 =
 * Corrected the Public brand identity Site Health test so harmless apostrophe, entity and whitespace differences do not create a false critical result.
@@ -145,5 +151,5 @@ Key features include:
 
 == Upgrade Notice ==
 
-= 2.0.12 =
-Replace the current theme, clear all caches, then refresh Tools > Site Health. The Public brand identity test should pass when the site title is Nigel's Kitchen Table and the tagline is present without legacy branding.
+= 2.0.13 =
+Replace the current theme, clear all caches, then refresh the Recipes page. Child categories should disappear from the main recipe boxes while their recipes remain included under the parent category.

@@ -37,7 +37,11 @@ function nkt_get_non_recipe_category_ids() {
 }
 
 /**
- * Return the most useful recipe categories for navigation.
+ * Return the most useful top-level recipe categories for navigation.
+ *
+ * Child categories remain part of their parent category results, but do not
+ * appear as duplicate standalone boxes in the main recipe discovery area.
+ * Parent counts include recipes assigned to their child categories.
  *
  * @param int $limit Maximum number of categories.
  * @return WP_Term[]
@@ -46,6 +50,8 @@ function nkt_get_recipe_discovery_categories( $limit = 10 ) {
 	return get_categories(
 		array(
 			'hide_empty' => true,
+			'parent'     => 0,
+			'pad_counts' => true,
 			'orderby'    => 'count',
 			'order'      => 'DESC',
 			'number'     => absint( $limit ),
