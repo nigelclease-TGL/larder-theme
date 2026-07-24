@@ -5,16 +5,53 @@
  * @package Larder
  */
 
-$categories = get_categories(
-	array(
-		'orderby'    => 'count',
-		'order'      => 'DESC',
-		'hide_empty' => true,
-		'number'     => 5,
-	)
-);
+$collections = array();
 
-if ( empty( $categories ) ) {
+foreach ( nkt_homepage_collection_definitions() as $index => $definition ) {
+	$category = nkt_homepage_collection_category( $definition );
+
+	if ( ! $category || 0 === (int) $category->count ) {
+		continue;
+	}
+
+	$selected_recipe_id = nkt_homepage_recipe_id(
+		'larder_home_collection_' . $definition['key'] . '_recipe_id',
+		nkt_homepage_collection_legacy_settings( $definition['key'], $index + 1 )
+	);
+
+	$cover_url = '';
+
+	if ( $selected_recipe_id && has_category( $category->term_id, $selected_recipe_id ) && has_post_thumbnail( $selected_recipe_id ) ) {
+		$cover_url = get_the_post_thumbnail_url( $selected_recipe_id, 'large' );
+	}
+
+	if ( ! $cover_url ) {
+		$fallback_posts = get_posts(
+			array(
+				'post_type'           => 'post',
+				'post_status'         => 'publish',
+				'posts_per_page'      => 1,
+				'ignore_sticky_posts' => true,
+				'cat'                 => $category->term_id,
+				'meta_key'            => '_thumbnail_id',
+				'fields'              => 'ids',
+				'no_found_rows'       => true,
+				'suppress_filters'    => false,
+			)
+		);
+
+		if ( ! empty( $fallback_posts ) ) {
+			$cover_url = get_the_post_thumbnail_url( $fallback_posts[0], 'large' );
+		}
+	}
+
+	$collections[] = array(
+		'category'  => $category,
+		'cover_url' => $cover_url,
+	);
+}
+
+if ( empty( $collections ) ) {
 	return;
 }
 ?>
@@ -29,25 +66,10 @@ if ( empty( $categories ) ) {
 		</header>
 
 		<div class="category-grid category-grid--editorial">
-			<?php foreach ( $categories as $index => $category ) : ?>
+			<?php foreach ( $collections as $index => $collection ) : ?>
 				<?php
-				$cover_query = new WP_Query(
-					array(
-						'post_type'           => 'post',
-						'posts_per_page'      => 1,
-						'ignore_sticky_posts' => true,
-						'cat'                 => $category->term_id,
-						'meta_key'            => '_thumbnail_id',
-						'no_found_rows'       => true,
-					)
-				);
-
-				$cover_url = '';
-				if ( $cover_query->have_posts() ) {
-					$cover_query->the_post();
-					$cover_url = get_the_post_thumbnail_url( get_the_ID(), 'large' );
-				}
-				wp_reset_postdata();
+				$category  = $collection['category'];
+				$cover_url = $collection['cover_url'];
 				?>
 				<a class="category-card category-card--<?php echo esc_attr( $index + 1 ); ?>" href="<?php echo esc_url( get_category_link( $category->term_id ) ); ?>">
 					<span
