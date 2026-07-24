@@ -101,3 +101,49 @@ function nkt_brand_yoast_website_schema( $data ) {
 	return $data;
 }
 add_filter( 'wpseo_schema_website', 'nkt_brand_yoast_website_schema' );
+
+/**
+ * Confirm the core WordPress identity matches the approved brand.
+ *
+ * @return bool
+ */
+function nkt_brand_identity_is_ready() {
+	return nkt_brand_name() === trim( (string) get_option( 'blogname', '' ) )
+		&& nkt_brand_tagline() === trim( (string) get_option( 'blogdescription', '' ) );
+}
+
+/**
+ * Report the public brand identity in WordPress Site Health.
+ *
+ * @return array
+ */
+function nkt_brand_site_health_test() {
+	$ready = nkt_brand_identity_is_ready();
+
+	return array(
+		'label'       => $ready ? __( 'The public website identity is fully branded', 'larder' ) : __( 'Align the public website identity', 'larder' ),
+		'status'      => $ready ? 'good' : 'critical',
+		'badge'       => array(
+			'label' => __( "Nigel's Kitchen Table", 'larder' ),
+			'color' => 'blue',
+		),
+		'description' => '<p>' . esc_html( $ready ? __( 'The WordPress site title, tagline, browser titles and Yoast site name use Nigel’s Kitchen Table.', 'larder' ) : __( 'The WordPress site title or tagline still contains an unapproved or legacy identity.', 'larder' ) ) . '</p>',
+		'actions'     => $ready ? '' : '<p><a href="' . esc_url( admin_url( 'options-general.php' ) ) . '">' . esc_html__( 'Open General Settings', 'larder' ) . '</a></p>',
+		'test'        => 'nkt_public_brand_identity',
+	);
+}
+
+/**
+ * Register the public brand test with Site Health.
+ *
+ * @param array $tests Existing Site Health tests.
+ * @return array
+ */
+function nkt_register_brand_site_health_test( $tests ) {
+	$tests['direct']['nkt_public_brand_identity'] = array(
+		'label' => __( 'Public brand identity', 'larder' ),
+		'test'  => 'nkt_brand_site_health_test',
+	);
+	return $tests;
+}
+add_filter( 'site_status_tests', 'nkt_register_brand_site_health_test' );
