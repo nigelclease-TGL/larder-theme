@@ -19,34 +19,17 @@ foreach ( array( 'kitchen-notes', 'baking-guides' ) as $excluded_slug ) {
 	}
 }
 
-$featured_args = array(
-	'post_type'           => 'post',
-	'post_status'         => 'publish',
-	'posts_per_page'      => 1,
-	'ignore_sticky_posts' => true,
-	'category__not_in'    => $excluded_category_ids,
-	'meta_query'          => array(
-		array(
-			'key'     => '_thumbnail_id',
-			'compare' => 'EXISTS',
-		),
-	),
-	'no_found_rows'       => true,
+$featured_recipe_id = nkt_homepage_recipe_id(
+	'larder_home_hero_recipe_id',
+	array(
+		'larder_hero_recipe_id',
+		'larder_featured_recipe_id',
+		'larder_homepage_hero_recipe_id',
+		'nkt_hero_recipe_id',
+		'nkt_home_hero_recipe_id',
+	)
 );
 
-$sticky_posts = array_filter( array_map( 'absint', (array) get_option( 'sticky_posts', array() ) ) );
-if ( $sticky_posts ) {
-	$featured_args['post__in'] = $sticky_posts;
-	$featured_args['orderby']  = 'post__in';
-}
-
-$featured_recipe = new WP_Query( $featured_args );
-if ( ! $featured_recipe->have_posts() && isset( $featured_args['post__in'] ) ) {
-	unset( $featured_args['post__in'], $featured_args['orderby'] );
-	$featured_recipe = new WP_Query( $featured_args );
-}
-
-$featured_recipe_id = $featured_recipe->have_posts() ? (int) $featured_recipe->posts[0]->ID : 0;
 $display_image_id    = $hero_image_id ? $hero_image_id : ( $featured_recipe_id ? get_post_thumbnail_id( $featured_recipe_id ) : 0 );
 $featured_title      = $featured_recipe_id ? get_the_title( $featured_recipe_id ) : '';
 $featured_url        = $featured_recipe_id ? get_permalink( $featured_recipe_id ) : '';
@@ -84,12 +67,6 @@ $featured_label      = ! empty( $featured_categories ) ? $featured_categories[0]
 						</div>
 						<span class="hero-feature-card__cta"><?php esc_html_e( 'View recipe', 'larder' ); ?> <span aria-hidden="true">→</span></span>
 					</a>
-				<?php else : ?>
-					<div class="hero-feature-card">
-						<p class="hero-feature-card__label"><?php esc_html_e( 'Seasonal cooking', 'larder' ); ?></p>
-						<strong><?php esc_html_e( 'Made for sharing', 'larder' ); ?></strong>
-						<div class="hero-feature-card__meta"><span><?php esc_html_e( 'Tested carefully', 'larder' ); ?></span></div>
-					</div>
 				<?php endif; ?>
 			</div>
 		</div>
@@ -102,17 +79,38 @@ $featured_label      = ! empty( $featured_categories ) ? $featured_categories[0]
 				<a class="text-link" href="<?php echo esc_url( $recipes_url ); ?>"><?php esc_html_e( 'View all recipes', 'larder' ); ?> <span aria-hidden="true">→</span></a>
 			</header>
 			<?php
+			$selected_latest_ids = nkt_homepage_recipe_ids(
+				'larder_home_latest_recipe_',
+				6,
+				array(
+					'larder_latest_recipe_',
+					'larder_homepage_latest_recipe_',
+					'nkt_latest_recipe_',
+					'nkt_home_latest_recipe_',
+				),
+				array(
+					'larder_home_latest_recipe_ids',
+					'larder_latest_recipe_ids',
+					'nkt_home_latest_recipe_ids',
+				)
+			);
+
 			$latest_args = array(
 				'post_type'           => 'post',
 				'post_status'         => 'publish',
-				'posts_per_page'      => 6,
+				'posts_per_page'      => $selected_latest_ids ? count( $selected_latest_ids ) : 6,
 				'ignore_sticky_posts' => true,
 				'category__not_in'    => $excluded_category_ids,
 				'no_found_rows'       => true,
 			);
-			if ( $featured_recipe_id ) {
+
+			if ( $selected_latest_ids ) {
+				$latest_args['post__in'] = $selected_latest_ids;
+				$latest_args['orderby']  = 'post__in';
+			} elseif ( $featured_recipe_id ) {
 				$latest_args['post__not_in'] = array( $featured_recipe_id );
 			}
+
 			$latest_recipes = new WP_Query( $latest_args );
 			if ( $latest_recipes->have_posts() ) : ?>
 				<div class="recipe-grid">
