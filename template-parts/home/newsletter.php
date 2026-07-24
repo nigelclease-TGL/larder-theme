@@ -32,14 +32,14 @@ $newsletter_promise   = (string) get_theme_mod( 'larder_newsletter_promise', __(
 			</div>
 
 			<div class="newsletter-form-wrap" data-nkt-location="newsletter_form">
-				<?php if ( shortcode_exists( 'mc4wp_form' ) && $mailchimp_form_id ) : ?>
+				<?php if ( $mailchimp_form_id && shortcode_exists( 'mc4wp_form' ) ) : ?>
 					<?php echo do_shortcode( '[mc4wp_form id="' . $mailchimp_form_id . '"]' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-				<?php elseif ( $newsletter_url ) : ?>
-					<a class="button newsletter-button" href="<?php echo esc_url( $newsletter_url ); ?>" data-nkt-event="newsletter_open" data-nkt-label="newsletter_section"><?php esc_html_e( 'Join the Kitchen Table', 'larder' ); ?> →</a>
 				<?php elseif ( current_user_can( 'manage_options' ) ) : ?>
 					<p class="newsletter-setup-note">
-						<?php esc_html_e( 'Mailchimp setup: install and connect Mailchimp for WordPress, create a form, then enter the numeric form ID under Appearance → Customise → Newsletter & Welcome Gift.', 'larder' ); ?>
+						<?php esc_html_e( 'The embedded Mailchimp form is not available. Confirm that Mailchimp for WordPress is active and that the numeric form ID is saved under Appearance → Customise → Newsletter & Welcome Gift.', 'larder' ); ?>
 					</p>
+				<?php elseif ( ! $mailchimp_form_id && $newsletter_url ) : ?>
+					<a class="button newsletter-button" href="<?php echo esc_url( $newsletter_url ); ?>" data-nkt-event="newsletter_open" data-nkt-label="newsletter_section"><?php esc_html_e( 'Join the Kitchen Table', 'larder' ); ?> →</a>
 				<?php endif; ?>
 
 				<?php if ( $privacy_url ) : ?>
