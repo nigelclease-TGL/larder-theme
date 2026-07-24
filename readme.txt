@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 2.0.15
+Stable tag: 2.0.16
 License: Proprietary project theme
 
 A premium editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -50,6 +50,13 @@ Key features include:
 12. Complete the launch checklist in docs/launch-checklist.md.
 
 == Changelog ==
+
+= 2.0.16 =
+* Rebuilt the Collections page from the same five curated collection definitions used on the homepage.
+* Used the saved Customizer cover-recipe image for each collection card.
+* Replaced the old four-item recipe_collection output with Spring & Summer, Autumn & Winter, Cakes & Muffins, Biscuits and Bread.
+* Added an image-led editorial layout while keeping every card linked to its category archive.
+* Updated the Cakes & Muffins collection definition and accepted its current category slug.
 
 = 2.0.15 =
 * Replaced the empty Seasons recipe box with its useful Spring & Summer and Autumn & Winter child categories.
@@ -164,5 +171,5 @@ Key features include:
 
 == Upgrade Notice ==
 
-= 2.0.15 =
-Replace the current theme, clear all caches, then confirm that the Recipes page shows both seasonal category boxes, filtered recipe results remain in view, Kitchen Notes uses the full discovery layout and every page uses the same premium footer.
+= 2.0.16 =
+Replace the current theme, clear all caches, then confirm that the Collections page shows five image-led cards using the same saved cover recipes as the homepage.

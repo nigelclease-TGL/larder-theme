@@ -44,8 +44,8 @@ function nkt_homepage_collection_definitions() {
 		),
 		array(
 			'key'   => 'cakes',
-			'label' => __( 'Cakes', 'larder' ),
-			'slugs' => array( 'cakes', 'cake' ),
+			'label' => __( 'Cakes & Muffins', 'larder' ),
+			'slugs' => array( 'cakes-muffins', 'cakes-and-muffins', 'cakes', 'cake' ),
 		),
 		array(
 			'key'   => 'biscuits',
