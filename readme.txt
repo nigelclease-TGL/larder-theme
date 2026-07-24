@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 2.0.13
+Stable tag: 2.0.14
 License: Proprietary project theme
 
 A premium editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -50,6 +50,12 @@ Key features include:
 12. Complete the launch checklist in docs/launch-checklist.md.
 
 == Changelog ==
+
+= 2.0.14 =
+* Restored the Cakes & Muffins homepage collection card after the category rename.
+* Kept parent collection cards visible when recipes are assigned only to child categories.
+* Included child-category recipes in homepage collection counts.
+* Strengthened image overlays and forced high-contrast collection-card text for reliable readability.
 
 = 2.0.13 =
 * Changed the Recipes page category boxes and filters to show top-level categories only.
@@ -151,5 +157,5 @@ Key features include:
 
 == Upgrade Notice ==
 
-= 2.0.13 =
-Replace the current theme, clear all caches, then refresh the Recipes page. Child categories should disappear from the main recipe boxes while their recipes remain included under the parent category.
+= 2.0.14 =
+Replace the current theme, clear all caches, then confirm that all five homepage collection cards appear and their text remains readable over every selected image.
