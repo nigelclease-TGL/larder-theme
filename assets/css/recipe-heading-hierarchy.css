@@ -1,55 +1,67 @@
 /*
  * Nigel's Kitchen Table — recipe heading hierarchy correction.
  * Keeps the copper accent on main H2 sections only and restores
- * smaller, cleaner subsection headings, including headings nested
- * inside Group and Columns blocks.
+ * smaller, cleaner subsection headings everywhere in recipe content.
  */
 
-.single-recipe .recipe-content h3.wp-block-heading {
-	position: static;
-	margin: 40px 0 14px;
-	padding-top: 0;
-	font-family: "Cormorant Garamond", Georgia, serif;
-	font-size: clamp(1.8rem, 3.4vw, 2.6rem);
-	font-weight: 600;
-	letter-spacing: normal;
-	line-height: 1.08;
+.single-recipe .recipe-content h3 {
+	position: static !important;
+	margin: 40px 0 14px !important;
+	padding-top: 0 !important;
+	border-top: 0 !important;
+	background-image: none !important;
+	font-family: "Cormorant Garamond", Georgia, serif !important;
+	font-size: clamp(1.8rem, 3.4vw, 2.6rem) !important;
+	font-weight: 600 !important;
+	letter-spacing: normal !important;
+	line-height: 1.08 !important;
 }
 
-.single-recipe .recipe-content h4.wp-block-heading {
-	position: static;
-	margin: 34px 0 12px;
-	padding-top: 0;
-	font-family: "Cormorant Garamond", Georgia, serif;
-	font-size: clamp(1.45rem, 2.6vw, 2rem);
-	font-weight: 600;
-	letter-spacing: normal;
-	line-height: 1.12;
+.single-recipe .recipe-content h4 {
+	position: static !important;
+	margin: 34px 0 12px !important;
+	padding-top: 0 !important;
+	border-top: 0 !important;
+	background-image: none !important;
+	font-family: "Cormorant Garamond", Georgia, serif !important;
+	font-size: clamp(1.45rem, 2.6vw, 2rem) !important;
+	font-weight: 600 !important;
+	letter-spacing: normal !important;
+	line-height: 1.12 !important;
 }
 
-.single-recipe .recipe-content h5.wp-block-heading,
-.single-recipe .recipe-content h6.wp-block-heading {
-	position: static;
-	margin: 28px 0 10px;
-	padding-top: 0;
-	font-family: "Cormorant Garamond", Georgia, serif;
-	font-size: clamp(1.2rem, 2vw, 1.5rem);
-	font-weight: 600;
-	letter-spacing: normal;
-	line-height: 1.18;
+.single-recipe .recipe-content h5,
+.single-recipe .recipe-content h6 {
+	position: static !important;
+	margin: 28px 0 10px !important;
+	padding-top: 0 !important;
+	border-top: 0 !important;
+	background-image: none !important;
+	font-family: "Cormorant Garamond", Georgia, serif !important;
+	font-size: clamp(1.2rem, 2vw, 1.5rem) !important;
+	font-weight: 600 !important;
+	letter-spacing: normal !important;
+	line-height: 1.18 !important;
 }
 
-.single-recipe .recipe-content h3.wp-block-heading::before,
-.single-recipe .recipe-content h4.wp-block-heading::before,
-.single-recipe .recipe-content h5.wp-block-heading::before,
-.single-recipe .recipe-content h6.wp-block-heading::before {
+.single-recipe .recipe-content h3::before,
+.single-recipe .recipe-content h3::after,
+.single-recipe .recipe-content h4::before,
+.single-recipe .recipe-content h4::after,
+.single-recipe .recipe-content h5::before,
+.single-recipe .recipe-content h5::after,
+.single-recipe .recipe-content h6::before,
+.single-recipe .recipe-content h6::after {
 	content: none !important;
 	display: none !important;
+	width: 0 !important;
+	height: 0 !important;
+	background: none !important;
 }
 
-.single-recipe .recipe-content h3.wp-block-heading + p,
-.single-recipe .recipe-content h4.wp-block-heading + p,
-.single-recipe .recipe-content h5.wp-block-heading + p,
-.single-recipe .recipe-content h6.wp-block-heading + p {
-	margin-top: 0;
+.single-recipe .recipe-content h3 + p,
+.single-recipe .recipe-content h4 + p,
+.single-recipe .recipe-content h5 + p,
+.single-recipe .recipe-content h6 + p {
+	margin-top: 0 !important;
 }
