@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 2.0.6
+Stable tag: 2.0.7
 License: Proprietary project theme
 
 A premium editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -32,6 +32,7 @@ Key features include:
 * Editorial Standards, Affiliate Disclosure and partnership page templates
 * Privacy-conscious conversion events for existing analytics integrations
 * Read-only recipe and Kitchen Note content audit with CSV export
+* Public brand identity safeguards for the site title, tagline, browser titles and Yoast metadata
 
 == Installation ==
 
@@ -45,9 +46,15 @@ Key features include:
 8. Regenerate thumbnails and clear caches.
 9. Open Tools > Recipe Content Audit.
 10. Confirm the NKT favicon appears in the browser tab and on a mobile shortcut.
-11. Complete the launch checklist in docs/launch-checklist.md.
+11. Open Tools > Site Health and confirm the Public brand identity test passes.
+12. Complete the launch checklist in docs/launch-checklist.md.
 
 == Changelog ==
+
+= 2.0.7 =
+* Migrated legacy WordPress site-title and tagline settings to Nigel's Kitchen Table when appropriate.
+* Ensured browser titles and Yoast Open Graph/WebSite schema use the approved public brand name.
+* Added a WordPress Site Health test that detects an incorrect public brand identity.
 
 = 2.0.6 =
 * Corrected recipe heading styling so H3-H6 subsection headings never inherit the copper H2 accent line, including headings inside Groups and Columns.
@@ -112,5 +119,5 @@ Key features include:
 
 == Upgrade Notice ==
 
-= 2.0.6 =
-Replace the current theme, clear all caches, then confirm that only H2 recipe section headings display the copper accent line and H3-H6 subsection headings do not.
+= 2.0.7 =
+Replace the current theme, clear all caches, then confirm that the browser title and Site Health public-brand check use Nigel's Kitchen Table rather than The Gourmet Larder.
