@@ -26,29 +26,89 @@ function nkt_homepage_is_recipe_post( $post_id ) {
 }
 
 /**
+ * Return the fixed homepage collection cards in their approved order.
+ *
+ * @return array<int,array<string,mixed>>
+ */
+function nkt_homepage_collection_definitions() {
+	return array(
+		array(
+			'key'   => 'spring_summer',
+			'label' => __( 'Spring & Summer', 'larder' ),
+			'slugs' => array( 'spring-summer', 'summer' ),
+		),
+		array(
+			'key'   => 'autumn_winter',
+			'label' => __( 'Autumn & Winter', 'larder' ),
+			'slugs' => array( 'autumn-winter', 'autumn' ),
+		),
+		array(
+			'key'   => 'cakes',
+			'label' => __( 'Cakes', 'larder' ),
+			'slugs' => array( 'cakes', 'cake' ),
+		),
+		array(
+			'key'   => 'biscuits',
+			'label' => __( 'Biscuits', 'larder' ),
+			'slugs' => array( 'biscuits', 'cookies' ),
+		),
+		array(
+			'key'   => 'bread',
+			'label' => __( 'Bread', 'larder' ),
+			'slugs' => array( 'bread', 'breads' ),
+		),
+	);
+}
+
+/**
+ * Locate the WordPress category for a homepage collection definition.
+ *
+ * @param array<string,mixed> $definition Collection definition.
+ * @return WP_Term|null
+ */
+function nkt_homepage_collection_category( $definition ) {
+	foreach ( (array) $definition['slugs'] as $slug ) {
+		$category = get_category_by_slug( $slug );
+
+		if ( $category ) {
+			return $category;
+		}
+	}
+
+	$category = get_term_by( 'name', (string) $definition['label'], 'category' );
+
+	return $category instanceof WP_Term ? $category : null;
+}
+
+/**
  * Return published recipe choices for Customizer controls.
  *
+ * @param int $category_id Optional category ID used to restrict the list.
  * @return array<int,string>
  */
-function nkt_homepage_recipe_options() {
+function nkt_homepage_recipe_options( $category_id = 0 ) {
 	$options = array(
 		0 => __( '— Select a recipe —', 'larder' ),
 	);
 
-	$post_ids = get_posts(
-		array(
-			'post_type'              => 'post',
-			'post_status'            => 'publish',
-			'posts_per_page'         => -1,
-			'orderby'                => 'title',
-			'order'                  => 'ASC',
-			'fields'                 => 'ids',
-			'no_found_rows'          => true,
-			'update_post_meta_cache' => false,
-			'update_post_term_cache' => true,
-			'suppress_filters'       => false,
-		)
+	$args = array(
+		'post_type'              => 'post',
+		'post_status'            => 'publish',
+		'posts_per_page'         => -1,
+		'orderby'                => 'title',
+		'order'                  => 'ASC',
+		'fields'                 => 'ids',
+		'no_found_rows'          => true,
+		'update_post_meta_cache' => false,
+		'update_post_term_cache' => true,
+		'suppress_filters'       => false,
 	);
+
+	if ( $category_id ) {
+		$args['cat'] = absint( $category_id );
+	}
+
+	$post_ids = get_posts( $args );
 
 	foreach ( $post_ids as $post_id ) {
 		if ( nkt_homepage_is_recipe_post( $post_id ) ) {
@@ -134,6 +194,64 @@ function nkt_homepage_recipe_ids( $prefix, $count, $legacy_prefixes = array(), $
 }
 
 /**
+ * Return likely earlier setting names for a collection cover recipe.
+ *
+ * @param string $key Collection key.
+ * @param int    $position Collection position.
+ * @return string[]
+ */
+function nkt_homepage_collection_legacy_settings( $key, $position ) {
+	return array(
+		'larder_collection_' . $key . '_recipe_id',
+		'larder_homepage_collection_' . $key . '_recipe_id',
+		'larder_home_collection_' . $key . '_recipe',
+		'nkt_collection_' . $key . '_recipe_id',
+		'nkt_home_collection_' . $key . '_recipe_id',
+		'larder_home_category_' . $position . '_recipe_id',
+		'larder_category_' . $position . '_recipe_id',
+		'nkt_home_category_' . $position . '_recipe_id',
+	);
+}
+
+/**
+ * Try to recover a collection recipe from an older unknown setting name.
+ *
+ * @param string $key Collection key.
+ * @return int
+ */
+function nkt_homepage_find_legacy_collection_recipe( $key ) {
+	$theme_mods = get_theme_mods();
+	$key_tokens = array_filter( explode( '_', $key ) );
+
+	foreach ( $theme_mods as $setting_name => $value ) {
+		$normalised_name = strtolower( str_replace( '-', '_', (string) $setting_name ) );
+
+		if ( false === strpos( $normalised_name, 'recipe' ) ) {
+			continue;
+		}
+
+		if ( false === strpos( $normalised_name, 'collection' ) && false === strpos( $normalised_name, 'category' ) ) {
+			continue;
+		}
+
+		$matches_key = true;
+		foreach ( $key_tokens as $token ) {
+			if ( false === strpos( $normalised_name, $token ) ) {
+				$matches_key = false;
+				break;
+			}
+		}
+
+		$post_id = absint( $value );
+		if ( $matches_key && nkt_homepage_is_recipe_post( $post_id ) ) {
+			return $post_id;
+		}
+	}
+
+	return 0;
+}
+
+/**
  * Copy recognised earlier homepage recipe settings into the current controls.
  *
  * This is deliberately conservative and never replaces a current selection.
@@ -170,6 +288,10 @@ function nkt_migrate_homepage_recipe_settings() {
 		);
 	}
 
+	foreach ( nkt_homepage_collection_definitions() as $index => $definition ) {
+		$mappings[ 'larder_home_collection_' . $definition['key'] . '_recipe_id' ] = nkt_homepage_collection_legacy_settings( $definition['key'], $index + 1 );
+	}
+
 	foreach ( $mappings as $current_setting => $legacy_settings ) {
 		if ( nkt_homepage_is_recipe_post( absint( get_theme_mod( $current_setting, 0 ) ) ) ) {
 			continue;
@@ -180,7 +302,16 @@ function nkt_migrate_homepage_recipe_settings() {
 
 			if ( nkt_homepage_is_recipe_post( $post_id ) ) {
 				set_theme_mod( $current_setting, $post_id );
-				break;
+				continue 2;
+			}
+		}
+
+		if ( 0 === strpos( $current_setting, 'larder_home_collection_' ) ) {
+			$key     = str_replace( array( 'larder_home_collection_', '_recipe_id' ), '', $current_setting );
+			$post_id = nkt_homepage_find_legacy_collection_recipe( $key );
+
+			if ( $post_id ) {
+				set_theme_mod( $current_setting, $post_id );
 			}
 		}
 	}
