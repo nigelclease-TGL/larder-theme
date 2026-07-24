@@ -129,8 +129,9 @@
 	color: #fffaf2;
 }
 
-/* The filtered recipe list should remain in view after a GET refresh. */
-#recipe-results {
+/* Filtered lists should remain in view after a GET refresh. */
+#recipe-results,
+#kitchen-notes-results {
 	scroll-margin-top: clamp(92px, 10vw, 126px);
 }
 
