@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 2.0.17
+Stable tag: 2.0.18
 License: Proprietary project theme
 
 A premium editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -51,6 +51,11 @@ Key features include:
 12. Complete the launch checklist in docs/launch-checklist.md.
 
 == Changelog ==
+
+= 2.0.18 =
+* Removed the former Gourmet Larder promotional ending after WP Recipe Maker cards on recipe pages.
+* Prevented duplicate Pinterest prompts, social follow panels, related links, newsletter prompts and the old Happy Baking signature from appearing beneath the new recipe layout.
+* Kept the stored post content unchanged so the cleanup remains reversible and safe during staging review.
 
 = 2.0.17 =
 * Added automatic noindex, nofollow, noarchive and noimageindex protection for detected staging and development hosts.
@@ -177,5 +182,5 @@ Key features include:
 
 == Upgrade Notice ==
 
-= 2.0.17 =
-Update the theme on staging and production, clear every page cache, then confirm staging sends noindex headers and paginated homepage URLs redirect to the canonical homepage.
+= 2.0.18 =
+Update the theme, clear every page cache, then confirm recipe pages end with the new Nigel's Kitchen Table sharing, newsletter, related-recipe and comments sections only.
