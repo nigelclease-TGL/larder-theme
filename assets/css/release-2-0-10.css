@@ -1,0 +1,137 @@
+/*
+ * Nigel's Kitchen Table — version 2.0.10 corrections.
+ *
+ * Restores context-aware newsletter colours and the curated homepage recipe grid.
+ */
+
+/* Homepage newsletter: light editorial card with a dark embedded form panel. */
+.home .newsletter-panel.newsletter-panel--growth {
+	background: #fbf8f2;
+	color: #2e2e2b;
+}
+
+.home .newsletter-panel.newsletter-panel--growth h2 {
+	color: #2e2e2b !important;
+}
+
+.home .newsletter-panel.newsletter-panel--growth .newsletter-panel__copy > p:not(.eyebrow) {
+	color: #5f695f !important;
+}
+
+.home .newsletter-panel.newsletter-panel--growth .newsletter-benefits li {
+	color: #536055 !important;
+}
+
+.home .newsletter-panel.newsletter-panel--growth .newsletter-benefits li::before {
+	background: #e6ebe2 !important;
+	color: #344232 !important;
+}
+
+.home .newsletter-panel.newsletter-panel--growth .newsletter-panel__promise {
+	color: #8b694f !important;
+}
+
+.home .newsletter-panel.newsletter-panel--growth .newsletter-form-wrap {
+	background: #344232;
+	color: #fffdfa !important;
+}
+
+.home .newsletter-panel.newsletter-panel--growth .newsletter-form-wrap label,
+.home .newsletter-panel.newsletter-panel--growth .newsletter-form-wrap p,
+.home .newsletter-panel.newsletter-panel--growth .newsletter-form-wrap .newsletter-privacy,
+.home .newsletter-panel.newsletter-panel--growth .newsletter-form-wrap .newsletter-privacy a {
+	color: rgba(255, 253, 250, .82) !important;
+}
+
+/* Recipe newsletter: the whole panel remains dark and readable. */
+.single-post .newsletter-panel.newsletter-panel--growth {
+	background: #465443;
+	color: #fffdfa;
+}
+
+.single-post .newsletter-panel.newsletter-panel--growth h2,
+.single-post .newsletter-panel.newsletter-panel--growth .newsletter-panel__copy > p:not(.eyebrow),
+.single-post .newsletter-panel.newsletter-panel--growth .newsletter-panel__promise,
+.single-post .newsletter-panel.newsletter-panel--growth .newsletter-form-wrap {
+	color: #fffdfa !important;
+}
+
+.single-post .newsletter-panel.newsletter-panel--growth .newsletter-benefits li {
+	color: rgba(255, 253, 250, .88) !important;
+}
+
+.single-post .newsletter-panel.newsletter-panel--growth .newsletter-benefits li::before {
+	background: rgba(255, 253, 250, .16) !important;
+	color: #fffdfa !important;
+}
+
+.single-post .newsletter-panel.newsletter-panel--growth .newsletter-privacy,
+.single-post .newsletter-panel.newsletter-panel--growth .newsletter-privacy a {
+	color: rgba(255, 253, 250, .72) !important;
+}
+
+/* Embedded Mailchimp form remains inside the newsletter box. */
+.newsletter-panel.newsletter-panel--growth .mc4wp-form {
+	width: 100%;
+}
+
+.newsletter-panel.newsletter-panel--growth .mc4wp-form label {
+	display: block;
+	width: 100%;
+	margin: 0 0 8px;
+	font-weight: 600;
+}
+
+.newsletter-panel.newsletter-panel--growth .mc4wp-form input[type="email"],
+.newsletter-panel.newsletter-panel--growth .mc4wp-form input[type="text"] {
+	border-radius: 5px;
+}
+
+.newsletter-panel.newsletter-panel--growth .mc4wp-form input[type="submit"],
+.newsletter-panel.newsletter-panel--growth .mc4wp-form button {
+	border-radius: 5px;
+}
+
+/* Restore the four equal, manually curated reader-favourite cards. */
+.home .reader-favourites__grid.reader-favourites__grid--curated {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: clamp(22px, 2.6vw, 38px);
+	align-items: start;
+}
+
+.home .reader-favourites__grid--curated .recipe-card {
+	min-width: 0;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+}
+
+.home .reader-favourites__grid--curated .recipe-card__media {
+	overflow: hidden;
+	border-radius: 2px;
+	box-shadow: 0 16px 38px rgba(43, 49, 43, .1);
+}
+
+.home .reader-favourites__grid--curated .recipe-card__content {
+	padding: 18px 0 0;
+}
+
+.home .reader-favourites__grid--curated .recipe-card__title {
+	font-size: clamp(1.55rem, 2vw, 2.1rem);
+	line-height: 1.02;
+}
+
+@media (max-width: 980px) {
+	.home .reader-favourites__grid.reader-favourites__grid--curated {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 620px) {
+	.home .reader-favourites__grid.reader-favourites__grid--curated {
+		grid-template-columns: 1fr;
+		gap: 38px;
+	}
+}
