@@ -9,9 +9,12 @@ get_header();
 
 global $wp_query;
 
-$sort       = nkt_get_requested_discovery_sort( 'newest' );
-$categories = nkt_get_recipe_discovery_categories( 8 );
-$count      = isset( $wp_query->found_posts ) ? (int) $wp_query->found_posts : 0;
+$sort          = nkt_get_requested_discovery_sort( 'newest' );
+$categories    = nkt_get_recipe_discovery_categories( 8 );
+$count         = isset( $wp_query->found_posts ) ? (int) $wp_query->found_posts : 0;
+$results_title = ( is_category() || is_tag() || is_tax() )
+	? single_term_title( '', false )
+	: __( 'Recipes and notes', 'larder' );
 ?>
 <main id="primary" class="archive-page nkt-discovery-page">
 	<header class="archive-header nkt-discovery-hero nkt-discovery-hero--compact">
@@ -50,7 +53,7 @@ $count      = isset( $wp_query->found_posts ) ? (int) $wp_query->found_posts : 0
 			<header class="nkt-results-header nkt-results-header--small">
 				<div>
 					<p class="eyebrow"><?php esc_html_e( 'Browse the collection', 'larder' ); ?></p>
-					<h2><?php esc_html_e( 'Recipes and notes', 'larder' ); ?></h2>
+					<h2><?php echo esc_html( $results_title ); ?></h2>
 				</div>
 				<form class="nkt-discovery-toolbar nkt-discovery-toolbar--sort" method="get">
 					<label>
