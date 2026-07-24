@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 2.0.9
+Stable tag: 2.0.10
 License: Proprietary project theme
 
 A premium editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -50,6 +50,13 @@ Key features include:
 12. Complete the launch checklist in docs/launch-checklist.md.
 
 == Changelog ==
+
+= 2.0.10 =
+* Restored manual homepage recipe selectors for the hero, Latest recipes and “This is what everyone’s cooking” sections.
+* Stopped the hero card from automatically switching to the newest recipe when no featured recipe is selected.
+* Restored the four equal-card reader favourites layout and approved section wording.
+* Kept the Mailchimp signup form embedded inside the newsletter panel when a valid form ID is configured.
+* Corrected homepage and recipe newsletter colours without making the light homepage panel unreadable.
 
 = 2.0.9 =
 * Restored the direct Mailchimp signup link when an embedded Mailchimp for WordPress form is not configured.
@@ -127,5 +134,5 @@ Key features include:
 
 == Upgrade Notice ==
 
-= 2.0.9 =
-Replace the current theme, clear all caches, then confirm that the recipe-page newsletter panel is fully readable and the Join the Kitchen Table button opens the Mailchimp signup page.
+= 2.0.10 =
+Replace the current theme, clear all caches, then confirm the saved hero and portrait images remain selected, the embedded Mailchimp form appears inside the panel, and the homepage recipe selectors are available under Appearance > Customise > Nigel's Kitchen Table Homepage.

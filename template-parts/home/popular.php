@@ -1,6 +1,6 @@
 <?php
 /**
- * Reader favourites section.
+ * Curated reader favourites section.
  *
  * @package Larder
  */
@@ -13,48 +13,67 @@ foreach ( array( 'kitchen-notes', 'baking-guides' ) as $excluded_slug ) {
 	}
 }
 
-$popular_recipes = new WP_Query(
+$selected_recipe_ids = nkt_homepage_recipe_ids(
+	'larder_home_favourite_recipe_',
+	4,
 	array(
-		'post_type'           => 'post',
-		'post_status'         => 'publish',
-		'posts_per_page'      => 4,
-		'ignore_sticky_posts' => true,
-		'category__not_in'    => $excluded_category_ids,
-		'orderby'             => array(
-			'comment_count' => 'DESC',
-			'date'          => 'DESC',
-		),
-		'no_found_rows'       => true,
+		'larder_popular_recipe_',
+		'larder_favourite_recipe_',
+		'larder_homepage_popular_recipe_',
+		'nkt_popular_recipe_',
+		'nkt_home_popular_recipe_',
+	),
+	array(
+		'larder_home_favourite_recipe_ids',
+		'larder_home_popular_recipe_ids',
+		'larder_popular_recipe_ids',
+		'nkt_home_popular_recipe_ids',
 	)
 );
+
+$query_args = array(
+	'post_type'           => 'post',
+	'post_status'         => 'publish',
+	'posts_per_page'      => $selected_recipe_ids ? count( $selected_recipe_ids ) : 4,
+	'ignore_sticky_posts' => true,
+	'category__not_in'    => $excluded_category_ids,
+	'no_found_rows'       => true,
+);
+
+if ( $selected_recipe_ids ) {
+	$query_args['post__in'] = $selected_recipe_ids;
+	$query_args['orderby']  = 'post__in';
+} else {
+	$query_args['orderby'] = array(
+		'comment_count' => 'DESC',
+		'date'          => 'DESC',
+	);
+}
+
+$popular_recipes = new WP_Query( $query_args );
 
 if ( ! $popular_recipes->have_posts() ) {
 	return;
 }
 
 $recipes_url = nkt_page_url( array( 'recipes' ), '/recipes/' );
-$rank        = 1;
 ?>
 <section class="home-section reader-favourites" aria-labelledby="favourites-title">
 	<div class="container">
 		<header class="section-heading section-heading--split reader-favourites__heading">
 			<div>
-				<p class="eyebrow"><?php esc_html_e( 'Most loved', 'larder' ); ?></p>
-				<h2 id="favourites-title"><?php esc_html_e( 'Recipes readers return to', 'larder' ); ?></h2>
+				<p class="eyebrow"><?php esc_html_e( 'Tried, tested and loved', 'larder' ); ?></p>
+				<h2 id="favourites-title"><?php esc_html_e( "This is what everyone’s cooking", 'larder' ); ?></h2>
 			</div>
 			<div class="reader-favourites__intro">
-				<p><?php esc_html_e( 'Reliable favourites, shared often and made again and again.', 'larder' ); ?></p>
-				<a class="text-link" href="<?php echo esc_url( $recipes_url ); ?>"><?php esc_html_e( 'Browse every recipe', 'larder' ); ?> <span aria-hidden="true">→</span></a>
+				<p><?php esc_html_e( 'These are the recipes readers come back to, share and make again. Tried, trusted and worth keeping close.', 'larder' ); ?></p>
+				<a class="text-link" href="<?php echo esc_url( $recipes_url ); ?>"><?php esc_html_e( 'View all recipes', 'larder' ); ?> <span aria-hidden="true">→</span></a>
 			</div>
 		</header>
 
-		<div class="reader-favourites__grid">
+		<div class="reader-favourites__grid reader-favourites__grid--curated">
 			<?php while ( $popular_recipes->have_posts() ) : $popular_recipes->the_post(); ?>
-				<div class="reader-favourite">
-					<span class="reader-favourite__rank" aria-hidden="true"><?php echo esc_html( sprintf( '%02d', $rank ) ); ?></span>
-					<?php get_template_part( 'template-parts/content', 'card' ); ?>
-				</div>
-				<?php $rank++; ?>
+				<?php get_template_part( 'template-parts/content', 'card' ); ?>
 			<?php endwhile; ?>
 		</div>
 		<?php wp_reset_postdata(); ?>

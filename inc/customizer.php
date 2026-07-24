@@ -20,7 +20,7 @@ function larder_customize_register( $wp_customize ) {
 		'larder_homepage',
 		array(
 			'title'       => __( "Nigel's Kitchen Table Homepage", 'larder' ),
-			'description' => __( 'Set the homepage wording and images. The portrait is deliberately displayed at a modest size.', 'larder' ),
+			'description' => __( 'Set the homepage wording, images and the recipes shown in each featured section. The portrait is deliberately displayed at a modest size.', 'larder' ),
 			'priority'    => 30,
 		)
 	);
@@ -79,6 +79,78 @@ function larder_customize_register( $wp_customize ) {
 					'section'   => 'larder_homepage',
 					'mime_type' => 'image',
 				)
+			)
+		);
+	}
+
+	$recipe_options = nkt_homepage_recipe_options();
+
+	$wp_customize->add_setting(
+		'larder_home_hero_recipe_id',
+		array(
+			'default'           => 0,
+			'sanitize_callback' => 'absint',
+		)
+	);
+	$wp_customize->add_control(
+		'larder_home_hero_recipe_id',
+		array(
+			'label'       => __( 'Hero featured recipe', 'larder' ),
+			'description' => __( 'This controls the recipe named in the small card over the hero image. Leave it unselected to show no specific recipe.', 'larder' ),
+			'section'     => 'larder_homepage',
+			'type'        => 'select',
+			'choices'     => $recipe_options,
+		)
+	);
+
+	for ( $index = 1; $index <= 6; $index++ ) {
+		$setting_id = 'larder_home_latest_recipe_' . $index;
+
+		$wp_customize->add_setting(
+			$setting_id,
+			array(
+				'default'           => 0,
+				'sanitize_callback' => 'absint',
+			)
+		);
+		$wp_customize->add_control(
+			$setting_id,
+			array(
+				'label'       => sprintf(
+					/* translators: %d: recipe position. */
+					__( 'Latest recipes: position %d', 'larder' ),
+					$index
+				),
+				'description' => 1 === $index ? __( 'Choose the recipes and their order for the Latest recipes section. When all six are empty, the section uses the newest published recipes automatically.', 'larder' ) : '',
+				'section'     => 'larder_homepage',
+				'type'        => 'select',
+				'choices'     => $recipe_options,
+			)
+		);
+	}
+
+	for ( $index = 1; $index <= 4; $index++ ) {
+		$setting_id = 'larder_home_favourite_recipe_' . $index;
+
+		$wp_customize->add_setting(
+			$setting_id,
+			array(
+				'default'           => 0,
+				'sanitize_callback' => 'absint',
+			)
+		);
+		$wp_customize->add_control(
+			$setting_id,
+			array(
+				'label'       => sprintf(
+					/* translators: %d: recipe position. */
+					__( "Everyone's cooking: position %d", 'larder' ),
+					$index
+				),
+				'description' => 1 === $index ? __( "Choose the four recipes shown in the “This is what everyone’s cooking” section. When all four are empty, the theme uses its automatic favourites.", 'larder' ) : '',
+				'section'     => 'larder_homepage',
+				'type'        => 'select',
+				'choices'     => $recipe_options,
 			)
 		);
 	}

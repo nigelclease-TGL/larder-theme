@@ -9,6 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once get_template_directory() . '/inc/homepage.php';
 require_once get_template_directory() . '/inc/customizer.php';
 require_once get_template_directory() . '/inc/performance.php';
 require_once get_template_directory() . '/inc/seo.php';
@@ -148,6 +149,7 @@ function larder_enqueue_assets() {
 	wp_enqueue_style( 'nkt-site-phase-4', get_template_directory_uri() . '/assets/css/site-phase-4.css', array( $final_dependency ), $version );
 	wp_enqueue_style( 'nkt-launch-phase-5', get_template_directory_uri() . '/assets/css/launch-phase-5.css', array( 'nkt-site-phase-4' ), $version );
 	wp_enqueue_style( 'nkt-growth-phase-6', get_template_directory_uri() . '/assets/css/growth-phase-6.css', array( 'nkt-launch-phase-5' ), $version );
+	wp_enqueue_style( 'nkt-release-2-0-10', get_template_directory_uri() . '/assets/css/release-2-0-10.css', array( 'nkt-growth-phase-6' ), $version );
 
 	wp_enqueue_script(
 		'larder-navigation',

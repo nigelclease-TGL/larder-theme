@@ -1,0 +1,5 @@
+- Homepage images remain theme settings.
+- Hero recipe is manually selected.
+- Latest recipes can be manually ordered.
+- Everyone's cooking recipes can be manually ordered.
+- Mailchimp form remains embedded when configured.
