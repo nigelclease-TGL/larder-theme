@@ -3,54 +3,10 @@ Theme Name: Nigel's Kitchen Table
 Theme URI: https://thegourmetlarder.com
 Author: Nigel Clease
 Description: A premium editorial recipe theme for Nigel's Kitchen Table, preserving existing recipe URLs and search visibility.
-Version: 2.0.9
+Version: 2.0.10
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
 Text Domain: larder
 Tags: food-and-drink, blog, custom-logo, custom-menu, featured-images, threaded-comments, translation-ready, wide-blocks
 */
-
-/* Newsletter contrast and fallback-link correction. */
-.newsletter-panel.newsletter-panel--growth {
-	color: #fffdfa;
-}
-
-.newsletter-panel.newsletter-panel--growth h2,
-.newsletter-panel.newsletter-panel--growth .newsletter-panel__copy > p:not(.eyebrow),
-.newsletter-panel.newsletter-panel--growth .newsletter-panel__promise,
-.newsletter-panel.newsletter-panel--growth .newsletter-form-wrap {
-	color: #fffdfa !important;
-}
-
-.newsletter-panel.newsletter-panel--growth .newsletter-benefits li {
-	color: rgba(255, 253, 250, 0.88) !important;
-}
-
-.newsletter-panel.newsletter-panel--growth .newsletter-benefits li::before {
-	background: rgba(255, 253, 250, 0.16) !important;
-	color: #fffdfa !important;
-}
-
-.newsletter-panel.newsletter-panel--growth .newsletter-privacy,
-.newsletter-panel.newsletter-panel--growth .newsletter-privacy a {
-	color: rgba(255, 253, 250, 0.72) !important;
-}
-
-.newsletter-panel.newsletter-panel--growth .newsletter-button {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	width: 100%;
-	min-height: 54px;
-	border-color: #fffdfa !important;
-	background: #fffdfa !important;
-	color: #344232 !important;
-}
-
-.newsletter-panel.newsletter-panel--growth .newsletter-button:hover,
-.newsletter-panel.newsletter-panel--growth .newsletter-button:focus-visible {
-	border-color: #f1e5d7 !important;
-	background: #f1e5d7 !important;
-	color: #263225 !important;
-}
