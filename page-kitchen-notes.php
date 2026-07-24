@@ -9,6 +9,8 @@
 
 get_header();
 
+$page_url       = get_permalink();
+$results_anchor = '#kitchen-notes-results';
 $guide_category = get_category_by_slug( 'kitchen-notes' );
 if ( ! $guide_category ) {
 	$guide_category = get_category_by_slug( 'baking-guides' );
@@ -49,7 +51,7 @@ if ( $guide_category ) {
 		</div>
 	</header>
 
-	<section class="archive-content nkt-discovery-results">
+	<section id="kitchen-notes-results" class="archive-content nkt-discovery-results">
 		<div class="container">
 			<?php if ( have_posts() ) : while ( have_posts() ) : the_post(); ?>
 				<?php if ( trim( get_the_content() ) ) : ?><div class="kitchen-notes-intro"><?php the_content(); ?></div><?php endif; ?>
@@ -60,7 +62,7 @@ if ( $guide_category ) {
 					<p class="eyebrow"><?php esc_html_e( 'Learn at the table', 'larder' ); ?></p>
 					<h2><?php esc_html_e( 'All Kitchen Notes', 'larder' ); ?></h2>
 				</div>
-				<form class="nkt-discovery-toolbar nkt-discovery-toolbar--sort" method="get">
+				<form class="nkt-discovery-toolbar nkt-discovery-toolbar--sort" method="get" action="<?php echo esc_url( $page_url . $results_anchor ); ?>">
 					<label>
 						<span><?php esc_html_e( 'Sort by', 'larder' ); ?></span>
 						<select name="sort">
@@ -81,7 +83,7 @@ if ( $guide_category ) {
 				</div>
 				<?php if ( $notes->max_num_pages > 1 ) : ?>
 					<nav class="pagination" aria-label="<?php esc_attr_e( 'Kitchen Notes pagination', 'larder' ); ?>">
-						<?php echo wp_kses_post( paginate_links( array( 'total' => $notes->max_num_pages, 'current' => $paged, 'mid_size' => 1, 'prev_text' => __( 'Previous', 'larder' ), 'next_text' => __( 'Next', 'larder' ), 'add_args' => 'newest' !== $sort ? array( 'sort' => $sort ) : array() ) ) ); ?>
+						<?php echo wp_kses_post( paginate_links( array( 'total' => $notes->max_num_pages, 'current' => $paged, 'mid_size' => 1, 'prev_text' => __( 'Previous', 'larder' ), 'next_text' => __( 'Next', 'larder' ), 'add_args' => 'newest' !== $sort ? array( 'sort' => $sort ) : array(), 'add_fragment' => $results_anchor ) ) ); ?>
 					</nav>
 				<?php endif; ?>
 				<?php wp_reset_postdata(); ?>
