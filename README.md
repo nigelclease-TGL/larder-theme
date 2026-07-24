@@ -14,8 +14,9 @@ The approved positioning, visual system, tone of voice, content pillars and busi
 
 - [`docs/brand-master.md`](docs/brand-master.md)
 - [`docs/media-kit.md`](docs/media-kit.md) — partner-facing brand overview, audience snapshot, Pinterest performance and collaboration options.
+- [`docs/brand-portfolio.md`](docs/brand-portfolio.md) — approved seven-slide presentation structure, usage rules and current partner-facing figures.
 
-Treat the brand master as the source of truth for future design, content and commercial decisions. Refresh the live audience figures in the media kit before sending it to a partner.
+Treat the brand master as the source of truth for future design, content and commercial decisions. Refresh the live audience figures in the media kit and portfolio before sending either document to a partner.
 
 ## Brand assets
 
