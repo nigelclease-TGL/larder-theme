@@ -103,6 +103,33 @@ function larder_customize_register( $wp_customize ) {
 		)
 	);
 
+	foreach ( nkt_homepage_collection_definitions() as $definition ) {
+		$category   = nkt_homepage_collection_category( $definition );
+		$setting_id = 'larder_home_collection_' . $definition['key'] . '_recipe_id';
+
+		$wp_customize->add_setting(
+			$setting_id,
+			array(
+				'default'           => 0,
+				'sanitize_callback' => 'absint',
+			)
+		);
+		$wp_customize->add_control(
+			$setting_id,
+			array(
+				'label'       => sprintf(
+					/* translators: %s: collection name. */
+					__( 'Collection cover: %s', 'larder' ),
+					$definition['label']
+				),
+				'description' => __( 'Choose the recipe whose featured image appears on this collection card. The card will still open the collection, not the recipe.', 'larder' ),
+				'section'     => 'larder_homepage',
+				'type'        => 'select',
+				'choices'     => nkt_homepage_recipe_options( $category ? $category->term_id : 0 ),
+			)
+		);
+	}
+
 	for ( $index = 1; $index <= 6; $index++ ) {
 		$setting_id = 'larder_home_latest_recipe_' . $index;
 
