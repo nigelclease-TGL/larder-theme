@@ -5,14 +5,16 @@
  * @package Larder
  */
 
-$mailchimp_form_id  = absint( get_theme_mod( 'larder_mailchimp_form_id', 0 ) );
-$newsletter_page    = nkt_setup_find_page( array( 'newsletter' ) );
-$newsletter_url     = $newsletter_page ? get_permalink( $newsletter_page ) : '';
-$privacy_url        = get_privacy_policy_url();
-$lead_magnet        = nkt_get_lead_magnet();
-$newsletter_title   = (string) get_theme_mod( 'larder_newsletter_title', __( 'Join the Kitchen Table', 'larder' ) );
-$newsletter_copy    = (string) get_theme_mod( 'larder_newsletter_copy', __( 'Seasonal recipes, practical kitchen notes and thoughtful inspiration—delivered occasionally.', 'larder' ) );
-$newsletter_promise = (string) get_theme_mod( 'larder_newsletter_promise', __( 'No clutter. Just something worth cooking.', 'larder' ) );
+$mailchimp_form_id    = absint( get_theme_mod( 'larder_mailchimp_form_id', 0 ) );
+$newsletter_page      = nkt_setup_find_page( array( 'newsletter' ) );
+$newsletter_page_url  = $newsletter_page ? get_permalink( $newsletter_page ) : '';
+$direct_signup_url    = (string) get_theme_mod( 'larder_newsletter_signup_url', 'https://eepurl.com/hbuyvP' );
+$newsletter_url       = $direct_signup_url ? $direct_signup_url : $newsletter_page_url;
+$privacy_url          = get_privacy_policy_url();
+$lead_magnet          = nkt_get_lead_magnet();
+$newsletter_title     = (string) get_theme_mod( 'larder_newsletter_title', __( 'Join the Kitchen Table', 'larder' ) );
+$newsletter_copy      = (string) get_theme_mod( 'larder_newsletter_copy', __( 'Seasonal recipes, practical kitchen notes and thoughtful inspiration—delivered occasionally.', 'larder' ) );
+$newsletter_promise   = (string) get_theme_mod( 'larder_newsletter_promise', __( 'No clutter. Just something worth cooking.', 'larder' ) );
 ?>
 <section class="home-section home-newsletter nkt-growth-newsletter" aria-labelledby="newsletter-title" data-nkt-location="newsletter_section">
 	<div class="container">
@@ -32,12 +34,12 @@ $newsletter_promise = (string) get_theme_mod( 'larder_newsletter_promise', __( '
 			<div class="newsletter-form-wrap" data-nkt-location="newsletter_form">
 				<?php if ( shortcode_exists( 'mc4wp_form' ) && $mailchimp_form_id ) : ?>
 					<?php echo do_shortcode( '[mc4wp_form id="' . $mailchimp_form_id . '"]' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				<?php elseif ( $newsletter_url ) : ?>
+					<a class="button newsletter-button" href="<?php echo esc_url( $newsletter_url ); ?>" data-nkt-event="newsletter_open" data-nkt-label="newsletter_section"><?php esc_html_e( 'Join the Kitchen Table', 'larder' ); ?> →</a>
 				<?php elseif ( current_user_can( 'manage_options' ) ) : ?>
 					<p class="newsletter-setup-note">
 						<?php esc_html_e( 'Mailchimp setup: install and connect Mailchimp for WordPress, create a form, then enter the numeric form ID under Appearance → Customise → Newsletter & Welcome Gift.', 'larder' ); ?>
 					</p>
-				<?php elseif ( $newsletter_url ) : ?>
-					<a class="button newsletter-button" href="<?php echo esc_url( $newsletter_url ); ?>" data-nkt-event="newsletter_open" data-nkt-label="newsletter_section"><?php esc_html_e( 'Join the Kitchen Table', 'larder' ); ?> →</a>
 				<?php endif; ?>
 
 				<?php if ( $privacy_url ) : ?>

@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 2.0.7
+Stable tag: 2.0.9
 License: Proprietary project theme
 
 A premium editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -23,7 +23,7 @@ Key features include:
 * Recipe collections and seasonal landing pages
 * Kitchen Notes and baking guides
 * About Nigel and Contact layouts
-* Mailchimp for WordPress integration
+* Mailchimp for WordPress integration with a direct signup-link fallback
 * Cook mode, print controls and ingredient checking
 * Responsive navigation and accessible search dialog
 * Yoast SEO compatibility
@@ -42,7 +42,7 @@ Key features include:
 4. Create missing pages and configure the static homepage.
 5. Select the homepage hero and small About portrait in the Customizer.
 6. Assign Primary and Footer menus.
-7. Connect Mailchimp for WordPress and enter the numeric form ID.
+7. Connect Mailchimp for WordPress and enter the numeric form ID, or use the direct Mailchimp signup-link fallback.
 8. Regenerate thumbnails and clear caches.
 9. Open Tools > Recipe Content Audit.
 10. Confirm the NKT favicon appears in the browser tab and on a mobile shortcut.
@@ -50,6 +50,14 @@ Key features include:
 12. Complete the launch checklist in docs/launch-checklist.md.
 
 == Changelog ==
+
+= 2.0.9 =
+* Restored the direct Mailchimp signup link when an embedded Mailchimp for WordPress form is not configured.
+* Corrected newsletter heading, benefit, privacy and button contrast on recipe pages and other non-homepage locations.
+* Prevented administrators from seeing a public setup warning in place of the signup action.
+
+= 2.0.8 =
+* Changed category archive results headings from the generic Recipes and notes label to the current collection or category name.
 
 = 2.0.7 =
 * Migrated legacy WordPress site-title and tagline settings to Nigel's Kitchen Table when appropriate.
@@ -119,5 +127,5 @@ Key features include:
 
 == Upgrade Notice ==
 
-= 2.0.7 =
-Replace the current theme, clear all caches, then confirm that the browser title and Site Health public-brand check use Nigel's Kitchen Table rather than The Gourmet Larder.
+= 2.0.9 =
+Replace the current theme, clear all caches, then confirm that the recipe-page newsletter panel is fully readable and the Join the Kitchen Table button opens the Mailchimp signup page.
