@@ -3,10 +3,60 @@ Theme Name: Nigel's Kitchen Table
 Theme URI: https://thegourmetlarder.com
 Author: Nigel Clease
 Description: A premium editorial recipe theme for Nigel's Kitchen Table, preserving existing recipe URLs and search visibility.
-Version: 2.0.13
+Version: 2.0.14
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
 Text Domain: larder
 Tags: food-and-drink, blog, custom-logo, custom-menu, featured-images, threaded-comments, translation-ready, wide-blocks
 */
+
+/* Homepage collection-card readability correction. */
+.home .home-categories .category-card,
+.home .home-categories .category-card:visited,
+.home .home-categories .category-card:hover,
+.home .home-categories .category-card:focus {
+	color: #fffdfa !important;
+}
+
+.home .home-categories .category-card__shade {
+	background: linear-gradient(
+		180deg,
+		rgba(18, 23, 19, .16) 0%,
+		rgba(18, 23, 19, .34) 52%,
+		rgba(18, 23, 19, .94) 100%
+	) !important;
+}
+
+.home .home-categories .category-card__content {
+	position: relative;
+	z-index: 2;
+	text-shadow: 0 2px 18px rgba(0, 0, 0, .56);
+}
+
+.home .home-categories .category-card__name {
+	color: #fffdfa !important;
+	text-wrap: balance;
+}
+
+.home .home-categories .category-card__eyebrow {
+	color: #f2d5be !important;
+}
+
+.home .home-categories .category-card__count,
+.home .home-categories .category-card__cta {
+	color: rgba(255, 253, 250, .92) !important;
+}
+
+.home .home-categories .category-card:nth-child(2) .category-card__name,
+.home .home-categories .category-card:nth-child(3) .category-card__name {
+	font-size: clamp(2rem, 2.7vw, 3.45rem) !important;
+}
+
+@media (max-width: 760px) {
+	.home .home-categories .category-card__name,
+	.home .home-categories .category-card:nth-child(2) .category-card__name,
+	.home .home-categories .category-card:nth-child(3) .category-card__name {
+		font-size: clamp(2rem, 10vw, 3.2rem) !important;
+	}
+}
