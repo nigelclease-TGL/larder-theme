@@ -6,11 +6,11 @@
 	<meta name="theme-color" content="#66785F">
 	<meta name="application-name" content="<?php esc_attr_e( "Nigel's Kitchen Table", 'larder' ); ?>">
 	<meta name="apple-mobile-web-app-title" content="<?php esc_attr_e( "Nigel's Kitchen Table", 'larder' ); ?>">
-	<link rel="manifest" href="<?php echo esc_url( get_template_directory_uri() . '/assets/images/site.webmanifest?ver=2.0.19' ); ?>">
-	<link rel="apple-touch-icon" sizes="180x180" href="<?php echo esc_url( get_template_directory_uri() . '/assets/images/apple-touch-icon.png?ver=2.0.19' ); ?>">
+	<link rel="manifest" href="<?php echo esc_url( get_template_directory_uri() . '/assets/images/site.webmanifest?ver=2.0.20' ); ?>">
+	<link rel="apple-touch-icon" sizes="180x180" href="<?php echo esc_url( get_template_directory_uri() . '/assets/images/apple-touch-icon.png?ver=2.0.20' ); ?>">
 	<?php if ( ! has_site_icon() ) : ?>
-		<link rel="icon" href="<?php echo esc_url( get_template_directory_uri() . '/assets/images/favicon.ico?ver=2.0.19' ); ?>" sizes="any">
-		<link rel="icon" href="<?php echo esc_url( get_template_directory_uri() . '/assets/images/favicon.svg?ver=2.0.19' ); ?>" type="image/svg+xml">
+		<link rel="icon" href="<?php echo esc_url( get_template_directory_uri() . '/assets/images/favicon.ico?ver=2.0.20' ); ?>" sizes="any">
+		<link rel="icon" href="<?php echo esc_url( get_template_directory_uri() . '/assets/images/favicon.svg?ver=2.0.20' ); ?>" type="image/svg+xml">
 	<?php endif; ?>
 	<?php wp_head(); ?>
 </head>
