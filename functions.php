@@ -152,6 +152,7 @@ function larder_enqueue_assets() {
 	wp_enqueue_style( 'nkt-growth-phase-6', get_template_directory_uri() . '/assets/css/growth-phase-6.css', array( 'nkt-launch-phase-5' ), $version );
 	wp_enqueue_style( 'nkt-release-2-0-10', get_template_directory_uri() . '/assets/css/release-2-0-10.css', array( 'nkt-growth-phase-6' ), $version );
 	wp_enqueue_style( 'nkt-release-2-0-15', get_template_directory_uri() . '/assets/css/release-2-0-15.css', array( 'nkt-release-2-0-10' ), $version );
+	wp_enqueue_style( 'nkt-release-2-0-24', get_template_directory_uri() . '/assets/css/release-2-0-24.css', array( 'nkt-release-2-0-15' ), $version );
 
 	wp_enqueue_script(
 		'larder-navigation',

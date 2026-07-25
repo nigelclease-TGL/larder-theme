@@ -11,11 +11,15 @@ get_header();
 <main id="primary" class="single-recipe nkt-recipe-template">
 	<?php while ( have_posts() ) : the_post(); ?>
 		<?php
-		$current_post_id = get_the_ID();
-		$category_ids    = wp_get_post_categories( $current_post_id );
-		$share_url       = rawurlencode( get_permalink() );
-		$share_title     = rawurlencode( get_the_title() );
-		$share_image     = has_post_thumbnail() ? rawurlencode( get_the_post_thumbnail_url( get_the_ID(), 'large' ) ) : '';
+		$current_post_id      = get_the_ID();
+		$category_ids         = wp_get_post_categories( $current_post_id );
+		$share_url            = rawurlencode( get_permalink() );
+		$share_title          = rawurlencode( get_the_title() );
+		$share_image          = has_post_thumbnail() ? rawurlencode( get_the_post_thumbnail_url( get_the_ID(), 'large' ) ) : '';
+		$about_url            = nkt_page_url( array( 'about-nigel', 'my-story', 'about' ), '/my-story/' );
+		$meaningful_updated   = trim( (string) get_post_meta( $current_post_id, '_nkt_meaningful_updated_at', true ) );
+		$meaningful_date_iso  = $meaningful_updated ? mysql2date( DATE_W3C, $meaningful_updated, false ) : '';
+		$meaningful_date_text = $meaningful_updated ? mysql2date( 'F Y', $meaningful_updated, true ) : '';
 		?>
 		<article <?php post_class( 'recipe-article' ); ?> data-recipe-post-id="<?php echo esc_attr( $current_post_id ); ?>">
 			<header class="recipe-hero nkt-recipe-hero">
@@ -24,6 +28,15 @@ get_header();
 						<p class="nkt-recipe-hero__brandline"><?php esc_html_e( "From Nigel's Kitchen Table", 'larder' ); ?></p>
 						<div class="nkt-recipe-hero__categories"><?php echo wp_kses_post( get_the_category_list( ' · ' ) ); ?></div>
 						<h1><?php the_title(); ?></h1>
+						<div class="nkt-recipe-byline" aria-label="<?php esc_attr_e( 'Recipe author and review details', 'larder' ); ?>">
+							<span><?php esc_html_e( 'Recipe by', 'larder' ); ?> <a href="<?php echo esc_url( $about_url ); ?>">Nigel Clease</a></span>
+							<span aria-hidden="true">·</span>
+							<span><?php esc_html_e( 'Kitchen-tested', 'larder' ); ?></span>
+							<?php if ( $meaningful_date_text ) : ?>
+								<span aria-hidden="true">·</span>
+								<time datetime="<?php echo esc_attr( $meaningful_date_iso ); ?>"><?php echo esc_html( sprintf( __( 'Updated %s', 'larder' ), $meaningful_date_text ) ); ?></time>
+							<?php endif; ?>
+						</div>
 						<?php nkt_post_meta(); ?>
 						<?php if ( has_excerpt() ) : ?>
 							<p class="recipe-intro"><?php echo esc_html( get_the_excerpt() ); ?></p>
@@ -166,7 +179,7 @@ get_header();
 					<header class="recipe-comments__intro">
 						<p class="eyebrow"><?php esc_html_e( 'Around the table', 'larder' ); ?></p>
 						<h2><?php esc_html_e( 'Questions and kitchen notes', 'larder' ); ?></h2>
-						<p><?php esc_html_e( 'Share how the recipe went, ask a question or leave a useful tip for the next person making it.', 'larder' ); ?></p>
+						<p><?php esc_html_e( 'Made this recipe? Leave a rating and tell me how it turned out. Your questions and tips may also help the next person making it.', 'larder' ); ?></p>
 					</header>
 					<?php comments_template(); ?>
 				</div>

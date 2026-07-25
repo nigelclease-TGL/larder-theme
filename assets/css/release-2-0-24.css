@@ -1,0 +1,35 @@
+/* Nigel's Kitchen Table 2.0.24 — recipe trust and authorship details. */
+.single-recipe .nkt-recipe-byline {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin-top: 20px;
+	color: #5f685e;
+	font-size: .9rem;
+	font-weight: 600;
+	line-height: 1.4;
+}
+
+.single-recipe .nkt-recipe-byline a {
+	color: var(--color-olive-dark);
+	font-weight: 700;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 3px;
+}
+
+.single-recipe .nkt-recipe-byline a:hover,
+.single-recipe .nkt-recipe-byline a:focus {
+	color: var(--color-copper);
+}
+
+.single-recipe .nkt-recipe-byline + .nkt-post-meta {
+	margin-top: 12px;
+}
+
+@media (max-width: 640px) {
+	.single-recipe .nkt-recipe-byline {
+		gap: 6px;
+		font-size: .84rem;
+	}
+}
