@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 2.0.23
+Stable tag: 2.0.24
 License: Proprietary project theme
 
 A premium editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -29,9 +29,15 @@ Key features include:
 3. Upload the installable theme ZIP without unzipping it.
 4. Choose Replace current with uploaded.
 5. Clear WP Super Cache and the browser cache.
-6. Confirm the active theme shows version 2.0.23.
+6. Confirm the active theme shows version 2.0.24.
 
 == Changelog ==
+
+= 2.0.24 =
+* Added a visible Recipe by Nigel Clease and Kitchen-tested byline beneath every recipe title.
+* Added an honest Updated month and year that appears only after the verified revision workflow records a meaningful update.
+* Strengthened the comments invitation to request ratings, results, questions and useful reader tips.
+* Expanded the Recipe Content Audit to check Yoast fields, internal links, all article image alt text, heading structure, standard editorial sections, exactly one WPRM card and essential recipe-card data.
 
 = 2.0.23 =
 * Removed the unnecessary 512 x 512 icon after GitHub binary transfer repeatedly damaged that file.
@@ -53,5 +59,5 @@ Earlier release history remains available in the Git repository.
 
 == Upgrade Notice ==
 
-= 2.0.23 =
-Replace the current theme, clear every cache, delete the existing mobile shortcut, clear browser site data for thegourmetlarder.com, then reopen the homepage and add it to the home screen again.
+= 2.0.24 =
+Install this release before continuing the recipe revision programme. It adds visible authorship, meaningful update dates and the expanded editorial and SEO readiness audit.
