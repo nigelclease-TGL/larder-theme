@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 2.0.18
+Stable tag: 2.0.19
 License: Proprietary project theme
 
 A premium editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -51,6 +51,11 @@ Key features include:
 12. Complete the launch checklist in docs/launch-checklist.md.
 
 == Changelog ==
+
+= 2.0.19 =
+* Rebuilt the bundled favicon, Apple touch icon and Android shortcut icons as valid image files.
+* Added a 512 × 512 Android icon and updated the web app manifest for reliable home-screen shortcuts.
+* Added cache-busting icon URLs so phones fetch the corrected brand icon instead of retaining the letter fallback.
 
 = 2.0.18 =
 * Removed the former Gourmet Larder promotional ending after WP Recipe Maker cards on recipe pages.
@@ -182,5 +187,5 @@ Key features include:
 
 == Upgrade Notice ==
 
-= 2.0.18 =
-Update the theme, clear every page cache, then confirm recipe pages end with the new Nigel's Kitchen Table sharing, newsletter, related-recipe and comments sections only.
+= 2.0.19 =
+Replace the current theme, clear every cache, delete the existing mobile shortcut, reopen the homepage and add it to the home screen again.
