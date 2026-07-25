@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 2.0.19
+Stable tag: 2.0.20
 License: Proprietary project theme
 
 A premium editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -51,6 +51,11 @@ Key features include:
 12. Complete the launch checklist in docs/launch-checklist.md.
 
 == Changelog ==
+
+= 2.0.20 =
+* Replaced the mobile shortcut icon files with compact, verified PNG and ICO assets generated from the approved NKT monogram.
+* Kept dedicated Apple 180 × 180, Android 192 × 192 and Android 512 × 512 icons.
+* Updated icon cache-busting to version 2.0.20 so phones fetch the corrected files.
 
 = 2.0.19 =
 * Rebuilt the bundled favicon, Apple touch icon and Android shortcut icons as valid image files.
@@ -132,7 +137,7 @@ Key features include:
 * Corrected nested recipe heading hierarchy styling for subsection headings inside Group and Columns blocks.
 
 = 2.0.4 =
-* Improved recipe hero image loading by using the selected original featured-image attachment directly.
+* Improved the recipe hero image loading by using the selected original featured-image attachment directly.
 
 = 2.0.3 =
 * Corrected recipe heading hierarchy so subsection headings use smaller styling without the copper accent line.
@@ -159,7 +164,7 @@ Key features include:
 * Added a Kitchen Table readiness checklist to the post editor.
 * Added CSV export for editorial planning and content-improvement sprints.
 * Added Site Health and setup checks for missing featured images, excerpts, categories and WP Recipe Maker cards.
-* Preserved the date-free evergreen recipe presentation introduced in v1.8.0.
+* Preserved the date-free eergreen recipe presentation introduced in v1.8.0.
 
 = 1.8.0 =
 * Added the complete business-growth and trust-page system.
@@ -183,9 +188,9 @@ Key features include:
 * Added setup assistant and staging checklist.
 * Added WP Recipe Maker integration, cook mode, print tools and related recipes.
 * Added recipe-focused search and accessible navigation.
-* Added automated PHP, JSON and package checks through GitHub Actions.
+* Added automated PHP JSON and package checks through GitHub Actions.
 
 == Upgrade Notice ==
 
-= 2.0.19 =
-Replace the current theme, clear every cache, delete the existing mobile shortcut, reopen the homepage and add it to the home screen again.
+= 2.0.20 =
+Replace the current theme, clear every cache, delete the existing mobile shortcut, clear the browser site data for thegourmetlarder.com, then reopen the homepage and add it to the home screen again.
