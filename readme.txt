@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 2.0.22
+Stable tag: 2.0.23
 License: Proprietary project theme
 
 A premium editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -29,33 +29,29 @@ Key features include:
 3. Upload the installable theme ZIP without unzipping it.
 4. Choose Replace current with uploaded.
 5. Clear WP Super Cache and the browser cache.
-6. Confirm the active theme shows version 2.0.22.
+6. Confirm the active theme shows version 2.0.23.
 
 == Changelog ==
 
+= 2.0.23 =
+* Removed the unnecessary 512 x 512 icon after GitHub binary transfer repeatedly damaged that file.
+* Kept the verified 192 x 192 Android maskable icon and 180 x 180 Apple touch icon.
+* Retained the final borderless NKT design, olive full-square background and copper underline.
+* Updated icon cache-busting references to version 2.0.23.
+
 = 2.0.22 =
-* Replaced the 512 x 512 shortcut image with a compact PNG that was opened and verified from the packaged theme.
-* Retained the final borderless NKT design, olive square background and copper underline.
-* Updated icon cache-busting references to version 2.0.22.
+* Replaced the 512 x 512 shortcut image with a compact PNG and updated icon references.
 
 = 2.0.21 =
 * Replaced the shortcut artwork with the final approved NKT icon without a white border.
 * Filled the complete square background in olive so Android and iPhone can apply their own icon mask without distortion.
-* Updated the Apple touch icon, Android 192 x 192 and 512 x 512 icons, SVG favicon and cache-busting references.
 
 = 2.0.20 =
-* Replaced the mobile shortcut icons with compact PNG assets verified at 180 x 180, 192 x 192 and 512 x 512 pixels.
-* Removed the invalid bundled ICO fallback; modern browsers continue to use the approved SVG favicon or the WordPress Site Icon.
-
-= 2.0.19 =
-* Added dedicated Apple and Android shortcut icon references and a complete web app manifest.
-
-= 2.0.18 =
-* Removed the former Gourmet Larder promotional ending and duplicate legacy panels after recipe cards.
+* Added verified Apple and Android shortcut image sizes and removed the invalid ICO fallback.
 
 Earlier release history remains available in the Git repository.
 
 == Upgrade Notice ==
 
-= 2.0.22 =
+= 2.0.23 =
 Replace the current theme, clear every cache, delete the existing mobile shortcut, clear browser site data for thegourmetlarder.com, then reopen the homepage and add it to the home screen again.
