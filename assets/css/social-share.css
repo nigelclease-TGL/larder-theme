@@ -82,6 +82,28 @@
 	line-height: 1.65;
 }
 
+.nkt-pinterest-save__copy .button,
+.nkt-pinterest-save__copy .button:visited {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 46px;
+	padding: 0 20px;
+	background: var(--color-olive-dark) !important;
+	border-color: var(--color-olive-dark) !important;
+	color: #fff !important;
+	font-weight: 700;
+	letter-spacing: .04em;
+	text-decoration: none !important;
+}
+
+.nkt-pinterest-save__copy .button:hover,
+.nkt-pinterest-save__copy .button:focus-visible {
+	background: var(--color-olive) !important;
+	border-color: var(--color-olive) !important;
+	color: #fff !important;
+}
+
 @media (max-width: 620px) {
 	.nkt-pinterest-save {
 		grid-template-columns: 1fr;
