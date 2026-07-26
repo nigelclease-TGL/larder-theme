@@ -130,4 +130,5 @@ function nkt_filter_affiliate_links( $content ) {
 }
 add_filter( 'the_content', 'nkt_filter_affiliate_links', 20 );
 
+require_once get_template_directory() . '/inc/pinterest-dimensions.php';
 require_once get_template_directory() . '/inc/pinterest.php';
