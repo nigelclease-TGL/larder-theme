@@ -25,6 +25,13 @@ get_header();
 		$meaningful_updated   = trim( (string) get_post_meta( $current_post_id, '_nkt_meaningful_updated_at', true ) );
 		$meaningful_date_iso  = $meaningful_updated ? mysql2date( DATE_W3C, $meaningful_updated, false ) : '';
 		$meaningful_date_text = $meaningful_updated ? mysql2date( 'F Y', $meaningful_updated, true ) : '';
+		$pinterest_image_alt  = '';
+		if ( $pinterest_image_id ) {
+			$pinterest_image_alt = trim( (string) get_post_meta( $pinterest_image_id, '_wp_attachment_image_alt', true ) );
+			if ( '' === $pinterest_image_alt ) {
+				$pinterest_image_alt = sprintf( __( '%s Pinterest image', 'larder' ), get_the_title() );
+			}
+		}
 		?>
 		<article <?php post_class( 'recipe-article' ); ?> data-recipe-post-id="<?php echo esc_attr( $current_post_id ); ?>">
 			<header class="recipe-hero nkt-recipe-hero">
@@ -118,16 +125,16 @@ get_header();
 
 						<div id="nkt-ad-after-content" class="nkt-ad-slot" data-ad-slot="after-content"></div>
 
-						<?php if ( $pinterest_image_id && $share_image_url ) : ?>
+						<?php if ( $pinterest_image_id && $pinterest_image_url ) : ?>
 							<section class="nkt-pinterest-save" aria-labelledby="nkt-pinterest-save-title">
-								<a class="nkt-pinterest-save__image" href="<?php echo esc_url( $pinterest_share_url ); ?>" target="_blank" rel="noopener noreferrer" aria-label="<?php esc_attr_e( 'Save this recipe on Pinterest', 'larder' ); ?>">
-									<?php echo wp_get_attachment_image( $pinterest_image_id, 'medium_large', false, array( 'loading' => 'lazy', 'decoding' => 'async' ) ); ?>
-								</a>
+								<div class="nkt-pinterest-save__image">
+									<img class="skip-lazy nkt-pinterest-save__photo" src="<?php echo esc_url( $pinterest_image_url ); ?>" alt="<?php echo esc_attr( $pinterest_image_alt ); ?>" loading="lazy" decoding="async" data-pin-nopin="true" data-no-pin="true" data-no-lazy="1">
+								</div>
 								<div class="nkt-pinterest-save__copy">
 									<p class="eyebrow"><?php esc_html_e( 'Save for later', 'larder' ); ?></p>
 									<h2 id="nkt-pinterest-save-title"><?php esc_html_e( 'Keep this recipe on Pinterest', 'larder' ); ?></h2>
 									<p><?php esc_html_e( 'Save the vertical recipe image to one of your Pinterest boards so it is easy to find when you are ready to bake or cook.', 'larder' ); ?></p>
-									<a class="button button-primary" href="<?php echo esc_url( $pinterest_share_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Save on Pinterest', 'larder' ); ?></a>
+									<a class="button button-primary nkt-pinterest-save__button" href="<?php echo esc_url( $pinterest_share_url ); ?>" target="_blank" rel="noopener noreferrer" data-pin-custom="true"><?php esc_html_e( 'Save on Pinterest', 'larder' ); ?></a>
 								</div>
 							</section>
 						<?php endif; ?>
@@ -138,7 +145,7 @@ get_header();
 							<p><?php esc_html_e( 'Save the recipe or share it with someone who would enjoy making it too.', 'larder' ); ?></p>
 							<div class="recipe-share__links">
 								<a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo esc_attr( $share_url ); ?>" target="_blank" rel="noopener noreferrer">Facebook</a>
-								<a href="<?php echo esc_url( $pinterest_share_url ); ?>" target="_blank" rel="noopener noreferrer">Pinterest</a>
+								<a href="<?php echo esc_url( $pinterest_share_url ); ?>" target="_blank" rel="noopener noreferrer" data-pin-custom="true">Pinterest</a>
 								<a href="mailto:?subject=<?php echo esc_attr( $share_title ); ?>&body=<?php echo esc_attr( $share_url ); ?>"><?php esc_html_e( 'Email', 'larder' ); ?></a>
 							</div>
 						</section>
