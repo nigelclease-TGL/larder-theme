@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thegourmetlarder.com/schemas/nkt-hungarian-translation-pack-v1.json",
+  "title": "Nigel's Kitchen Table Hungarian translation batch",
+  "type": "object",
+  "required": [
+    "translation_pack_version",
+    "source_manifest_version",
+    "source_site",
+    "target_language",
+    "batch",
+    "items"
+  ],
+  "properties": {
+    "translation_pack_version": { "const": 1 },
+    "source_manifest_version": { "const": 1 },
+    "source_site": { "type": "string", "format": "uri" },
+    "source_generated_at_gmt": { "type": ["string", "null"] },
+    "target_language": { "const": "hu-HU" },
+    "batch": {
+      "type": "object",
+      "required": ["post_type", "number", "item_count"],
+      "properties": {
+        "post_type": { "enum": ["page", "post", "wprm_recipe"] },
+        "number": { "type": "integer", "minimum": 1 },
+        "item_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_id", "post_type", "source", "target"],
+        "properties": {
+          "source_id": { "type": "integer", "minimum": 1 },
+          "post_type": { "enum": ["page", "post", "wprm_recipe"] },
+          "source": { "type": "object" },
+          "target": {
+            "type": "object",
+            "required": [
+              "language",
+              "review_status",
+              "title",
+              "slug",
+              "excerpt",
+              "content",
+              "yoast_title",
+              "yoast_metadesc",
+              "translator_notes"
+            ],
+            "properties": {
+              "language": { "const": "hu" },
+              "review_status": {
+                "enum": ["not_started", "translated", "reviewed", "approved"]
+              },
+              "title": { "type": "string" },
+              "slug": { "type": "string" },
+              "excerpt": { "type": "string" },
+              "content": { "type": "string" },
+              "yoast_title": { "type": "string" },
+              "yoast_metadesc": { "type": "string" },
+              "translator_notes": { "type": "string" },
+              "recipe_meta": { "type": "object" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
