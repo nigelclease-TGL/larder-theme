@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Nigel's Kitchen Table – Hungarian Language
  * Description: Hungarian language support for Nigel's Kitchen Table using Polylang. English remains the unchanged default language.
- * Version: 0.2.0
+ * Version: 0.3.0
  * Author: Nigel Clease
  * Text Domain: nkt-hungarian-language
  * Requires at least: 6.6
@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'NKT_HU_VERSION', '0.2.0' );
+define( 'NKT_HU_VERSION', '0.3.0' );
 
 function nkt_hu_current_language_code() {
 	if ( function_exists( 'pll_current_language' ) ) {
@@ -228,6 +228,187 @@ function nkt_hu_translation_summary( $post_type ) {
 	return $summary;
 }
 
+function nkt_hu_export_post_ids( $post_type ) {
+	$ids = get_posts(
+		array(
+			'post_type'              => $post_type,
+			'post_status'            => 'publish',
+			'posts_per_page'         => -1,
+			'fields'                 => 'ids',
+			'orderby'                => 'ID',
+			'order'                  => 'ASC',
+			'no_found_rows'          => true,
+			'suppress_filters'       => false,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+		)
+	);
+
+	if ( ! function_exists( 'pll_get_post_language' ) ) {
+		return array_map( 'intval', $ids );
+	}
+
+	return array_values(
+		array_filter(
+			array_map( 'intval', $ids ),
+			static function ( $post_id ) {
+				$language = pll_get_post_language( $post_id, 'slug' );
+				return ! $language || 'en' === $language;
+			}
+		)
+	);
+}
+
+function nkt_hu_export_media_reference( $attachment_id ) {
+	$attachment_id = (int) $attachment_id;
+	if ( $attachment_id <= 0 ) {
+		return null;
+	}
+
+	$attachment = get_post( $attachment_id );
+	if ( ! $attachment || 'attachment' !== $attachment->post_type ) {
+		return null;
+	}
+
+	return array(
+		'id'          => $attachment_id,
+		'url'         => wp_get_attachment_url( $attachment_id ),
+		'alt'         => get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ),
+		'title'       => get_the_title( $attachment_id ),
+		'caption'     => wp_get_attachment_caption( $attachment_id ),
+		'description' => $attachment->post_content,
+	);
+}
+
+function nkt_hu_export_post_terms( $post_id, $post_type ) {
+	$result = array();
+
+	foreach ( get_object_taxonomies( $post_type, 'objects' ) as $taxonomy => $object ) {
+		if ( ! $object->public && ! in_array( $taxonomy, array( 'category', 'post_tag', 'recipe_collection' ), true ) ) {
+			continue;
+		}
+
+		$terms = wp_get_object_terms( $post_id, $taxonomy );
+		if ( is_wp_error( $terms ) || empty( $terms ) ) {
+			continue;
+		}
+
+		$result[ $taxonomy ] = array_map(
+			static function ( $term ) {
+				return array(
+					'id'          => (int) $term->term_id,
+					'name'        => $term->name,
+					'slug'        => $term->slug,
+					'description' => $term->description,
+					'parent'      => (int) $term->parent,
+				);
+			},
+			$terms
+		);
+	}
+
+	return $result;
+}
+
+function nkt_hu_export_recipe_meta( $post_id ) {
+	$meta   = get_post_meta( $post_id );
+	$result = array();
+
+	foreach ( $meta as $key => $values ) {
+		if ( in_array( $key, array( '_edit_lock', '_edit_last' ), true ) ) {
+			continue;
+		}
+
+		$result[ $key ] = array_map( 'maybe_unserialize', $values );
+		if ( 1 === count( $result[ $key ] ) ) {
+			$result[ $key ] = $result[ $key ][0];
+		}
+	}
+
+	return $result;
+}
+
+function nkt_hu_export_content_record( $post_id, $post_type ) {
+	$post = get_post( $post_id );
+	if ( ! $post ) {
+		return array();
+	}
+
+	$featured_id = (int) get_post_thumbnail_id( $post_id );
+	$record      = array(
+		'id'             => (int) $post_id,
+		'post_type'      => $post_type,
+		'status'         => $post->post_status,
+		'title'          => $post->post_title,
+		'slug'           => $post->post_name,
+		'excerpt'        => $post->post_excerpt,
+		'content'        => $post->post_content,
+		'parent'         => (int) $post->post_parent,
+		'menu_order'     => (int) $post->menu_order,
+		'published_gmt'  => $post->post_date_gmt,
+		'modified_gmt'   => $post->post_modified_gmt,
+		'permalink'      => get_permalink( $post_id ),
+		'page_template'  => get_post_meta( $post_id, '_wp_page_template', true ),
+		'yoast_title'    => get_post_meta( $post_id, '_yoast_wpseo_title', true ),
+		'yoast_metadesc' => get_post_meta( $post_id, '_yoast_wpseo_metadesc', true ),
+		'featured_image' => nkt_hu_export_media_reference( $featured_id ),
+		'taxonomies'     => nkt_hu_export_post_terms( $post_id, $post_type ),
+	);
+
+	if ( 'wprm_recipe' === $post_type ) {
+		$record['recipe_meta'] = nkt_hu_export_recipe_meta( $post_id );
+	}
+
+	return $record;
+}
+
+function nkt_hu_build_translation_manifest() {
+	$content = array();
+	foreach ( array( 'page', 'post', 'wprm_recipe' ) as $post_type ) {
+		$content[ $post_type ] = array();
+		foreach ( nkt_hu_export_post_ids( $post_type ) as $post_id ) {
+			$record = nkt_hu_export_content_record( $post_id, $post_type );
+			if ( $record ) {
+				$content[ $post_type ][] = $record;
+			}
+		}
+	}
+
+	return array(
+		'manifest_version' => 1,
+		'generated_at_gmt' => gmdate( 'c' ),
+		'site'             => array(
+			'name'           => get_bloginfo( 'name' ),
+			'url'            => home_url( '/' ),
+			'language'       => 'en-GB',
+			'target'         => 'hu-HU',
+			'page_on_front'  => (int) get_option( 'page_on_front' ),
+			'page_for_posts' => (int) get_option( 'page_for_posts' ),
+		),
+		'theme_strings'    => nkt_hu_translatable_theme_mods(),
+		'theme_mod_values' => array_intersect_key( get_theme_mods(), nkt_hu_translatable_theme_mods() ),
+		'content'          => $content,
+	);
+}
+
+function nkt_hu_download_translation_manifest() {
+	if ( ! current_user_can( 'export' ) ) {
+		wp_die( esc_html__( 'You do not have permission to export content.', 'nkt-hungarian-language' ) );
+	}
+
+	check_admin_referer( 'nkt_hu_export_manifest' );
+
+	$manifest = nkt_hu_build_translation_manifest();
+	$filename = 'nkt-english-source-' . gmdate( 'Y-m-d-His' ) . '.json';
+
+	nocache_headers();
+	header( 'Content-Type: application/json; charset=utf-8' );
+	header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
+	echo wp_json_encode( $manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+	exit;
+}
+add_action( 'admin_post_nkt_hu_export_manifest', 'nkt_hu_download_translation_manifest' );
+
 function nkt_hu_register_audit_page() {
 	add_management_page(
 		'Hungarian Translation Audit',
@@ -253,6 +434,7 @@ function nkt_hu_render_audit_page() {
 	<div class="wrap">
 		<h1>Hungarian Translation Audit</h1>
 		<p>This screen is read-only. English content is never changed by this tool.</p>
+		<p><a class="button button-primary" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=nkt_hu_export_manifest' ), 'nkt_hu_export_manifest' ) ); ?>">Download English translation manifest</a></p>
 		<?php if ( ! function_exists( 'pll_get_post' ) ) : ?>
 			<div class="notice notice-warning inline"><p>Activate Polylang to calculate translation coverage.</p></div>
 		<?php else : ?>
