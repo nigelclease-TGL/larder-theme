@@ -116,6 +116,8 @@ get_header();
 				</div>
 			</section>
 
+			<div id="nkt-ad-after-hero" class="nkt-ad-slot nkt-ad-slot--wide" data-ad-slot="after-hero"></div>
+
 			<div class="nkt-recipe-body">
 				<div class="recipe-layout">
 					<div class="recipe-content">
@@ -123,11 +125,7 @@ get_header();
 						<p class="nkt-recipe-story-label"><?php esc_html_e( 'The recipe, step by step', 'larder' ); ?></p>
 						<?php the_content(); ?>
 
-						<?php if ( is_active_sidebar( 'recipe-inline-ad' ) ) : ?>
-							<aside class="nkt-ad-zone" aria-label="<?php esc_attr_e( 'Advertisement', 'larder' ); ?>">
-								<?php dynamic_sidebar( 'recipe-inline-ad' ); ?>
-							</aside>
-						<?php endif; ?>
+						<div id="nkt-ad-after-content" class="nkt-ad-slot" data-ad-slot="after-content"></div>
 
 						<section class="recipe-share nkt-recipe-share-card" aria-labelledby="recipe-share-title">
 							<p class="eyebrow"><?php esc_html_e( 'Made it?', 'larder' ); ?></p>
@@ -144,6 +142,8 @@ get_header();
 			</div>
 
 			<?php get_template_part( 'template-parts/home/newsletter' ); ?>
+
+			<div class="container"><div id="nkt-ad-before-related" class="nkt-ad-slot nkt-ad-slot--wide" data-ad-slot="before-related"></div></div>
 
 			<?php
 			$related_recipes = new WP_Query(
