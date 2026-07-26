@@ -40,3 +40,62 @@
 	color: #fff;
 	transform: translateY(-1px);
 }
+
+.nkt-pinterest-save {
+	display: grid;
+	grid-template-columns: minmax(150px, 220px) minmax(0, 1fr);
+	gap: clamp(24px, 5vw, 48px);
+	margin: 48px 0 0;
+	padding: clamp(24px, 4vw, 38px);
+	align-items: center;
+	border: 1px solid var(--color-border);
+	border-radius: 8px;
+	background: linear-gradient(135deg, var(--color-white), #f4eee5);
+}
+
+.nkt-pinterest-save__image {
+	display: block;
+	max-width: 220px;
+	justify-self: center;
+	box-shadow: 0 16px 38px rgba(46, 46, 46, .12);
+}
+
+.nkt-pinterest-save__image img {
+	display: block;
+	width: 100%;
+	height: auto;
+	aspect-ratio: 2 / 3;
+	object-fit: cover;
+}
+
+.nkt-pinterest-save__copy h2 {
+	margin: 8px 0 12px;
+	font-family: "Cormorant Garamond", Georgia, serif;
+	font-size: clamp(2rem, 4vw, 3rem);
+	line-height: 1;
+}
+
+.nkt-pinterest-save__copy > p:not(.eyebrow) {
+	max-width: 560px;
+	margin: 0 0 22px;
+	color: var(--color-muted);
+	line-height: 1.65;
+}
+
+@media (max-width: 620px) {
+	.nkt-pinterest-save {
+		grid-template-columns: 1fr;
+		text-align: center;
+	}
+
+	.nkt-pinterest-save__copy > p:not(.eyebrow) {
+		margin-inline: auto;
+	}
+}
+
+@media print {
+	.nkt-pinterest-save,
+	.recipe-share {
+		display: none !important;
+	}
+}
