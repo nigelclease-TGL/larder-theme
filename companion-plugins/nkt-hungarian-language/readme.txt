@@ -17,8 +17,9 @@ Features:
 * Read-only Tools > Hungarian Translation Audit coverage report
 * One-click JSON export of English pages, posts, taxonomies, media references and WP Recipe Maker recipe data for offline translation
 * Offline workspace builder and structural validator for controlled translation batches
-* JSON Schema for translation-pack validation
-* Hungarian culinary style guide and release checklist
+* No-write draft import planner with source fingerprints and dependency checks
+* JSON Schemas for translation batches and draft import plans
+* Hungarian culinary style guide, import workflow and release checklist
 * No automatic publishing and no modification of English content
 
 Setup after offline translation review:
@@ -39,4 +40,7 @@ Offline tools:
 
 * offline-tools/build_translation_workspace.py converts the English manifest into small translation batches.
 * offline-tools/validate_translation_workspace.py checks IDs, review states, Gutenberg blocks, shortcodes, internal links and recipe metadata structure.
+* offline-tools/build_draft_import_plan.py creates a dry-run-only plan from reviewed or approved translations.
+* offline-tools/validate_draft_import_plan.py enforces draft-only, no-source-write and no-auto-publish safeguards.
 * schema/translation-pack.schema.json defines the approved batch format.
+* schema/draft-import-plan.schema.json defines the safe no-write import-plan format.
