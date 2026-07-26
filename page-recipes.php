@@ -10,7 +10,7 @@
 get_header();
 
 $page_url               = get_permalink();
-$featured_categories    = nkt_get_recipe_discovery_categories( 12 );
+$featured_categories    = nkt_get_recipe_discovery_categories( 100 );
 $excluded_category_ids  = nkt_get_non_recipe_category_ids();
 $selected_category_slug = isset( $_GET['recipe_category'] ) ? sanitize_title( wp_unslash( $_GET['recipe_category'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $selected_category      = $selected_category_slug ? get_category_by_slug( $selected_category_slug ) : null;
@@ -50,93 +50,81 @@ if ( 'newest' !== $sort ) {
 ?>
 
 <main id="primary" class="recipes-hub nkt-discovery-page">
-	<header class="recipes-hub__hero nkt-discovery-hero">
-		<div class="container nkt-discovery-hero__grid">
-			<div class="nkt-discovery-hero__copy">
-				<p class="eyebrow"><?php esc_html_e( "From Nigel's kitchen table", 'larder' ); ?></p>
-				<h1><?php esc_html_e( 'Find your next favourite recipe.', 'larder' ); ?></h1>
-				<p><?php esc_html_e( 'Browse dependable bakes, seasonal dishes and recipes designed for real kitchens and good food around the table.', 'larder' ); ?></p>
-				<div class="nkt-discovery-hero__meta">
-					<span><?php echo esc_html( nkt_get_recipe_count_label( $recipes->found_posts ) ); ?></span>
-					<span><?php esc_html_e( 'Tested carefully', 'larder' ); ?></span>
-					<span><?php esc_html_e( 'Made to share', 'larder' ); ?></span>
-				</div>
-			</div>
+	<section class="nkt-recipe-box" aria-labelledby="recipe-box-title">
+		<div class="container">
+			<header class="nkt-recipe-box__header">
+				<h1 id="recipe-box-title"><?php esc_html_e( 'Explore the recipe box', 'larder' ); ?></h1>
+				<p><?php esc_html_e( 'Find the perfect recipe for every occasion.', 'larder' ); ?></p>
+			</header>
 
-			<div class="nkt-discovery-search-card">
-				<p class="nkt-discovery-search-card__eyebrow"><?php esc_html_e( 'Search the recipe box', 'larder' ); ?></p>
-				<h2><?php esc_html_e( 'What would you like to cook?', 'larder' ); ?></h2>
-				<?php get_search_form(); ?>
-				<p class="nkt-discovery-search-card__hint"><?php esc_html_e( 'Try an ingredient, dish or occasion.', 'larder' ); ?></p>
+			<div class="nkt-recipe-box__layout">
+				<section class="nkt-recipe-box__categories" aria-labelledby="recipe-category-title">
+					<h2 id="recipe-category-title"><?php esc_html_e( 'Browse by category', 'larder' ); ?></h2>
+
+					<div class="nkt-recipe-box__category-grid">
+						<a class="nkt-recipe-box__category<?php echo $selected_category ? '' : ' is-active'; ?>" href="<?php echo esc_url( $page_url . $results_anchor ); ?>">
+							<span><?php esc_html_e( 'All recipes', 'larder' ); ?></span>
+							<span class="nkt-recipe-box__category-arrow" aria-hidden="true">→</span>
+						</a>
+
+						<?php foreach ( $featured_categories as $category ) : ?>
+							<?php
+							$category_url = add_query_arg(
+								array_filter(
+									array(
+										'recipe_category' => $category->slug,
+										'sort'            => 'newest' !== $sort ? $sort : false,
+									)
+								),
+								$page_url
+							) . $results_anchor;
+							?>
+							<a class="nkt-recipe-box__category<?php echo $selected_category && (int) $selected_category->term_id === (int) $category->term_id ? ' is-active' : ''; ?>" href="<?php echo esc_url( $category_url ); ?>">
+								<span><?php echo esc_html( $category->name ); ?></span>
+								<span class="nkt-recipe-box__category-arrow" aria-hidden="true">→</span>
+							</a>
+						<?php endforeach; ?>
+					</div>
+				</section>
+
+				<aside class="nkt-recipe-box__search" aria-labelledby="recipe-search-title">
+					<p class="eyebrow"><?php esc_html_e( 'Find a recipe', 'larder' ); ?></p>
+					<h2 id="recipe-search-title"><?php esc_html_e( 'Search by recipe, ingredient or occasion.', 'larder' ); ?></h2>
+
+					<form role="search" method="get" class="nkt-recipe-box__search-form" action="<?php echo esc_url( home_url( '/' ) ); ?>">
+						<label>
+							<span class="screen-reader-text"><?php echo esc_html_x( 'Search for:', 'label', 'larder' ); ?></span>
+							<input type="search" class="nkt-recipe-box__search-field" placeholder="<?php echo esc_attr_x( 'Search recipes or ingredients…', 'placeholder', 'larder' ); ?>" value="<?php echo esc_attr( get_search_query() ); ?>" name="s" autocomplete="off">
+						</label>
+						<button type="submit" class="nkt-recipe-box__search-submit" aria-label="<?php echo esc_attr_x( 'Search recipes', 'submit button', 'larder' ); ?>">
+							<svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" focusable="false"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+						</button>
+					</form>
+				</aside>
 			</div>
 		</div>
-	</header>
+	</section>
 
-	<?php if ( $featured_categories ) : ?>
-		<section class="nkt-category-navigation" aria-labelledby="recipes-categories-title">
-			<div class="container">
-				<header class="section-heading section-heading--split nkt-category-navigation__heading">
-					<div>
-						<p class="eyebrow"><?php esc_html_e( 'Browse by type', 'larder' ); ?></p>
-						<h2 id="recipes-categories-title"><?php esc_html_e( 'Explore the recipe box', 'larder' ); ?></h2>
-					</div>
-					<p><?php esc_html_e( 'Start with a category, then refine the results below.', 'larder' ); ?></p>
-				</header>
-
-				<div class="nkt-category-links">
-					<a class="nkt-category-link<?php echo $selected_category ? '' : ' is-active'; ?>" href="<?php echo esc_url( $page_url . $results_anchor ); ?>">
-						<span><?php esc_html_e( 'All recipes', 'larder' ); ?></span>
-						<small><?php esc_html_e( 'Browse everything', 'larder' ); ?></small>
-					</a>
-					<?php foreach ( $featured_categories as $category ) : ?>
-						<?php
-						$category_url = add_query_arg(
-							array_filter(
-								array(
-									'recipe_category' => $category->slug,
-									'sort'            => 'newest' !== $sort ? $sort : false,
-								)
-							),
-							$page_url
-						) . $results_anchor;
-						?>
-						<a class="nkt-category-link<?php echo $selected_category && (int) $selected_category->term_id === (int) $category->term_id ? ' is-active' : ''; ?>" href="<?php echo esc_url( $category_url ); ?>">
-							<span><?php echo esc_html( $category->name ); ?></span>
-							<small><?php echo esc_html( nkt_get_recipe_count_label( $category->count ) ); ?></small>
-						</a>
-					<?php endforeach; ?>
-				</div>
-			</div>
-		</section>
-	<?php endif; ?>
-
-	<section id="recipe-results" class="nkt-discovery-results" aria-labelledby="all-recipes-title">
+	<section id="recipe-results" class="nkt-discovery-results nkt-recipes-results" aria-labelledby="all-recipes-title">
 		<div class="container">
-			<header class="nkt-results-header">
+			<header class="nkt-results-header nkt-recipes-results__header">
 				<div>
-					<p class="eyebrow"><?php esc_html_e( 'The full recipe box', 'larder' ); ?></p>
+					<p class="eyebrow"><?php esc_html_e( 'Recipes you’ll love', 'larder' ); ?></p>
 					<h2 id="all-recipes-title">
 						<?php
 						if ( $selected_category ) {
 							printf( esc_html__( '%s recipes', 'larder' ), esc_html( $selected_category->name ) );
 						} else {
-							esc_html_e( 'All recipes', 'larder' );
+							esc_html_e( 'Browse all recipes', 'larder' );
 						}
 						?>
 					</h2>
-					<p class="nkt-results-count"><?php echo esc_html( nkt_get_recipe_count_label( $recipes->found_posts ) ); ?></p>
 				</div>
 
-				<form class="nkt-discovery-toolbar" method="get" action="<?php echo esc_url( $page_url . $results_anchor ); ?>">
-					<label>
-						<span><?php esc_html_e( 'Category', 'larder' ); ?></span>
-						<select name="recipe_category">
-							<option value=""><?php esc_html_e( 'All recipes', 'larder' ); ?></option>
-							<?php foreach ( $featured_categories as $category ) : ?>
-								<option value="<?php echo esc_attr( $category->slug ); ?>" <?php selected( $selected_category ? $selected_category->slug : '', $category->slug ); ?>><?php echo esc_html( $category->name ); ?></option>
-							<?php endforeach; ?>
-						</select>
-					</label>
+				<form class="nkt-discovery-toolbar nkt-recipes-sort" method="get" action="<?php echo esc_url( $page_url . $results_anchor ); ?>">
+					<?php if ( $selected_category ) : ?>
+						<input type="hidden" name="recipe_category" value="<?php echo esc_attr( $selected_category->slug ); ?>">
+					<?php endif; ?>
 					<label>
 						<span><?php esc_html_e( 'Sort by', 'larder' ); ?></span>
 						<select name="sort">
@@ -153,7 +141,7 @@ if ( 'newest' !== $sort ) {
 			</header>
 
 			<?php if ( $recipes->have_posts() ) : ?>
-				<div class="recipe-grid nkt-discovery-grid">
+				<div class="recipe-grid nkt-discovery-grid nkt-recipes-results__grid">
 					<?php
 					while ( $recipes->have_posts() ) :
 						$recipes->the_post();
