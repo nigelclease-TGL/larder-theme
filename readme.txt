@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 2.0.25
+Stable tag: 2.0.26
 License: Proprietary project theme
 
 A premium editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -29,9 +29,16 @@ Key features include:
 3. Upload the installable theme ZIP without unzipping it.
 4. Choose Replace current with uploaded.
 5. Clear WP Super Cache and the browser cache.
-6. Confirm the active theme shows version 2.0.25.
+6. Confirm the active theme shows version 2.0.26.
 
 == Changelog ==
+
+= 2.0.26 =
+* Redesigned only the main Recipes page with the approved Explore the Recipe Box layout.
+* Shows all active recipe categories immediately without a secondary reveal or exact recipe count.
+* Places a soft-sage recipe search panel beside the categories on desktop.
+* Uses a compact single-line search above the two-column category grid on mobile.
+* Leaves the homepage, individual recipes, archives, collections and every other page unchanged.
 
 = 2.0.25 =
 * Replaced the mobile home-screen artwork with the approved NKT icon that keeps the complete white border visible.
@@ -65,5 +72,5 @@ Earlier release history remains available in the Git repository.
 
 == Upgrade Notice ==
 
-= 2.0.25 =
-Install this release to use the approved mobile shortcut artwork. After installation, clear caches, remove the old shortcut, clear site data for thegourmetlarder.com, then add the shortcut again.
+= 2.0.26 =
+Install this release to use the updated Recipes page layout. All other public pages retain their previous design.
