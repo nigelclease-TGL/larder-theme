@@ -15,7 +15,12 @@ get_header();
 		$category_ids         = wp_get_post_categories( $current_post_id );
 		$share_url            = rawurlencode( get_permalink() );
 		$share_title          = rawurlencode( get_the_title() );
-		$share_image          = has_post_thumbnail() ? rawurlencode( get_the_post_thumbnail_url( get_the_ID(), 'large' ) ) : '';
+		$pinterest_image_id   = function_exists( 'nkt_get_pinterest_image_id' ) ? nkt_get_pinterest_image_id( $current_post_id ) : 0;
+		$pinterest_image_url  = $pinterest_image_id ? wp_get_attachment_image_url( $pinterest_image_id, 'full' ) : '';
+		$default_share_image  = has_post_thumbnail() ? get_the_post_thumbnail_url( $current_post_id, 'large' ) : '';
+		$share_image_url      = $pinterest_image_url ? $pinterest_image_url : $default_share_image;
+		$share_image          = $share_image_url ? rawurlencode( $share_image_url ) : '';
+		$pinterest_share_url  = 'https://pinterest.com/pin/create/button/?url=' . $share_url . '&media=' . $share_image . '&description=' . $share_title;
 		$about_url            = nkt_page_url( array( 'about-nigel', 'my-story', 'about' ), '/my-story/' );
 		$meaningful_updated   = trim( (string) get_post_meta( $current_post_id, '_nkt_meaningful_updated_at', true ) );
 		$meaningful_date_iso  = $meaningful_updated ? mysql2date( DATE_W3C, $meaningful_updated, false ) : '';
@@ -77,18 +82,9 @@ get_header();
 
 			<section class="nkt-recipe-standards" aria-label="<?php esc_attr_e( 'Recipe standards', 'larder' ); ?>">
 				<div class="nkt-recipe-standards__inner">
-					<div class="nkt-recipe-standard">
-						<span class="nkt-recipe-standard__eyebrow"><?php esc_html_e( 'Reliable', 'larder' ); ?></span>
-						<strong><?php esc_html_e( 'Kitchen-tested instructions', 'larder' ); ?></strong>
-					</div>
-					<div class="nkt-recipe-standard">
-						<span class="nkt-recipe-standard__eyebrow"><?php esc_html_e( 'Practical', 'larder' ); ?></span>
-						<strong><?php esc_html_e( 'Clear timings and measurements', 'larder' ); ?></strong>
-					</div>
-					<div class="nkt-recipe-standard">
-						<span class="nkt-recipe-standard__eyebrow"><?php esc_html_e( 'Helpful', 'larder' ); ?></span>
-						<strong><?php esc_html_e( 'Tips, storage and variations', 'larder' ); ?></strong>
-					</div>
+					<div class="nkt-recipe-standard"><span class="nkt-recipe-standard__eyebrow"><?php esc_html_e( 'Reliable', 'larder' ); ?></span><strong><?php esc_html_e( 'Kitchen-tested instructions', 'larder' ); ?></strong></div>
+					<div class="nkt-recipe-standard"><span class="nkt-recipe-standard__eyebrow"><?php esc_html_e( 'Practical', 'larder' ); ?></span><strong><?php esc_html_e( 'Clear timings and measurements', 'larder' ); ?></strong></div>
+					<div class="nkt-recipe-standard"><span class="nkt-recipe-standard__eyebrow"><?php esc_html_e( 'Helpful', 'larder' ); ?></span><strong><?php esc_html_e( 'Tips, storage and variations', 'larder' ); ?></strong></div>
 				</div>
 			</section>
 
@@ -106,13 +102,8 @@ get_header();
 
 			<section id="recipe-guide" class="nkt-recipe-guide" data-recipe-guide hidden aria-labelledby="recipe-guide-title">
 				<div class="nkt-recipe-guide__inner">
-					<div class="nkt-recipe-guide__intro">
-						<p><?php esc_html_e( 'Navigate the recipe', 'larder' ); ?></p>
-						<h2 id="recipe-guide-title"><?php esc_html_e( 'On this page', 'larder' ); ?></h2>
-					</div>
-					<nav aria-label="<?php esc_attr_e( 'Recipe sections', 'larder' ); ?>">
-						<ol class="nkt-recipe-guide__list" data-recipe-toc></ol>
-					</nav>
+					<div class="nkt-recipe-guide__intro"><p><?php esc_html_e( 'Navigate the recipe', 'larder' ); ?></p><h2 id="recipe-guide-title"><?php esc_html_e( 'On this page', 'larder' ); ?></h2></div>
+					<nav aria-label="<?php esc_attr_e( 'Recipe sections', 'larder' ); ?>"><ol class="nkt-recipe-guide__list" data-recipe-toc></ol></nav>
 				</div>
 			</section>
 
@@ -127,13 +118,27 @@ get_header();
 
 						<div id="nkt-ad-after-content" class="nkt-ad-slot" data-ad-slot="after-content"></div>
 
+						<?php if ( $pinterest_image_id && $share_image_url ) : ?>
+							<section class="nkt-pinterest-save" aria-labelledby="nkt-pinterest-save-title">
+								<a class="nkt-pinterest-save__image" href="<?php echo esc_url( $pinterest_share_url ); ?>" target="_blank" rel="noopener noreferrer" aria-label="<?php esc_attr_e( 'Save this recipe on Pinterest', 'larder' ); ?>">
+									<?php echo wp_get_attachment_image( $pinterest_image_id, 'medium_large', false, array( 'loading' => 'lazy', 'decoding' => 'async' ) ); ?>
+								</a>
+								<div class="nkt-pinterest-save__copy">
+									<p class="eyebrow"><?php esc_html_e( 'Save for later', 'larder' ); ?></p>
+									<h2 id="nkt-pinterest-save-title"><?php esc_html_e( 'Keep this recipe on Pinterest', 'larder' ); ?></h2>
+									<p><?php esc_html_e( 'Save the vertical recipe image to one of your Pinterest boards so it is easy to find when you are ready to bake or cook.', 'larder' ); ?></p>
+									<a class="button button-primary" href="<?php echo esc_url( $pinterest_share_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Save on Pinterest', 'larder' ); ?></a>
+								</div>
+							</section>
+						<?php endif; ?>
+
 						<section class="recipe-share nkt-recipe-share-card" aria-labelledby="recipe-share-title">
 							<p class="eyebrow"><?php esc_html_e( 'Made it?', 'larder' ); ?></p>
 							<h2 id="recipe-share-title" class="recipe-share__title"><?php esc_html_e( 'Share it from your kitchen', 'larder' ); ?></h2>
 							<p><?php esc_html_e( 'Save the recipe or share it with someone who would enjoy making it too.', 'larder' ); ?></p>
 							<div class="recipe-share__links">
 								<a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo esc_attr( $share_url ); ?>" target="_blank" rel="noopener noreferrer">Facebook</a>
-								<a href="https://pinterest.com/pin/create/button/?url=<?php echo esc_attr( $share_url ); ?>&media=<?php echo esc_attr( $share_image ); ?>&description=<?php echo esc_attr( $share_title ); ?>" target="_blank" rel="noopener noreferrer">Pinterest</a>
+								<a href="<?php echo esc_url( $pinterest_share_url ); ?>" target="_blank" rel="noopener noreferrer">Pinterest</a>
 								<a href="mailto:?subject=<?php echo esc_attr( $share_title ); ?>&body=<?php echo esc_attr( $share_url ); ?>"><?php esc_html_e( 'Email', 'larder' ); ?></a>
 							</div>
 						</section>
@@ -142,7 +147,6 @@ get_header();
 			</div>
 
 			<?php get_template_part( 'template-parts/home/newsletter' ); ?>
-
 			<div class="container"><div id="nkt-ad-before-related" class="nkt-ad-slot nkt-ad-slot--wide" data-ad-slot="before-related"></div></div>
 
 			<?php
@@ -160,10 +164,7 @@ get_header();
 			<?php if ( $related_recipes->have_posts() ) : ?>
 				<section class="related-recipes home-section" aria-labelledby="related-recipes-title">
 					<div class="container">
-						<header class="section-heading">
-							<p class="eyebrow"><?php esc_html_e( 'Keep cooking', 'larder' ); ?></p>
-							<h2 id="related-recipes-title"><?php esc_html_e( 'You may also like', 'larder' ); ?></h2>
-						</header>
+						<header class="section-heading"><p class="eyebrow"><?php esc_html_e( 'Keep cooking', 'larder' ); ?></p><h2 id="related-recipes-title"><?php esc_html_e( 'You may also like', 'larder' ); ?></h2></header>
 						<div class="recipe-grid">
 							<?php while ( $related_recipes->have_posts() ) : $related_recipes->the_post(); ?>
 								<?php get_template_part( 'template-parts/content', 'card' ); ?>
@@ -176,11 +177,7 @@ get_header();
 
 			<?php if ( comments_open() || get_comments_number() ) : ?>
 				<div class="container recipe-comments">
-					<header class="recipe-comments__intro">
-						<p class="eyebrow"><?php esc_html_e( 'Around the table', 'larder' ); ?></p>
-						<h2><?php esc_html_e( 'Questions and kitchen notes', 'larder' ); ?></h2>
-						<p><?php esc_html_e( 'Made this recipe? Leave a rating and tell me how it turned out. Your questions and tips may also help the next person making it.', 'larder' ); ?></p>
-					</header>
+					<header class="recipe-comments__intro"><p class="eyebrow"><?php esc_html_e( 'Around the table', 'larder' ); ?></p><h2><?php esc_html_e( 'Questions and kitchen notes', 'larder' ); ?></h2><p><?php esc_html_e( 'Made this recipe? Leave a rating and tell me how it turned out. Your questions and tips may also help the next person making it.', 'larder' ); ?></p></header>
 					<?php comments_template(); ?>
 				</div>
 			<?php endif; ?>

@@ -129,3 +129,5 @@ function nkt_filter_affiliate_links( $content ) {
 	return is_string( $filtered ) ? $filtered : $content;
 }
 add_filter( 'the_content', 'nkt_filter_affiliate_links', 20 );
+
+require_once get_template_directory() . '/inc/pinterest.php';
