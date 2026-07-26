@@ -1,7 +1,7 @@
 === Nigel's Kitchen Table – Hungarian Language ===
 Requires at least: 6.6
 Requires PHP: 8.1
-Version: 0.3.0
+Version: 0.4.0
 
 Offline preparation for Hungarian as an optional second language.
 
@@ -16,6 +16,9 @@ Features:
 * Translatable homepage, newsletter, welcome-gift and promotion text
 * Read-only Tools > Hungarian Translation Audit coverage report
 * One-click JSON export of English pages, posts, taxonomies, media references and WP Recipe Maker recipe data for offline translation
+* Offline workspace builder and structural validator for controlled translation batches
+* JSON Schema for translation-pack validation
+* Hungarian culinary style guide and release checklist
 * No automatic publishing and no modification of English content
 
 Setup after offline translation review:
@@ -31,3 +34,9 @@ Setup after offline translation review:
 9. Translate registered homepage and newsletter strings under Languages > Translations.
 10. Keep Hungarian drafts unpublished until content, recipe, SEO and link QA is complete.
 11. Use Tools > Hungarian Translation Audit to download the English source manifest and track coverage.
+
+Offline tools:
+
+* offline-tools/build_translation_workspace.py converts the English manifest into small translation batches.
+* offline-tools/validate_translation_workspace.py checks IDs, review states, Gutenberg blocks, shortcodes, internal links and recipe metadata structure.
+* schema/translation-pack.schema.json defines the approved batch format.
