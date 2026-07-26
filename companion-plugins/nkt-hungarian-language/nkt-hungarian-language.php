@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Nigel's Kitchen Table – Hungarian Language
  * Description: Hungarian language support for Nigel's Kitchen Table using Polylang. English remains the unchanged default language.
- * Version: 0.3.0
+ * Version: 0.4.0
  * Author: Nigel Clease
  * Text Domain: nkt-hungarian-language
  * Requires at least: 6.6
@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'NKT_HU_VERSION', '0.3.0' );
+define( 'NKT_HU_VERSION', '0.4.0' );
 
 function nkt_hu_current_language_code() {
 	if ( function_exists( 'pll_current_language' ) ) {
@@ -397,7 +397,6 @@ function nkt_hu_download_translation_manifest() {
 	}
 
 	check_admin_referer( 'nkt_hu_export_manifest' );
-
 	$manifest = nkt_hu_build_translation_manifest();
 	$filename = 'nkt-english-source-' . gmdate( 'Y-m-d-His' ) . '.json';
 
