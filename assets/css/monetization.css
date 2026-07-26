@@ -46,6 +46,44 @@
 	display: inline-flex;
 }
 
+/* Stable empty targets for the Ad Inserter plugin. */
+.nkt-ad-slot:empty {
+	display: none;
+}
+
+.nkt-ad-slot:not(:empty) {
+	position: relative;
+	width: 100%;
+	max-width: 900px;
+	margin: clamp(34px, 5vw, 58px) auto;
+	padding: 26px 18px 18px;
+	border-top: 1px solid var(--color-border);
+	border-bottom: 1px solid var(--color-border);
+	text-align: center;
+}
+
+.nkt-ad-slot:not(:empty)::before {
+	content: "Advertisement";
+	position: absolute;
+	top: 7px;
+	left: 50%;
+	transform: translateX(-50%);
+	color: var(--color-muted, #66635d);
+	font-size: 0.62rem;
+	font-weight: 700;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+}
+
+.nkt-ad-slot--wide:not(:empty) {
+	max-width: 1180px;
+}
+
+.nkt-ad-slot > * {
+	margin-inline: auto;
+}
+
+/* Legacy widget-zone styling retained for backwards compatibility. */
 .nkt-ad-zone {
 	margin: 44px 0;
 	padding: 18px;
@@ -65,6 +103,7 @@
 @media print {
 	.nkt-disclosure,
 	.nkt-product,
+	.nkt-ad-slot,
 	.nkt-ad-zone {
 		display: none !important;
 	}
