@@ -3,7 +3,7 @@ Theme Name: Nigel's Kitchen Table
 Theme URI: https://thegourmetlarder.com
 Author: Nigel Clease
 Description: A premium editorial recipe theme for Nigel's Kitchen Table, preserving existing recipe URLs and search visibility.
-Version: 2.0.35
+Version: 2.0.36
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
@@ -59,4 +59,45 @@ Tags: food-and-drink, blog, custom-logo, custom-menu, featured-images, threaded-
 	.home .home-categories .category-card:nth-child(3) .category-card__name {
 		font-size: clamp(2rem, 10vw, 3.2rem) !important;
 	}
+}
+
+/*
+ * Legacy recipe panel brand normalisation.
+ * Additive and restricted to old Gutenberg article panels only.
+ */
+.single-recipe .recipe-content > :is(
+	.wp-block-group.has-background,
+	.wp-block-cover.has-background,
+	.wp-block-columns.has-background,
+	.wp-block-media-text.has-background
+):not(.nkt-pinterest-save):not(.nkt-recipe-share-card):not(.recipe-share):not(.nkt-ad-slot):not(.wprm-recipe-container),
+.single-recipe .recipe-content > .wp-block-group[style*="background-color"]:not(.nkt-pinterest-save):not(.nkt-recipe-share-card):not(.recipe-share):not(.nkt-ad-slot):not(.wprm-recipe-container),
+.single-recipe .recipe-content > .wp-block-cover[style*="background-color"]:not(.nkt-pinterest-save):not(.nkt-recipe-share-card):not(.recipe-share):not(.nkt-ad-slot):not(.wprm-recipe-container) {
+	background: #fdfcf9 !important;
+	background-color: #fdfcf9 !important;
+	color: #2e2e2b !important;
+	border: 1px solid #efe9df !important;
+	border-radius: 8px;
+	box-shadow: none !important;
+}
+
+.single-recipe .recipe-content > :is(
+	.wp-block-group.has-background,
+	.wp-block-cover.has-background,
+	.wp-block-columns.has-background,
+	.wp-block-media-text.has-background
+):not(.nkt-pinterest-save):not(.nkt-recipe-share-card):not(.recipe-share):not(.nkt-ad-slot):not(.wprm-recipe-container) :is(h2, h3, h4, p, li, strong),
+.single-recipe .recipe-content > .wp-block-group[style*="background-color"]:not(.nkt-pinterest-save):not(.nkt-recipe-share-card):not(.recipe-share):not(.nkt-ad-slot):not(.wprm-recipe-container) :is(h2, h3, h4, p, li, strong),
+.single-recipe .recipe-content > .wp-block-cover[style*="background-color"]:not(.nkt-pinterest-save):not(.nkt-recipe-share-card):not(.recipe-share):not(.nkt-ad-slot):not(.wprm-recipe-container) :is(h2, h3, h4, p, li, strong) {
+	color: #2e2e2b !important;
+}
+
+.single-recipe .recipe-content > .wp-block-cover.has-background .wp-block-cover__background,
+.single-recipe .recipe-content > .wp-block-cover[style*="background-color"] .wp-block-cover__background {
+	opacity: 0 !important;
+}
+
+.single-recipe .recipe-content > .wp-block-cover.has-background .wp-block-cover__inner-container,
+.single-recipe .recipe-content > .wp-block-cover[style*="background-color"] .wp-block-cover__inner-container {
+	color: #2e2e2b !important;
 }
