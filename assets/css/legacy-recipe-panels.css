@@ -1,0 +1,70 @@
+/*
+ * Normalise legacy Gutenberg panels inside recipe article content.
+ *
+ * Older posts contain saved sage backgrounds and inline background colours.
+ * This layer updates only those article panels while leaving intentional theme
+ * components, recipe cards, adverts, Pinterest, newsletter and share panels alone.
+ */
+
+.single-recipe .recipe-content > :is(
+	.wp-block-group.has-background,
+	.wp-block-cover.has-background,
+	.wp-block-columns.has-background,
+	.wp-block-media-text.has-background
+):not(.nkt-pinterest-save):not(.nkt-recipe-share-card):not(.recipe-share):not(.nkt-ad-slot):not(.wprm-recipe-container),
+.single-recipe .recipe-content > .wp-block-group[style*="background-color"]:not(.nkt-pinterest-save):not(.nkt-recipe-share-card):not(.recipe-share):not(.nkt-ad-slot):not(.wprm-recipe-container),
+.single-recipe .recipe-content > .wp-block-cover[style*="background-color"]:not(.nkt-pinterest-save):not(.nkt-recipe-share-card):not(.recipe-share):not(.nkt-ad-slot):not(.wprm-recipe-container) {
+	background: var(--color-white, #fdfcf9) !important;
+	color: var(--color-charcoal, #2e2e2b) !important;
+	border: 1px solid var(--color-border, #efe9df);
+	border-radius: 8px;
+	box-shadow: none;
+}
+
+.single-recipe .recipe-content > :is(
+	.wp-block-group.has-background,
+	.wp-block-cover.has-background,
+	.wp-block-columns.has-background,
+	.wp-block-media-text.has-background
+):not(.nkt-pinterest-save):not(.nkt-recipe-share-card):not(.recipe-share):not(.nkt-ad-slot):not(.wprm-recipe-container) :is(h2, h3, h4, p, li, strong),
+.single-recipe .recipe-content > .wp-block-group[style*="background-color"]:not(.nkt-pinterest-save):not(.nkt-recipe-share-card):not(.recipe-share):not(.nkt-ad-slot):not(.wprm-recipe-container) :is(h2, h3, h4, p, li, strong),
+.single-recipe .recipe-content > .wp-block-cover[style*="background-color"]:not(.nkt-pinterest-save):not(.nkt-recipe-share-card):not(.recipe-share):not(.nkt-ad-slot):not(.wprm-recipe-container) :is(h2, h3, h4, p, li, strong) {
+	color: inherit !important;
+}
+
+.single-recipe .recipe-content > :is(
+	.wp-block-group.has-background,
+	.wp-block-cover.has-background,
+	.wp-block-columns.has-background,
+	.wp-block-media-text.has-background
+):not(.nkt-pinterest-save):not(.nkt-recipe-share-card):not(.recipe-share):not(.nkt-ad-slot):not(.wprm-recipe-container) > :first-child:is(h2, h3),
+.single-recipe .recipe-content > .wp-block-group[style*="background-color"]:not(.nkt-pinterest-save):not(.nkt-recipe-share-card):not(.recipe-share):not(.nkt-ad-slot):not(.wprm-recipe-container) > :first-child:is(h2, h3),
+.single-recipe .recipe-content > .wp-block-cover[style*="background-color"]:not(.nkt-pinterest-save):not(.nkt-recipe-share-card):not(.recipe-share):not(.nkt-ad-slot):not(.wprm-recipe-container) > :first-child:is(h2, h3) {
+	position: relative;
+}
+
+.single-recipe .recipe-content > :is(
+	.wp-block-group.has-background,
+	.wp-block-cover.has-background,
+	.wp-block-columns.has-background,
+	.wp-block-media-text.has-background
+):not(.nkt-pinterest-save):not(.nkt-recipe-share-card):not(.recipe-share):not(.nkt-ad-slot):not(.wprm-recipe-container) > :first-child:is(h2, h3)::before,
+.single-recipe .recipe-content > .wp-block-group[style*="background-color"]:not(.nkt-pinterest-save):not(.nkt-recipe-share-card):not(.recipe-share):not(.nkt-ad-slot):not(.wprm-recipe-container) > :first-child:is(h2, h3)::before,
+.single-recipe .recipe-content > .wp-block-cover[style*="background-color"]:not(.nkt-pinterest-save):not(.nkt-recipe-share-card):not(.recipe-share):not(.nkt-ad-slot):not(.wprm-recipe-container) > :first-child:is(h2, h3)::before {
+	content: "";
+	display: block;
+	width: 48px;
+	height: 2px;
+	margin: 0 0 18px;
+	background: var(--color-copper, #9a6b46);
+}
+
+.single-recipe .recipe-content > .wp-block-cover.has-background .wp-block-cover__background,
+.single-recipe .recipe-content > .wp-block-cover[style*="background-color"] .wp-block-cover__background {
+	opacity: 0 !important;
+}
+
+.single-recipe .recipe-content > .wp-block-cover.has-background .wp-block-cover__inner-container,
+.single-recipe .recipe-content > .wp-block-cover[style*="background-color"] .wp-block-cover__inner-container {
+	color: var(--color-charcoal, #2e2e2b) !important;
+}
