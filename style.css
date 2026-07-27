@@ -3,7 +3,7 @@ Theme Name: Nigel's Kitchen Table
 Theme URI: https://thegourmetlarder.com
 Author: Nigel Clease
 Description: A premium editorial recipe theme for Nigel's Kitchen Table, preserving existing recipe URLs and search visibility.
-Version: 2.0.40
+Version: 2.0.41
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
@@ -102,26 +102,37 @@ Tags: food-and-drink, blog, custom-logo, custom-menu, featured-images, threaded-
 	color: #2e2e2b !important;
 }
 
-/* Remove old nested Gutenberg colour bands inside recipe Contents panels. */
-.single-recipe .recipe-content .nkt-toc-panel :is(
-	.wp-block-group.has-background,
-	.wp-block-cover.has-background,
-	.wp-block-columns.has-background,
-	.wp-block-media-text.has-background
-),
+/* Remove every legacy Gutenberg colour layer inside recipe Contents panels. */
 .single-recipe .recipe-content .nkt-toc-panel :is(
 	.wp-block-group,
 	.wp-block-cover,
 	.wp-block-columns,
-	.wp-block-media-text
-)[style*="background-color"] {
+	.wp-block-media-text,
+	.wp-block-heading
+).has-background,
+.single-recipe .recipe-content .nkt-toc-panel [class*="-background-color"],
+.single-recipe .recipe-content .nkt-toc-panel [style*="background"],
+.single-recipe .recipe-content .nkt-toc-panel .wp-block-cover__inner-container {
 	background: transparent !important;
 	background-color: transparent !important;
+	background-image: none !important;
 	box-shadow: none !important;
 }
 
-.single-recipe .recipe-content .nkt-toc-panel .wp-block-cover__background {
+.single-recipe .recipe-content .nkt-toc-panel .wp-block-cover__background,
+.single-recipe .recipe-content .nkt-toc-panel .has-background-dim,
+.single-recipe .recipe-content .nkt-toc-panel [class*="background-dim"] {
+	display: none !important;
 	opacity: 0 !important;
+	background: transparent !important;
+}
+
+.single-recipe .recipe-content .nkt-toc-panel::before,
+.single-recipe .recipe-content .nkt-toc-panel::after,
+.single-recipe .recipe-content .nkt-toc-panel *::before,
+.single-recipe .recipe-content .nkt-toc-panel *::after {
+	background-color: transparent !important;
+	box-shadow: none !important;
 }
 
 /* Prevent anchor navigation from applying a grey target highlight. */
