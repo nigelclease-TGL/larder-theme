@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		return;
 	}
 
+	const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 	const normalise = (value) => value
 		.trim()
 		.toLowerCase()
@@ -15,17 +16,15 @@ document.addEventListener('DOMContentLoaded', () => {
 		.trim();
 
 	const makeId = (heading, index) => {
-		if (heading.id) {
-			return heading.id;
-		}
-
 		const slug = normalise(heading.textContent).replace(/\s+/g, '-') || `section-${index + 1}`;
-		let candidate = `recipe-${slug}`;
+		let candidate = heading.id || `recipe-${slug}`;
 		let suffix = 2;
-		while (document.getElementById(candidate)) {
+
+		while (document.getElementById(candidate) && document.getElementById(candidate) !== heading) {
 			candidate = `recipe-${slug}-${suffix}`;
 			suffix += 1;
 		}
+
 		heading.id = candidate;
 		return candidate;
 	};
@@ -41,32 +40,67 @@ document.addEventListener('DOMContentLoaded', () => {
 	}));
 
 	const recipeCard = document.getElementById('recipe-card') || document.querySelector('.wprm-recipe-container');
+	if (recipeCard && !recipeCard.id) {
+		recipeCard.id = 'recipe-card';
+	}
+
+	const findHeadingMatch = (linkLabel) => {
+		const exact = headingEntries.find((entry) => entry.label === linkLabel);
+		if (exact) {
+			return exact;
+		}
+
+		return headingEntries.find((entry) => {
+			return entry.label.includes(linkLabel) || linkLabel.includes(entry.label);
+		});
+	};
+
+	const scrollToTarget = (target, hash) => {
+		const header = document.querySelector('.site-header, header.site-header');
+		const adminBar = document.getElementById('wpadminbar');
+		const offset = (header?.offsetHeight || 0) + (adminBar?.offsetHeight || 0) + 24;
+		const top = target.getBoundingClientRect().top + window.scrollY - offset;
+
+		window.scrollTo({
+			top: Math.max(0, top),
+			behavior: prefersReducedMotion ? 'auto' : 'smooth',
+		});
+
+		window.history.replaceState(null, '', hash);
+	};
+
 	const tocPanels = Array.from(recipeContent.querySelectorAll('.nkt-toc-panel'));
 
 	tocPanels.forEach((panel) => {
 		panel.querySelectorAll('a').forEach((link) => {
-			const currentHash = link.hash ? decodeURIComponent(link.hash.slice(1)) : '';
-			if (currentHash && document.getElementById(currentHash)) {
-				return;
-			}
-
 			const linkLabel = normalise(link.textContent);
 			if (!linkLabel) {
 				return;
 			}
 
+			let target = null;
+			let targetHash = '';
+
 			if ((linkLabel === 'recipe' || linkLabel.startsWith('recipe ')) && recipeCard) {
-				link.href = '#recipe-card';
+				target = recipeCard;
+				targetHash = '#recipe-card';
+			} else {
+				const match = findHeadingMatch(linkLabel);
+				if (match) {
+					target = match.heading;
+					targetHash = `#${match.id}`;
+				}
+			}
+
+			if (!target || !targetHash) {
 				return;
 			}
 
-			const match = headingEntries.find((entry) => {
-				return entry.label === linkLabel || entry.label.includes(linkLabel) || linkLabel.includes(entry.label);
+			link.href = targetHash;
+			link.addEventListener('click', (event) => {
+				event.preventDefault();
+				scrollToTarget(target, targetHash);
 			});
-
-			if (match) {
-				link.href = `#${match.id}`;
-			}
 		});
 	});
 });
