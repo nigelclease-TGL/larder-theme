@@ -15,6 +15,22 @@ document.addEventListener('DOMContentLoaded', () => {
 		.replace(/[^a-z0-9]+/g, ' ')
 		.trim();
 
+	const contentsHeadings = Array.from(recipeContent.querySelectorAll('h2, h3')).filter((heading) => {
+		return normalise(heading.textContent) === 'contents';
+	});
+
+	const tocPanels = contentsHeadings
+		.map((heading) => heading.closest('.wp-block-group, .wp-block-cover, .wp-block-columns') || heading.parentElement)
+		.filter(Boolean);
+
+	if (!tocPanels.length) {
+		return;
+	}
+
+	tocPanels.forEach((panel) => panel.classList.add('nkt-toc-panel'));
+
+	const isInsideTocPanel = (heading) => tocPanels.some((panel) => panel.contains(heading));
+
 	const makeId = (heading, index) => {
 		const slug = normalise(heading.textContent).replace(/\s+/g, '-') || `section-${index + 1}`;
 		let candidate = heading.id || `recipe-${slug}`;
@@ -30,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	};
 
 	const headings = Array.from(recipeContent.querySelectorAll('h2, h3')).filter((heading) => {
-		return !heading.closest('.nkt-toc-panel, .wprm-recipe-container, .nkt-recipe-share-card, .nkt-pinterest-save');
+		return !isInsideTocPanel(heading) && !heading.closest('.wprm-recipe-container, .nkt-recipe-share-card, .nkt-pinterest-save');
 	});
 
 	const headingEntries = headings.map((heading, index) => ({
@@ -68,8 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 		window.history.replaceState(null, '', hash);
 	};
-
-	const tocPanels = Array.from(recipeContent.querySelectorAll('.nkt-toc-panel'));
 
 	tocPanels.forEach((panel) => {
 		panel.querySelectorAll('a').forEach((link) => {
