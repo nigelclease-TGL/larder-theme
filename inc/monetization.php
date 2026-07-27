@@ -130,5 +130,26 @@ function nkt_filter_affiliate_links( $content ) {
 }
 add_filter( 'the_content', 'nkt_filter_affiliate_links', 20 );
 
+/**
+ * Repair legacy Contents links on recipe posts after the article headings exist.
+ */
+function nkt_enqueue_legacy_contents_link_repair() {
+	if ( ! is_singular( 'post' ) ) {
+		return;
+	}
+
+	wp_enqueue_script(
+		'nkt-legacy-contents-links',
+		get_template_directory_uri() . '/assets/js/legacy-contents-links.js',
+		array( 'larder-recipe-tools' ),
+		wp_get_theme()->get( 'Version' ),
+		array(
+			'strategy'  => 'defer',
+			'in_footer' => true,
+		)
+	);
+}
+add_action( 'wp_enqueue_scripts', 'nkt_enqueue_legacy_contents_link_repair', 30 );
+
 require_once get_template_directory() . '/inc/pinterest-dimensions.php';
 require_once get_template_directory() . '/inc/pinterest.php';
