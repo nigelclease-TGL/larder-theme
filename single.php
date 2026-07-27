@@ -131,10 +131,10 @@ get_header();
 									<img class="skip-lazy nkt-pinterest-save__photo" src="<?php echo esc_url( $pinterest_image_url ); ?>" alt="<?php echo esc_attr( $pinterest_image_alt ); ?>" loading="lazy" decoding="async" data-pin-nopin="true" data-no-pin="true" data-no-lazy="1">
 								</div>
 								<div class="nkt-pinterest-save__copy">
-									<p class="eyebrow"><?php esc_html_e( 'Save for later', 'larder' ); ?></p>
-									<h2 id="nkt-pinterest-save-title"><?php esc_html_e( 'Keep this recipe on Pinterest', 'larder' ); ?></h2>
-									<p><?php esc_html_e( 'Save the vertical recipe image to one of your Pinterest boards so it is easy to find when you are ready to bake or cook.', 'larder' ); ?></p>
-									<a class="button button-primary nkt-pinterest-save__button" href="<?php echo esc_url( $pinterest_share_url ); ?>" target="_blank" rel="noopener noreferrer" data-pin-custom="true"><?php esc_html_e( 'Save on Pinterest', 'larder' ); ?></a>
+									<p class="eyebrow"><?php esc_html_e( 'A recipe worth keeping', 'larder' ); ?></p>
+									<h2 id="nkt-pinterest-save-title"><?php esc_html_e( 'Save this recipe for another day', 'larder' ); ?></h2>
+									<p><?php esc_html_e( 'Pin it to one of your boards and keep it close for the next time you are ready to cook or bake.', 'larder' ); ?></p>
+									<a class="button button-primary nkt-pinterest-save__button" href="<?php echo esc_url( $pinterest_share_url ); ?>" target="_blank" rel="noopener noreferrer" data-pin-custom="true"><?php esc_html_e( 'Save to Pinterest', 'larder' ); ?></a>
 								</div>
 							</section>
 						<?php endif; ?>
