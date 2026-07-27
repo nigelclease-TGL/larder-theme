@@ -101,3 +101,5 @@ Tags: food-and-drink, blog, custom-logo, custom-menu, featured-images, threaded-
 .single-recipe .recipe-content > .wp-block-cover[style*="background-color"] .wp-block-cover__inner-container {
 	color: #2e2e2b !important;
 }
+
+/* Packaged release: legacy recipe panel brand normalisation. */
