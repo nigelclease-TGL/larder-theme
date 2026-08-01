@@ -125,8 +125,8 @@ function nkt_gpt_par_0723_zero_section_nutrition_signature( $content ) {
 	$segment_text = nkt_gpt_par_0723_visible_heading_text( $tail );
 	$article_text = nkt_gpt_par_0723_visible_heading_text( $content );
 
-	preg_match_all( '/\bNutrition\s+per\s+serving\b/iu', $segment_text, $segment_markers );
-	preg_match_all( '/\bNutrition\s+per\s+serving\b/iu', $article_text, $article_markers );
+	preg_match_all( '/Nutrition\s+per\s+serving/iu', $segment_text, $segment_markers );
+	preg_match_all( '/Nutrition\s+per\s+serving/iu', $article_text, $article_markers );
 	preg_match_all( '/(?:Percent|%)\s+Daily\s+Values?\b/iu', $segment_text, $daily_markers );
 	preg_match_all( '/\b2,?000(?:-|\s)+calorie\s+diet\b/iu', $segment_text, $calorie_markers );
 	$evidence['serving_fallback_segment_nutrition_marker_count'] = count( $segment_markers[0] );
@@ -136,7 +136,7 @@ function nkt_gpt_par_0723_zero_section_nutrition_signature( $content ) {
 
 	$nutrient_count = 0;
 	foreach ( array( 'Calories', 'Total Fat', 'Carbohydrates', 'Carbs', 'Sugars', 'Protein', 'Sodium', 'Fiber', 'Fibre' ) as $label ) {
-		if ( preg_match( '/(?:^|\s)' . preg_quote( $label, '/' ) . '\s*:/iu', $segment_text ) ) {
+		if ( preg_match( '/' . preg_quote( $label, '/' ) . '\s*:/iu', $segment_text ) ) {
 			$nutrient_count++;
 		}
 	}
