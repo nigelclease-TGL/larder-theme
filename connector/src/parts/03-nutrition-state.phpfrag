@@ -160,6 +160,13 @@ function nkt_gpt_par_0723_extract_nutrition_serving_heading( $content, $nutritio
 		}
 	}
 
+	// Count article-wide candidates even when the Nutrition-section gate rejects them.
+	$article_candidates = $blocks ? nkt_gpt_par_0723_collect_serving_headings_in_blocks( $blocks ) : array();
+	if ( ! $article_candidates ) {
+		$article_candidates = nkt_gpt_par_0723_collect_raw_serving_h3_candidates( $content );
+	}
+	$result['matching_visible_serving_h3_count'] = count( $article_candidates );
+
 	// Safe article-wide fallback is permitted only for one parsed Nutrition section.
 	if ( 1 !== (int) $nutrition_section_count ) {
 		$result['serving_fallback_rejection_reason'] = 0 === (int) $nutrition_section_count
@@ -168,11 +175,6 @@ function nkt_gpt_par_0723_extract_nutrition_serving_heading( $content, $nutritio
 		return $result;
 	}
 
-	$article_candidates = $blocks ? nkt_gpt_par_0723_collect_serving_headings_in_blocks( $blocks ) : array();
-	if ( ! $article_candidates ) {
-		$article_candidates = nkt_gpt_par_0723_collect_raw_serving_h3_candidates( $content );
-	}
-	$result['matching_visible_serving_h3_count'] = count( $article_candidates );
 	if ( 1 !== count( $article_candidates ) ) {
 		$result['serving_fallback_rejection_reason'] = count( $article_candidates ) > 1
 			? 'multiple_visible_serving_h3_candidates'
