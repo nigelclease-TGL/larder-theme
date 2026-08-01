@@ -1,0 +1,198 @@
+function nkt_gpt_par_0723_normalize_status_map( $value ) {
+	$result = array();
+	foreach ( (array) $value as $key => $status ) {
+		$id = absint( $key );
+		if ( $id ) {
+			$result[ $id ] = sanitize_key( (string) $status );
+		}
+	}
+	ksort( $result, SORT_NUMERIC );
+	return $result;
+}
+
+/** Select a named legacy baseline for an explicit repair operation. */
+function nkt_gpt_par_0723_named_legacy_baseline( $draft_id, $version ) {
+	$map = array(
+		'0.7.19' => '_nkt_par_0719_baseline',
+		'0.7.18' => '_nkt_par_0718_baseline',
+		'0.7.17' => '_nkt_par_0717_baseline',
+	);
+	if ( ! isset( $map[ $version ] ) ) {
+		return array();
+	}
+	$value = get_post_meta( $draft_id, $map[ $version ], true );
+	return is_array( $value ) ? $value : array();
+}
+
+/** Repair a proven recipe-status-only side effect caused by legacy article draft writes. */
+function nkt_gpt_par_0723_repair_recipe_status_side_effects( WP_REST_Request $request ) {
+	$guard = nkt_gpt_par_0723_version_guard( $request );
+	if ( is_wp_error( $guard ) ) {
+		return $guard;
+	}
+	$live_id  = absint( $request->get_param( 'live_post_id' ) );
+	$draft_id = absint( $request->get_param( 'draft_post_id' ) );
+	$pair     = nkt_gpt_par_0723_pair( $live_id, $draft_id );
+	if ( is_wp_error( $pair ) ) {
+		return $pair;
+	}
+	$baseline_version = (string) $request->get_param( 'expected_baseline_connector_version' );
+	$baseline = nkt_gpt_par_0723_named_legacy_baseline( $draft_id, $baseline_version );
+	if ( empty( $baseline['live'] ) ) {
+		return new WP_Error(
+			'nkt_gpt_par_recipe_repair_baseline_missing',
+			__( 'The requested legacy protected baseline was not found on this draft.', 'nkt-gpt-connector' ),
+			array( 'status' => 409, 'baseline_version' => $baseline_version )
+		);
+	}
+	$current_live = nkt_gpt_par_0723_capture_live_state( $live_id );
+	if ( is_wp_error( $current_live ) ) {
+		return $current_live;
+	}
+	$expected_ids = array_values( array_map( 'absint', (array) $request->get_param( 'expected_recipe_ids' ) ) );
+	$current_hashes = nkt_gpt_par_0723_normalize_hash_map( $request->get_param( 'expected_current_recipe_object_hashes' ) );
+	$baseline_hashes = nkt_gpt_par_0723_normalize_hash_map( $request->get_param( 'expected_baseline_recipe_object_hashes' ) );
+	$current_statuses = nkt_gpt_par_0723_normalize_status_map( $request->get_param( 'expected_current_recipe_statuses' ) );
+	$baseline_statuses = nkt_gpt_par_0723_normalize_status_map( $request->get_param( 'expected_baseline_recipe_statuses' ) );
+	$dry_run = (bool) $request->get_param( 'dry_run' );
+	$checks = array(
+		'ordered_recipe_ids_match_current' => $current_live['ordered_wprm_recipe_ids'] === $expected_ids,
+		'ordered_recipe_ids_match_baseline' => isset( $baseline['live']['ordered_wprm_recipe_ids'] ) && $baseline['live']['ordered_wprm_recipe_ids'] === $expected_ids,
+		'current_hashes_match_request' => nkt_gpt_par_0723_normalize_hash_map( $current_live['recipe_object_hashes'] ) === $current_hashes,
+		'baseline_hashes_match_request' => isset( $baseline['live']['recipe_object_hashes'] ) && nkt_gpt_par_0723_normalize_hash_map( $baseline['live']['recipe_object_hashes'] ) === $baseline_hashes,
+		'current_statuses_match_request' => nkt_gpt_par_0723_normalize_status_map( $current_live['recipe_statuses'] ) === $current_statuses,
+		'baseline_statuses_match_request' => isset( $baseline['live']['recipe_statuses'] ) && nkt_gpt_par_0723_normalize_status_map( $baseline['live']['recipe_statuses'] ) === $baseline_statuses,
+		'wprm_nutrition_matches_baseline' => isset( $baseline['live']['wprm_nutrition_hashes'] ) && $current_live['wprm_nutrition_hashes'] === $baseline['live']['wprm_nutrition_hashes'],
+	);
+	$proof = array();
+	foreach ( $expected_ids as $recipe_id ) {
+		$recipe = get_post( $recipe_id );
+		$baseline_status = isset( $baseline_statuses[ $recipe_id ] ) ? $baseline_statuses[ $recipe_id ] : '';
+		$hypothetical_hash = $baseline_status ? nkt_gpt_par_0723_recipe_object_hash( $recipe_id, $baseline_status ) : '';
+		$proof[ $recipe_id ] = array(
+			'literal_post_type' => $recipe ? $recipe->post_type : null,
+			'current_status' => $recipe ? $recipe->post_status : null,
+			'baseline_status' => $baseline_status,
+			'current_hash' => isset( $current_live['recipe_object_hashes'][ $recipe_id ] ) ? $current_live['recipe_object_hashes'][ $recipe_id ] : '',
+			'baseline_hash' => isset( $baseline_hashes[ $recipe_id ] ) ? $baseline_hashes[ $recipe_id ] : '',
+			'hypothetical_baseline_status_hash' => $hypothetical_hash,
+			'status_is_only_hashed_difference' => $hypothetical_hash && isset( $baseline_hashes[ $recipe_id ] ) && hash_equals( $baseline_hashes[ $recipe_id ], $hypothetical_hash ),
+		);
+		$checks[ 'recipe_' . $recipe_id . '_exists_as_wprm_recipe' ] = $recipe && 'wprm_recipe' === $recipe->post_type;
+		$checks[ 'recipe_' . $recipe_id . '_status_differs' ] = $recipe && $recipe->post_status !== $baseline_status;
+		$checks[ 'recipe_' . $recipe_id . '_status_only_proof' ] = $proof[ $recipe_id ]['status_is_only_hashed_difference'];
+	}
+	$failed = array_keys( array_filter( $checks, static function ( $passed ) { return ! $passed; } ) );
+	if ( $failed ) {
+		return new WP_Error(
+			'nkt_gpt_par_recipe_repair_preflight_failed',
+			__( 'Recipe status repair was blocked because status-only provenance was not proven for every recipe.', 'nkt-gpt-connector' ),
+			array( 'status' => 409, 'failed_checks' => $failed, 'checks' => $checks, 'proof' => $proof )
+		);
+	}
+
+
+	if ( $dry_run ) {
+		$eligibility = array();
+		$reconstructed = array();
+		foreach ( $proof as $recipe_id => $recipe_proof ) {
+			$eligible = ! empty( $recipe_proof['status_is_only_hashed_difference'] );
+			$eligibility[ $recipe_id ] = $eligible ? 'eligible_status_only_repair' : 'ineligible_non_status_difference';
+			$reconstructed[ $recipe_id ] = isset( $recipe_proof['hypothetical_baseline_status_hash'] ) ? $recipe_proof['hypothetical_baseline_status_hash'] : '';
+		}
+		return nkt_gpt_connector_no_store( new WP_REST_Response( array(
+			'message' => __( 'Recipe status repair eligibility was proven read-only. No recipe, article, Nutrition, metadata or lifecycle record was changed.', 'nkt-gpt-connector' ),
+			'connector_version' => NKT_GPT_PAR_0723_VERSION,
+			'operation' => 'repairProtectedRecipeStatusSideEffects',
+			'read_only' => true,
+			'dry_run' => true,
+			'changes_made' => false,
+			'repair_performed' => false,
+			'repair_safe_now' => true,
+			'all_protected_conditions_passed' => true,
+			'baseline_connector_version' => $baseline_version,
+			'live_post_id' => $live_id,
+			'draft_post_id' => $draft_id,
+			'expected_recipe_ids' => $expected_ids,
+			'checks' => $checks,
+			'failed_checks' => array(),
+			'status_only_proof' => $proof,
+			'reconstructed_baseline_status_hashes' => $reconstructed,
+			'eligibility' => $eligibility,
+			'current_recipe_statuses' => $current_statuses,
+			'baseline_recipe_statuses' => $baseline_statuses,
+			'current_recipe_object_hashes' => $current_hashes,
+			'baseline_recipe_object_hashes' => $baseline_hashes,
+			'wprm_nutrition_hashes' => $current_live['wprm_nutrition_hashes'],
+			'draft_retained' => (bool) get_post( $draft_id ),
+		), 200 ) );
+	}
+
+	$snapshots = nkt_gpt_par_0723_recipe_snapshots( $expected_ids );
+	$updates = array();
+	foreach ( $expected_ids as $recipe_id ) {
+		$before_manifest = nkt_gpt_par_0723_recipe_component_manifest( $recipe_id );
+		$result = nkt_gpt_par_0723_direct_post_row_write( $recipe_id, array( 'post_status' => $baseline_statuses[ $recipe_id ] ), false );
+		if ( is_wp_error( $result ) ) {
+			$restored = nkt_gpt_par_0723_restore_recipe_snapshots( $snapshots );
+			return new WP_Error( 'nkt_gpt_par_recipe_repair_write_failed', __( 'A recipe status could not be restored. All recipe snapshots were restored.', 'nkt-gpt-connector' ), array( 'status' => 500, 'recipe_id' => $recipe_id, 'restore' => $restored ) );
+		}
+		$after_manifest = nkt_gpt_par_0723_recipe_component_manifest( $recipe_id );
+		$updates[ $recipe_id ] = array(
+			'before' => $before_manifest,
+			'after' => $after_manifest,
+			'expected_after_hash' => $baseline_hashes[ $recipe_id ],
+			'object_hash_verified' => isset( $after_manifest['object_hash'] ) && hash_equals( $baseline_hashes[ $recipe_id ], $after_manifest['object_hash'] ),
+			'status_independent_hash_preserved' => isset( $before_manifest['status_independent_hash'], $after_manifest['status_independent_hash'] ) && hash_equals( $before_manifest['status_independent_hash'], $after_manifest['status_independent_hash'] ),
+			'nutrition_hash_preserved' => nkt_gpt_par_0723_wprm_nutrition_hash( $recipe_id ) === $snapshots[ $recipe_id ]['nutrition_hash'],
+		);
+	}
+	$verification_failed = array();
+	foreach ( $updates as $recipe_id => $update ) {
+		foreach ( array( 'object_hash_verified', 'status_independent_hash_preserved', 'nutrition_hash_preserved' ) as $field ) {
+			if ( empty( $update[ $field ] ) ) {
+				$verification_failed[] = 'recipe_' . $recipe_id . '_' . $field;
+			}
+		}
+	}
+	if ( $verification_failed ) {
+		$restored = nkt_gpt_par_0723_restore_recipe_snapshots( $snapshots );
+		return new WP_Error( 'nkt_gpt_par_recipe_repair_verification_failed', __( 'Recipe status repair failed verification. All recipe snapshots were restored.', 'nkt-gpt-connector' ), array( 'status' => 500, 'failed_checks' => $verification_failed, 'restore' => $restored, 'updates' => $updates ) );
+	}
+	$record = array(
+		'repaired_at' => gmdate( DATE_ATOM ),
+		'repaired_by_user_id' => get_current_user_id(),
+		'connector_version' => NKT_GPT_PAR_0723_VERSION,
+		'operation' => 'repairProtectedRecipeStatusSideEffects',
+		'read_only' => false,
+		'dry_run' => false,
+		'changes_made' => true,
+		'repair_performed' => true,
+		'repair_safe_now' => true,
+		'baseline_connector_version' => $baseline_version,
+		'live_post_id' => $live_id,
+		'draft_post_id' => $draft_id,
+		'recipe_ids' => $expected_ids,
+		'reason' => sanitize_textarea_field( (string) $request->get_param( 'repair_reason' ) ),
+		'proof' => $proof,
+		'updates' => $updates,
+	);
+	update_post_meta( $draft_id, NKT_GPT_PAR_0723_RECIPE_REPAIR_META, $record );
+	$current_after = nkt_gpt_par_0723_capture_live_state( $live_id );
+	return nkt_gpt_connector_no_store( new WP_REST_Response( array(
+		'message' => __( 'The proven legacy article-draft recipe-status side effect was repaired without changing recipe content or WPRM Nutrition.', 'nkt-gpt-connector' ),
+		'connector_version' => NKT_GPT_PAR_0723_VERSION,
+		'baseline_connector_version' => $baseline_version,
+		'live_post_id' => $live_id,
+		'draft_post_id' => $draft_id,
+		'status_only_proof' => $proof,
+		'recipe_updates' => $updates,
+		'current_live_state' => $current_after,
+		'recipe_content_changed' => false,
+		'wprm_nutrition_changed' => false,
+		'article_content_changed' => false,
+		'all_protected_conditions_passed' => true,
+	), 200 ) );
+}
+
+/** Return whether an explicit workflow object is protected from cleanup without separate authorisation. */
