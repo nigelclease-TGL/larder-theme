@@ -66,15 +66,66 @@ document.addEventListener('DOMContentLoaded', () => {
 		return candidate;
 	};
 
-	let recipeTarget = document.getElementById('recipe-card');
-	if (!recipeTarget) {
-		recipeTarget = recipeContent.querySelector('.wprm-recipe-container');
-		if (recipeTarget) {
-			recipeTarget.id = 'recipe-card';
+	const makeElementId = (element, preferredId) => {
+		if (element.id && (!document.getElementById(element.id) || document.getElementById(element.id) === element)) {
+			return element.id;
 		}
-	}
 
-	let recipeCardIncluded = false;
+		let candidate = preferredId;
+		let suffix = 2;
+
+		while (document.getElementById(candidate) && document.getElementById(candidate) !== element) {
+			candidate = `${preferredId}-${suffix}`;
+			suffix += 1;
+		}
+
+		element.id = candidate;
+		return candidate;
+	};
+
+	const recipeCards = Array.from(recipeContent.querySelectorAll('.wprm-recipe-container'));
+	const existingPrimaryRecipeAnchor = document.getElementById('recipe-card');
+	const recipeEntries = recipeCards.map((card, index) => {
+		let target = card;
+
+		if (
+			index === 0
+			&& existingPrimaryRecipeAnchor
+			&& recipeContent.contains(existingPrimaryRecipeAnchor)
+			&& existingPrimaryRecipeAnchor !== card
+		) {
+			target = existingPrimaryRecipeAnchor;
+		}
+
+		const preferredId = index === 0 ? 'recipe-card' : `recipe-card-${index + 1}`;
+		const id = makeElementId(target, preferredId);
+		const recipeNameElement = card.querySelector('.wprm-recipe-name, .wprm-recipe-title, [data-recipe-name]');
+		const recipeName = recipeNameElement?.textContent.trim() || card.dataset.recipeName?.trim() || '';
+		const label = recipeCards.length === 1
+			? 'Recipe Card'
+			: recipeName
+				? `Recipe: ${recipeName}`
+				: `Recipe Card ${index + 1}`;
+
+		return {
+			card,
+			id,
+			label,
+			sourceHeading: null,
+			target,
+		};
+	});
+
+	const usedRecipeEntries = new Set();
+	const findRecipeEntryForHeading = (heading) => {
+		const followingRecipe = recipeEntries.find((entry) => {
+			return !usedRecipeEntries.has(entry)
+				&& Boolean(heading.compareDocumentPosition(entry.card) & Node.DOCUMENT_POSITION_FOLLOWING);
+		});
+
+		return followingRecipe || recipeEntries.find((entry) => !usedRecipeEntries.has(entry)) || null;
+	};
+
 	const sectionEntries = Array.from(recipeContent.querySelectorAll('h2'))
 		.filter((heading) => {
 			return !isInsideExistingPanel(heading)
@@ -91,14 +142,15 @@ document.addEventListener('DOMContentLoaded', () => {
 				'printable recipe',
 			].includes(normalisedLabel);
 
-			if (isRecipeCardHeading && recipeTarget) {
-				recipeCardIncluded = true;
-				return {
-					id: recipeTarget.id,
-					label: 'Recipe Card',
-					sourceHeading: heading,
-					target: recipeTarget,
-				};
+			if (isRecipeCardHeading && recipeEntries.length) {
+				const matchingRecipeEntry = findRecipeEntryForHeading(heading);
+				if (matchingRecipeEntry) {
+					usedRecipeEntries.add(matchingRecipeEntry);
+					return {
+						...matchingRecipeEntry,
+						sourceHeading: heading,
+					};
+				}
 			}
 
 			return {
@@ -109,18 +161,30 @@ document.addEventListener('DOMContentLoaded', () => {
 			};
 		});
 
-	if (recipeTarget && !recipeCardIncluded) {
-		sectionEntries.push({
-			id: recipeTarget.id,
-			label: 'Recipe Card',
-			sourceHeading: null,
-			target: recipeTarget,
-		});
-	}
-
-	const uniqueEntries = sectionEntries.filter((entry, index, entries) => {
-		return entries.findIndex((candidate) => candidate.id === entry.id) === index;
+	recipeEntries.forEach((entry) => {
+		if (!usedRecipeEntries.has(entry)) {
+			sectionEntries.push(entry);
+		}
 	});
+
+	const uniqueEntries = sectionEntries
+		.filter((entry, index, entries) => {
+			return entries.findIndex((candidate) => candidate.id === entry.id) === index;
+		})
+		.sort((firstEntry, secondEntry) => {
+			if (firstEntry.target === secondEntry.target) {
+				return 0;
+			}
+
+			const position = firstEntry.target.compareDocumentPosition(secondEntry.target);
+			if (position & Node.DOCUMENT_POSITION_FOLLOWING) {
+				return -1;
+			}
+			if (position & Node.DOCUMENT_POSITION_PRECEDING) {
+				return 1;
+			}
+			return 0;
+		});
 
 	if (!uniqueEntries.length) {
 		existingPanels.forEach((panel) => panel.remove());
@@ -191,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 	const firstSectionHeading = uniqueEntries.find((entry) => entry.sourceHeading)?.sourceHeading;
-	const insertionTarget = firstSectionHeading || recipeTarget;
+	const insertionTarget = firstSectionHeading || recipeEntries[0]?.target;
 
 	if (insertionTarget) {
 		insertionTarget.before(contentsPanel);

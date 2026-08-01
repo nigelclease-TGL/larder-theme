@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 2.0.42
+Stable tag: 2.0.43
 License: Proprietary project theme
 
 A premium editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -29,9 +29,14 @@ Key features include:
 3. Upload the installable theme ZIP without unzipping it.
 4. Choose Replace current with uploaded.
 5. Clear WP Super Cache and the browser cache.
-6. Confirm the active theme shows version 2.0.42.
+6. Confirm the active theme shows version 2.0.43.
 
 == Changelog ==
+
+= 2.0.43 =
+* Includes every WPRM recipe card in the automatic Contents list when a post contains two or more recipes.
+* Uses each recipe name to distinguish multiple recipe links, with numbered Recipe Card labels as a fallback.
+* Keeps each recipe link in its correct position in the article and gives every card a unique working anchor.
 
 = 2.0.42 =
 * Replaces each stored recipe Contents panel on the public page with a canonical list generated from the current H2 sections.
@@ -78,5 +83,5 @@ Earlier release history remains available in the Git repository.
 
 == Upgrade Notice ==
 
-= 2.0.42 =
-Install this release to generate one accurate, branded Contents list automatically on every recipe page.
+= 2.0.43 =
+Install this release so recipe posts containing more than one recipe include a separate working Contents link for every recipe card.
