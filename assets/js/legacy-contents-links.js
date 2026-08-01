@@ -22,6 +22,71 @@ document.addEventListener('DOMContentLoaded', () => {
 		'.nkt-recipe-guide',
 		'.recipe-share',
 	].join(', ');
+	const uppercaseLetterPattern = /[A-ZÀ-ÖØ-Þ]/;
+	const lowercaseLetterPattern = /[a-zà-öø-ÿ]/;
+	const firstLetterPattern = /[A-Za-zÀ-ÖØ-öø-ÿ]/;
+	const protectedAcronyms = new Set([
+		'ai',
+		'bbq',
+		'css',
+		'eu',
+		'faq',
+		'faqs',
+		'html',
+		'pdf',
+		'seo',
+		'uk',
+		'us',
+		'usa',
+		'wprm',
+	]);
+	const protectedAcronymPattern = /\b(?:ai|bbq|css|eu|faqs?|html|pdf|seo|uk|us|usa|wprm)\b/gi;
+
+	const sentenceCaseHeading = (heading) => {
+		const headingText = heading.textContent.trim();
+		if (
+			!headingText
+			|| !uppercaseLetterPattern.test(headingText)
+			|| lowercaseLetterPattern.test(headingText)
+			|| protectedAcronyms.has(headingText.toLowerCase())
+		) {
+			return;
+		}
+
+		const textNodes = [];
+		const collectTextNodes = (node) => {
+			node.childNodes.forEach((child) => {
+				if (child.nodeType === Node.TEXT_NODE) {
+					textNodes.push(child);
+				} else {
+					collectTextNodes(child);
+				}
+			});
+		};
+
+		collectTextNodes(heading);
+		let firstLetterCapitalised = false;
+
+		textNodes.forEach((textNode) => {
+			let value = textNode.nodeValue.toLocaleLowerCase('en-GB');
+			value = value.replace(protectedAcronymPattern, (acronym) => acronym.toLocaleUpperCase('en-GB'));
+
+			if (!firstLetterCapitalised && firstLetterPattern.test(value)) {
+				value = value.replace(firstLetterPattern, (letter) => letter.toLocaleUpperCase('en-GB'));
+				firstLetterCapitalised = true;
+			}
+
+			textNode.nodeValue = value;
+		});
+
+		heading.dataset.nktSentenceCase = 'true';
+	};
+
+	Array.from(recipeContent.querySelectorAll('h2')).forEach((heading) => {
+		if (!heading.closest(excludedSelector)) {
+			sentenceCaseHeading(heading);
+		}
+	});
 
 	const contentsHeadings = Array.from(recipeContent.querySelectorAll('h2, h3')).filter((heading) => {
 		return normalise(heading.textContent) === 'contents';
@@ -102,10 +167,10 @@ document.addEventListener('DOMContentLoaded', () => {
 		const recipeNameElement = card.querySelector('.wprm-recipe-name, .wprm-recipe-title, [data-recipe-name]');
 		const recipeName = recipeNameElement?.textContent.trim() || card.dataset.recipeName?.trim() || '';
 		const label = recipeCards.length === 1
-			? 'Recipe Card'
+			? 'Recipe card'
 			: recipeName
 				? `Recipe: ${recipeName}`
-				: `Recipe Card ${index + 1}`;
+				: `Recipe card ${index + 1}`;
 
 		return {
 			card,
