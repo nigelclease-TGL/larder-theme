@@ -46,7 +46,7 @@ jobs:
           path: |
             connector/artifacts/nkt-gpt-connector-0.7.23-update-runtime-guards-upgrader.zip
             connector/artifacts/nkt-gpt-connector-0.7.23-update-runtime-guards-upgrader.sha256.txt
-            connector/openapi-0.7.23.json
+            connector/artifacts/generated/openapi-0.7.23.json
             connector/VALIDATION.md
           if-no-files-found: error
           retention-days: 30
