@@ -11,28 +11,49 @@ document.addEventListener('DOMContentLoaded', () => {
 		.normalize('NFD')
 		.replace(/[\u0300-\u036f]/g, '')
 		.replace(/&/g, ' and ')
-		.replace(/\brecipe\s*[-:–—]?\s*/g, '')
 		.replace(/[^a-z0-9]+/g, ' ')
 		.trim();
+
+	const slugify = (value) => normalise(value).replace(/\s+/g, '-');
+	const excludedSelector = [
+		'.wprm-recipe-container',
+		'.nkt-recipe-share-card',
+		'.nkt-pinterest-save',
+		'.nkt-recipe-guide',
+		'.recipe-share',
+	].join(', ');
 
 	const contentsHeadings = Array.from(recipeContent.querySelectorAll('h2, h3')).filter((heading) => {
 		return normalise(heading.textContent) === 'contents';
 	});
 
-	const tocPanels = contentsHeadings
-		.map((heading) => heading.closest('.wp-block-group, .wp-block-cover, .wp-block-columns') || heading.parentElement)
-		.filter(Boolean);
+	const findContentsPanel = (heading) => {
+		const candidates = [];
+		let current = heading.parentElement;
 
-	if (!tocPanels.length) {
-		return;
-	}
+		while (current && current !== recipeContent) {
+			if (current.matches('nav, section, .nkt-toc-panel, .wp-block-group, .wp-block-cover, .wp-block-columns')) {
+				candidates.push(current);
+			}
+			current = current.parentElement;
+		}
 
-	tocPanels.forEach((panel) => panel.classList.add('nkt-toc-panel'));
+		const containsNoArticleHeadings = (candidate) => {
+			return !Array.from(candidate.querySelectorAll('h2, h3')).some((candidateHeading) => {
+				return candidateHeading !== heading && normalise(candidateHeading.textContent) !== 'contents';
+			});
+		};
 
-	const isInsideTocPanel = (heading) => tocPanels.some((panel) => panel.contains(heading));
+		return candidates.find((candidate) => candidate.querySelector('ul, ol') && containsNoArticleHeadings(candidate))
+			|| candidates.find(containsNoArticleHeadings)
+			|| heading.parentElement;
+	};
+
+	const existingPanels = Array.from(new Set(contentsHeadings.map(findContentsPanel).filter(Boolean)));
+	const isInsideExistingPanel = (heading) => existingPanels.some((panel) => panel.contains(heading));
 
 	const makeId = (heading, index) => {
-		const slug = normalise(heading.textContent).replace(/\s+/g, '-') || `section-${index + 1}`;
+		const slug = slugify(heading.textContent) || `section-${index + 1}`;
 		let candidate = heading.id || `recipe-${slug}`;
 		let suffix = 2;
 
@@ -45,31 +66,91 @@ document.addEventListener('DOMContentLoaded', () => {
 		return candidate;
 	};
 
-	const headings = Array.from(recipeContent.querySelectorAll('h2, h3')).filter((heading) => {
-		return !isInsideTocPanel(heading) && !heading.closest('.wprm-recipe-container, .nkt-recipe-share-card, .nkt-pinterest-save');
-	});
-
-	const headingEntries = headings.map((heading, index) => ({
-		heading,
-		label: normalise(heading.textContent),
-		id: makeId(heading, index),
-	}));
-
-	const recipeCard = document.getElementById('recipe-card') || document.querySelector('.wprm-recipe-container');
-	if (recipeCard && !recipeCard.id) {
-		recipeCard.id = 'recipe-card';
+	let recipeTarget = document.getElementById('recipe-card');
+	if (!recipeTarget) {
+		recipeTarget = recipeContent.querySelector('.wprm-recipe-container');
+		if (recipeTarget) {
+			recipeTarget.id = 'recipe-card';
+		}
 	}
 
-	const findHeadingMatch = (linkLabel) => {
-		const exact = headingEntries.find((entry) => entry.label === linkLabel);
-		if (exact) {
-			return exact;
+	let recipeCardIncluded = false;
+	const sectionEntries = Array.from(recipeContent.querySelectorAll('h2'))
+		.filter((heading) => {
+			return !isInsideExistingPanel(heading)
+				&& !heading.closest(excludedSelector)
+				&& normalise(heading.textContent) !== 'contents';
+		})
+		.map((heading, index) => {
+			const label = heading.textContent.trim();
+			const normalisedLabel = normalise(label);
+			const isRecipeCardHeading = [
+				'recipe',
+				'recipe card',
+				'the recipe',
+				'printable recipe',
+			].includes(normalisedLabel);
+
+			if (isRecipeCardHeading && recipeTarget) {
+				recipeCardIncluded = true;
+				return {
+					id: recipeTarget.id,
+					label: 'Recipe Card',
+					sourceHeading: heading,
+					target: recipeTarget,
+				};
+			}
+
+			return {
+				id: makeId(heading, index),
+				label,
+				sourceHeading: heading,
+				target: heading,
+			};
+		});
+
+	if (recipeTarget && !recipeCardIncluded) {
+		sectionEntries.push({
+			id: recipeTarget.id,
+			label: 'Recipe Card',
+			sourceHeading: null,
+			target: recipeTarget,
+		});
+	}
+
+	const uniqueEntries = sectionEntries.filter((entry, index, entries) => {
+		return entries.findIndex((candidate) => candidate.id === entry.id) === index;
+	});
+
+	if (!uniqueEntries.length) {
+		existingPanels.forEach((panel) => panel.remove());
+		return;
+	}
+
+	const makeUniqueContentsHeadingId = () => {
+		let candidate = 'recipe-contents';
+		let suffix = 2;
+
+		while (document.getElementById(candidate)) {
+			candidate = `recipe-contents-${suffix}`;
+			suffix += 1;
 		}
 
-		return headingEntries.find((entry) => {
-			return entry.label.includes(linkLabel) || linkLabel.includes(entry.label);
-		});
+		return candidate;
 	};
+
+	const contentsPanel = document.createElement('nav');
+	const contentsHeading = document.createElement('h2');
+	const contentsList = document.createElement('ul');
+	const contentsHeadingId = makeUniqueContentsHeadingId();
+
+	contentsPanel.className = 'nkt-toc-panel';
+	contentsPanel.dataset.nktGenerated = 'true';
+	contentsPanel.setAttribute('aria-labelledby', contentsHeadingId);
+	contentsHeading.className = 'nkt-toc-heading';
+	contentsHeading.id = contentsHeadingId;
+	contentsHeading.textContent = 'Contents';
+	contentsList.className = 'nkt-toc-list';
 
 	const scrollToTarget = (target, hash) => {
 		const header = document.querySelector('.site-header, header.site-header');
@@ -85,36 +166,36 @@ document.addEventListener('DOMContentLoaded', () => {
 		window.history.replaceState(null, '', hash);
 	};
 
-	tocPanels.forEach((panel) => {
-		panel.querySelectorAll('a').forEach((link) => {
-			const linkLabel = normalise(link.textContent);
-			if (!linkLabel) {
-				return;
-			}
+	uniqueEntries.forEach((entry) => {
+		const item = document.createElement('li');
+		const link = document.createElement('a');
+		const hash = `#${entry.id}`;
 
-			let target = null;
-			let targetHash = '';
-
-			if ((linkLabel === 'recipe' || linkLabel.startsWith('recipe ')) && recipeCard) {
-				target = recipeCard;
-				targetHash = '#recipe-card';
-			} else {
-				const match = findHeadingMatch(linkLabel);
-				if (match) {
-					target = match.heading;
-					targetHash = `#${match.id}`;
-				}
-			}
-
-			if (!target || !targetHash) {
-				return;
-			}
-
-			link.href = targetHash;
-			link.addEventListener('click', (event) => {
-				event.preventDefault();
-				scrollToTarget(target, targetHash);
-			});
+		link.href = hash;
+		link.textContent = entry.label;
+		link.addEventListener('click', (event) => {
+			event.preventDefault();
+			scrollToTarget(entry.target, hash);
 		});
+
+		item.append(link);
+		contentsList.append(item);
 	});
+
+	contentsPanel.append(contentsHeading, contentsList);
+
+	if (existingPanels.length) {
+		existingPanels[0].replaceWith(contentsPanel);
+		existingPanels.slice(1).forEach((panel) => panel.remove());
+		return;
+	}
+
+	const firstSectionHeading = uniqueEntries.find((entry) => entry.sourceHeading)?.sourceHeading;
+	const insertionTarget = firstSectionHeading || recipeTarget;
+
+	if (insertionTarget) {
+		insertionTarget.before(contentsPanel);
+	} else {
+		recipeContent.prepend(contentsPanel);
+	}
 });
