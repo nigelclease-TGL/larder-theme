@@ -3,9 +3,11 @@ from pathlib import Path
 import hashlib
 import zipfile
 from build_source import write as build_source
+from build_openapi import write as build_openapi
 
 ROOT = Path(__file__).resolve().parent
 generated_source = build_source()
+generated_openapi = build_openapi()
 OUT = ROOT / 'artifacts'
 OUT.mkdir(parents=True, exist_ok=True)
 zip_path = OUT / 'nkt-gpt-connector-0.7.23-update-runtime-guards-upgrader.zip'
@@ -14,7 +16,7 @@ prefix = 'nkt-gpt-connector-upgrader-0.7.23/'
 files = [
     ('updater/nkt-gpt-connector-upgrader.php', 'nkt-gpt-connector-upgrader.php'),
     ('artifacts/generated/protected-lifecycle-0.7.23.php', 'protected-lifecycle-0.7.23.php'),
-    ('openapi-0.7.23.json', 'openapi-0.7.23.json'),
+    ('artifacts/generated/openapi-0.7.23.json', 'openapi-0.7.23.json'),
     ('CHANGELOG.md', 'CHANGELOG.txt'),
     ('README.md', 'README.txt'),
     ('VALIDATION.md', 'VALIDATION.txt'),
