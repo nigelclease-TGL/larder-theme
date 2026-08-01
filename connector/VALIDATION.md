@@ -1,39 +1,53 @@
-# NKT GPT Connector 0.7.23 validation
+# NKT GPT Connector 0.7.24 validation
 
 ## Scope
 
-Isolated source, schema, route-registration, helper-runtime, cleanup-safety, packaging and syntax validation only. No live WordPress site was inspected or mutated.
+Isolated source, schema, updater, helper-runtime, protected-policy, packaging and syntax validation only. No live WordPress site was inspected or mutated.
 
 ## Results
 
-- Static/source/schema checks: **40/40 passed**
+- Static/source/schema/updater checks: **45/45 passed**
 - Isolated PHP runtime checks with WordPress mocks: **21/21 passed**
-- PHP syntax: updater and lifecycle extension passed `php -l`
-- OpenAPI: valid JSON, **1 line**, **23 operations**, no `allOf`, `oneOf` or `anyOf`
-- Updater archive: integrity verified with `unzip -tq`
+- PHP syntax: updater and generated lifecycle extension passed `php -l`
+- OpenAPI: valid compact JSON, **23 operations**, no `allOf`, `oneOf` or `anyOf`
+- Deterministic updater archive: integrity verified with `unzip -tq`
 
-## Required behaviour covered
+## Serving extraction coverage
 
-1. Runtime update callback reads both update guard maps.
-2. REST update route registers and forwards both maps.
-3. Internal preflight receives both maps.
-4. Malformed hashes reject before writing.
-5. Missing map IDs reject before writing.
-6. Extra map IDs reject before writing.
-7. Recipe-status drift rejects before writing.
-8. Status-independent-hash drift rejects before writing.
-9. Post-write recipe/component/timestamp drift triggers draft and recipe restoration paths.
-10. Serving label literal and hash derive from the same H3 inside the top-level NUTRITION section.
-11. Cleanup defaults to dry-run and performs no writes.
-12. Cleanup refuses live-referenced objects.
-13. Protected IDs `41019`, `41037`, `30780` and `30800` require separate explicit authorisation.
-14. Permanent deletion requires prior archive in the same batch and separate explicit authorisation.
-15. A protected 0.7.22 draft baseline can be migrated in-memory and persisted only after a successful guarded 0.7.23 update.
+1. The existing section-scoped parsed Gutenberg path remains supported.
+2. The confirmed production H3 is extracted when no usable top-level `NUTRITION` H2 exists but the legacy parser reports exactly one Nutrition section.
+3. Nested inline markup such as `<strong>Serving:</strong>` is normalized to visible text.
+4. Parsed Gutenberg blocks are traversed recursively.
+5. Raw H3 markup is used only when parsed blocks provide no candidate.
+6. Two visible Serving H3 headings are rejected as ambiguous.
+7. No visible Serving H3 returns an empty result without guessing.
+8. Zero or multiple parsed Nutrition sections reject the article-wide fallback.
+9. Status evidence includes the final source, block path, Nutrition-section count, matching-H3 count, acceptance state and rejection reason.
+
+## Protected baseline and write coverage
+
+1. A stored 0.7.23 baseline with empty parser-derived serving evidence remains equal to an otherwise identical 0.7.24 state with corrected serving evidence.
+2. Content-hash and Nutrition-section-hash differences remain visible and protected.
+3. Expected serving labels before and after remain explicit operation guards.
+4. Exact guarded replacement counts remain enforced.
+5. A real post-write serving mismatch remains a protected-policy failure and the update restoration path remains present.
+6. Recipe objects, WPRM Nutrition, media, reusable blocks, metadata, Amazon destinations and affiliate identifiers remain protected by the existing lifecycle.
+
+## Updater coverage
+
+1. Source version is exactly 0.7.23 and target version is exactly 0.7.24.
+2. The primary connector and installed 0.7.23 lifecycle file are backed up before replacement.
+3. Version header, connector constant and lifecycle loader must each match and change exactly once.
+4. The generated 0.7.24 lifecycle SHA-256 is verified after installation.
+5. PHP opcode cache is invalidated for replaced files when available.
+6. WordPress caches are flushed.
+7. Previous files are restored automatically after write or verification failure.
+8. The updater self-deactivates after successful activation.
 
 ## Action-count decision
 
-The schema exposes **23 actions**. `cleanupRevisionObjects` is separate because the existing `archiveRevisionPairs` runtime is implemented in the primary connector source, which was not part of the 0.7.22 updater package. Replacing or wrapping that unavailable implementation would be less safe than adding one explicit, isolated cleanup route.
+The compact schema remains at **23 actions**. No additional action is required because serving diagnostics are returned by the existing read-only `getProtectedArticleRevisionStatus` action.
 
 ## Limitations
 
-The package has not been integration-tested against the live WordPress installation. Deployment must begin with a full backup and a read-only capability check. Cleanup must remain `dry_run: true` until separately authorised.
+The package has not been integration-tested against the live WordPress installation. Deployment must begin with a full backup followed by read-only connector and draft-status checks. Existing protected draft 41045 must not be updated until those checks confirm the corrected serving evidence and preserved baseline validity.
