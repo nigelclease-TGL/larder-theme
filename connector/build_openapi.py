@@ -4,10 +4,12 @@ import json
 
 ROOT = Path(__file__).resolve().parent
 PARTS = sorted((ROOT / 'openapi' / 'parts').glob('schema-*'))
-OUTPUT = ROOT / 'artifacts' / 'generated' / 'openapi-0.7.23.json'
+OUTPUT = ROOT / 'artifacts' / 'generated' / 'openapi-0.7.24.json'
 
 def assemble() -> str:
-    return ''.join(path.read_text(encoding='utf-8') for path in PARTS)
+    # The compact schema source is inherited from 0.7.23. Build-time replacement
+    # updates every public version reference while preserving the 23-action shape.
+    return ''.join(path.read_text(encoding='utf-8') for path in PARTS).replace('0.7.23', '0.7.24')
 
 def write() -> Path:
     text = assemble()
