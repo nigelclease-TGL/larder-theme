@@ -73,6 +73,96 @@ function nkt_gpt_par_0723_collect_raw_serving_h3_candidates( $content ) {
 	return $candidates;
 }
 
+/**
+ * Prove a unique raw Nutrition presentation immediately following one raw
+ * Serving H3 when the legacy parser reports zero Nutrition sections.
+ */
+function nkt_gpt_par_0723_zero_section_nutrition_signature( $content ) {
+	$evidence = array(
+		'serving_label'                                  => '',
+		'serving_fallback_raw_serving_h3_count'           => 0,
+		'serving_fallback_segment_nutrition_marker_count' => 0,
+		'serving_fallback_article_nutrition_marker_count' => 0,
+		'serving_fallback_nutrient_label_count'           => 0,
+		'serving_fallback_daily_value_marker_count'       => 0,
+		'serving_fallback_calorie_basis_count'            => 0,
+		'serving_fallback_signature_accepted'             => false,
+		'serving_fallback_signature_rejection_reason'     => null,
+	);
+	if ( ! preg_match_all( '/<h3\b[^>]*>(.*?)<\/h3>/isu', (string) $content, $headings, PREG_SET_ORDER | PREG_OFFSET_CAPTURE ) ) {
+		$evidence['serving_fallback_signature_rejection_reason'] = 'no_raw_serving_h3';
+		return $evidence;
+	}
+
+	$serving_headings = array();
+	foreach ( $headings as $heading ) {
+		$candidate = nkt_gpt_par_0723_serving_heading_candidate(
+			nkt_gpt_par_0723_visible_heading_text( $heading[1][0] ),
+			'raw_article_h3',
+			null
+		);
+		if ( $candidate ) {
+			$candidate['raw_full_markup'] = (string) $heading[0][0];
+			$candidate['raw_offset']      = (int) $heading[0][1];
+			$serving_headings[] = $candidate;
+		}
+	}
+	$evidence['serving_fallback_raw_serving_h3_count'] = count( $serving_headings );
+	if ( 1 !== count( $serving_headings ) ) {
+		$evidence['serving_fallback_signature_rejection_reason'] = count( $serving_headings ) > 1
+			? 'raw_serving_h3_not_unique'
+			: 'no_raw_serving_h3';
+		return $evidence;
+	}
+
+	$candidate = $serving_headings[0];
+	$evidence['serving_label'] = $candidate['serving_label'];
+	$start = $candidate['raw_offset'] + strlen( $candidate['raw_full_markup'] );
+	$tail  = substr( (string) $content, $start );
+	if ( preg_match( '/<h[23]\b/iu', $tail, $next_heading, PREG_OFFSET_CAPTURE ) ) {
+		$tail = substr( $tail, 0, (int) $next_heading[0][1] );
+	}
+	$segment_text = nkt_gpt_par_0723_visible_heading_text( $tail );
+	$article_text = nkt_gpt_par_0723_visible_heading_text( $content );
+
+	preg_match_all( '/\bNutrition\s+per\s+serving\b/iu', $segment_text, $segment_markers );
+	preg_match_all( '/\bNutrition\s+per\s+serving\b/iu', $article_text, $article_markers );
+	preg_match_all( '/(?:Percent|%)\s+Daily\s+Values?\b/iu', $segment_text, $daily_markers );
+	preg_match_all( '/\b2,?000(?:-|\s)+calorie\s+diet\b/iu', $segment_text, $calorie_markers );
+	$evidence['serving_fallback_segment_nutrition_marker_count'] = count( $segment_markers[0] );
+	$evidence['serving_fallback_article_nutrition_marker_count'] = count( $article_markers[0] );
+	$evidence['serving_fallback_daily_value_marker_count']       = count( $daily_markers[0] );
+	$evidence['serving_fallback_calorie_basis_count']            = count( $calorie_markers[0] );
+
+	$nutrient_count = 0;
+	foreach ( array( 'Calories', 'Total Fat', 'Carbohydrates', 'Carbs', 'Sugars', 'Protein', 'Sodium', 'Fiber', 'Fibre' ) as $label ) {
+		if ( preg_match( '/(?:^|\s)' . preg_quote( $label, '/' ) . '\s*:/iu', $segment_text ) ) {
+			$nutrient_count++;
+		}
+	}
+	$evidence['serving_fallback_nutrient_label_count'] = $nutrient_count;
+
+	if ( 1 !== $evidence['serving_fallback_segment_nutrition_marker_count']
+		|| 1 !== $evidence['serving_fallback_article_nutrition_marker_count'] ) {
+		$evidence['serving_fallback_signature_rejection_reason'] = 'nutrition_per_serving_marker_not_unique';
+		return $evidence;
+	}
+	if ( 4 > $nutrient_count ) {
+		$evidence['serving_fallback_signature_rejection_reason'] = 'insufficient_nutrient_labels';
+		return $evidence;
+	}
+	if ( 1 !== $evidence['serving_fallback_daily_value_marker_count'] ) {
+		$evidence['serving_fallback_signature_rejection_reason'] = 'daily_value_marker_not_unique';
+		return $evidence;
+	}
+	if ( 1 !== $evidence['serving_fallback_calorie_basis_count'] ) {
+		$evidence['serving_fallback_signature_rejection_reason'] = 'calorie_basis_marker_not_unique';
+		return $evidence;
+	}
+	$evidence['serving_fallback_signature_accepted'] = true;
+	return $evidence;
+}
+
 /** Find a unique H3 Serving heading inside a nested block list. */
 function nkt_gpt_par_0723_find_serving_heading_in_blocks( $blocks, $path_prefix = array() ) {
 	$candidates = nkt_gpt_par_0723_collect_serving_headings_in_blocks( $blocks, $path_prefix );
@@ -86,20 +176,29 @@ function nkt_gpt_par_0723_find_serving_heading_in_blocks( $blocks, $path_prefix 
 }
 
 /**
- * Extract serving evidence from the recognized Nutrition section, then use a
- * unique article-wide H3 fallback only when the legacy parser found exactly
- * one Nutrition section.
+ * Extract serving evidence from the recognized Nutrition section. When the
+ * legacy parser reports zero sections, accept only a unique Serving H3 with a
+ * unique, strongly corroborated Nutrition presentation immediately after it.
  */
 function nkt_gpt_par_0723_extract_nutrition_serving_heading( $content, $nutrition_section_count = null ) {
 	$result = array(
-		'serving_label'                    => '',
-		'serving_label_hash'               => hash( 'sha256', '' ),
-		'serving_label_source'             => null,
-		'serving_label_block_path'         => null,
-		'parsed_nutrition_section_count'   => null === $nutrition_section_count ? null : (int) $nutrition_section_count,
-		'matching_visible_serving_h3_count'=> 0,
-		'serving_fallback_accepted'        => false,
-		'serving_fallback_rejection_reason'=> null,
+		'serving_label'                                  => '',
+		'serving_label_hash'                             => hash( 'sha256', '' ),
+		'serving_label_source'                           => null,
+		'serving_label_block_path'                       => null,
+		'parsed_nutrition_section_count'                 => null === $nutrition_section_count ? null : (int) $nutrition_section_count,
+		'matching_visible_serving_h3_count'              => 0,
+		'serving_fallback_accepted'                      => false,
+		'serving_fallback_rejection_reason'              => null,
+		'serving_fallback_gate'                          => null,
+		'serving_fallback_raw_serving_h3_count'           => null,
+		'serving_fallback_segment_nutrition_marker_count' => null,
+		'serving_fallback_article_nutrition_marker_count' => null,
+		'serving_fallback_nutrient_label_count'           => null,
+		'serving_fallback_daily_value_marker_count'       => null,
+		'serving_fallback_calorie_basis_count'            => null,
+		'serving_fallback_signature_accepted'             => null,
+		'serving_fallback_signature_rejection_reason'     => null,
 	);
 	$blocks = function_exists( 'parse_blocks' ) ? parse_blocks( (string) $content ) : array();
 
@@ -142,7 +241,7 @@ function nkt_gpt_par_0723_extract_nutrition_serving_heading( $content, $nutritio
 		}
 	}
 
-	// Existing raw section-scoped fallback, now tolerant of nested inline markup.
+	// Existing raw section-scoped fallback, tolerant of nested inline markup.
 	if ( preg_match( '/<h2\b[^>]*>\s*NUTRITION\s*<\/h2>(.*?)(?=<h2\b|\z)/isu', (string) $content, $section ) ) {
 		$section_candidates = nkt_gpt_par_0723_collect_raw_serving_h3_candidates( $section[1] );
 		if ( 1 === count( $section_candidates ) ) {
@@ -160,21 +259,11 @@ function nkt_gpt_par_0723_extract_nutrition_serving_heading( $content, $nutritio
 		}
 	}
 
-	// Count article-wide candidates even when the Nutrition-section gate rejects them.
 	$article_candidates = $blocks ? nkt_gpt_par_0723_collect_serving_headings_in_blocks( $blocks ) : array();
 	if ( ! $article_candidates ) {
 		$article_candidates = nkt_gpt_par_0723_collect_raw_serving_h3_candidates( $content );
 	}
 	$result['matching_visible_serving_h3_count'] = count( $article_candidates );
-
-	// Safe article-wide fallback is permitted only for one parsed Nutrition section.
-	if ( 1 !== (int) $nutrition_section_count ) {
-		$result['serving_fallback_rejection_reason'] = 0 === (int) $nutrition_section_count
-			? 'nutrition_section_count_zero'
-			: 'nutrition_section_count_not_unique';
-		return $result;
-	}
-
 	if ( 1 !== count( $article_candidates ) ) {
 		$result['serving_fallback_rejection_reason'] = count( $article_candidates ) > 1
 			? 'multiple_visible_serving_h3_candidates'
@@ -182,12 +271,48 @@ function nkt_gpt_par_0723_extract_nutrition_serving_heading( $content, $nutritio
 		return $result;
 	}
 
+	if ( null === $nutrition_section_count ) {
+		$result['serving_fallback_rejection_reason'] = 'nutrition_section_count_unavailable';
+		return $result;
+	}
+	if ( 1 < (int) $nutrition_section_count ) {
+		$result['serving_fallback_rejection_reason'] = 'nutrition_section_count_not_unique';
+		return $result;
+	}
+
 	$candidate = $article_candidates[0];
+	if ( 1 === (int) $nutrition_section_count ) {
+		$result['serving_label'] = $candidate['serving_label'];
+		$result['serving_label_hash'] = $candidate['serving_label_hash'];
+		$result['serving_label_source'] = 'unique_article_serving_h3_with_single_nutrition_section';
+		$result['serving_label_block_path'] = $candidate['serving_label_block_path'];
+		$result['serving_fallback_accepted'] = true;
+		$result['serving_fallback_gate'] = 'single_legacy_nutrition_section';
+		return $result;
+	}
+
+	$signature = nkt_gpt_par_0723_zero_section_nutrition_signature( $content );
+	foreach ( $signature as $key => $value ) {
+		if ( 0 === strpos( $key, 'serving_fallback_' ) ) {
+			$result[ $key ] = $value;
+		}
+	}
+	if ( ! $signature['serving_fallback_signature_accepted'] ) {
+		$result['serving_fallback_rejection_reason'] = $signature['serving_fallback_signature_rejection_reason'];
+		return $result;
+	}
+	if ( $candidate['serving_label'] !== $signature['serving_label'] ) {
+		$result['serving_fallback_rejection_reason'] = 'serving_candidate_signature_label_mismatch';
+		return $result;
+	}
+
 	$result['serving_label'] = $candidate['serving_label'];
 	$result['serving_label_hash'] = $candidate['serving_label_hash'];
-	$result['serving_label_source'] = 'unique_article_serving_h3_with_single_nutrition_section';
+	$result['serving_label_source'] = 'unique_article_serving_h3_with_unique_nutrition_presentation';
 	$result['serving_label_block_path'] = $candidate['serving_label_block_path'];
 	$result['serving_fallback_accepted'] = true;
+	$result['serving_fallback_gate'] = 'legacy_parser_zero_unique_nutrition_presentation';
+	$result['serving_fallback_rejection_reason'] = null;
 	return $result;
 }
 
@@ -253,6 +378,15 @@ function nkt_gpt_par_0723_nutrition_manifest( $content ) {
 		'matching_visible_serving_h3_count' => $serving['matching_visible_serving_h3_count'],
 		'serving_fallback_accepted' => $serving['serving_fallback_accepted'],
 		'serving_fallback_rejection_reason' => $serving['serving_fallback_rejection_reason'],
+		'serving_fallback_gate' => $serving['serving_fallback_gate'],
+		'serving_fallback_raw_serving_h3_count' => $serving['serving_fallback_raw_serving_h3_count'],
+		'serving_fallback_segment_nutrition_marker_count' => $serving['serving_fallback_segment_nutrition_marker_count'],
+		'serving_fallback_article_nutrition_marker_count' => $serving['serving_fallback_article_nutrition_marker_count'],
+		'serving_fallback_nutrient_label_count' => $serving['serving_fallback_nutrient_label_count'],
+		'serving_fallback_daily_value_marker_count' => $serving['serving_fallback_daily_value_marker_count'],
+		'serving_fallback_calorie_basis_count' => $serving['serving_fallback_calorie_basis_count'],
+		'serving_fallback_signature_accepted' => $serving['serving_fallback_signature_accepted'],
+		'serving_fallback_signature_rejection_reason' => $serving['serving_fallback_signature_rejection_reason'],
 	);
 }
 
@@ -355,6 +489,15 @@ function nkt_gpt_par_0723_capture_live_state( $post_id ) {
 		'matching_visible_serving_h3_count' => $nutrition['matching_visible_serving_h3_count'],
 		'serving_fallback_accepted' => $nutrition['serving_fallback_accepted'],
 		'serving_fallback_rejection_reason' => $nutrition['serving_fallback_rejection_reason'],
+		'serving_fallback_gate' => $nutrition['serving_fallback_gate'],
+		'serving_fallback_raw_serving_h3_count' => $nutrition['serving_fallback_raw_serving_h3_count'],
+		'serving_fallback_segment_nutrition_marker_count' => $nutrition['serving_fallback_segment_nutrition_marker_count'],
+		'serving_fallback_article_nutrition_marker_count' => $nutrition['serving_fallback_article_nutrition_marker_count'],
+		'serving_fallback_nutrient_label_count' => $nutrition['serving_fallback_nutrient_label_count'],
+		'serving_fallback_daily_value_marker_count' => $nutrition['serving_fallback_daily_value_marker_count'],
+		'serving_fallback_calorie_basis_count' => $nutrition['serving_fallback_calorie_basis_count'],
+		'serving_fallback_signature_accepted' => $nutrition['serving_fallback_signature_accepted'],
+		'serving_fallback_signature_rejection_reason' => $nutrition['serving_fallback_signature_rejection_reason'],
 		'seo_hash'                  => nkt_gpt_par_0723_seo_hash( $post_id ),
 		'schema_hash'               => nkt_gpt_par_0723_schema_hash( $post_id ),
 		'ratings_reviews_hash'      => $ratings['hash'],
@@ -411,6 +554,15 @@ function nkt_gpt_par_0723_capture_draft_state( $draft_id ) {
 		'matching_visible_serving_h3_count' => $nutrition['matching_visible_serving_h3_count'],
 		'serving_fallback_accepted' => $nutrition['serving_fallback_accepted'],
 		'serving_fallback_rejection_reason' => $nutrition['serving_fallback_rejection_reason'],
+		'serving_fallback_gate' => $nutrition['serving_fallback_gate'],
+		'serving_fallback_raw_serving_h3_count' => $nutrition['serving_fallback_raw_serving_h3_count'],
+		'serving_fallback_segment_nutrition_marker_count' => $nutrition['serving_fallback_segment_nutrition_marker_count'],
+		'serving_fallback_article_nutrition_marker_count' => $nutrition['serving_fallback_article_nutrition_marker_count'],
+		'serving_fallback_nutrient_label_count' => $nutrition['serving_fallback_nutrient_label_count'],
+		'serving_fallback_daily_value_marker_count' => $nutrition['serving_fallback_daily_value_marker_count'],
+		'serving_fallback_calorie_basis_count' => $nutrition['serving_fallback_calorie_basis_count'],
+		'serving_fallback_signature_accepted' => $nutrition['serving_fallback_signature_accepted'],
+		'serving_fallback_signature_rejection_reason' => $nutrition['serving_fallback_signature_rejection_reason'],
 		'media_reference_hash'     => $media['reference_hash'],
 		'media_alt_text_hash'      => $media['alt_text_hash'],
 		'media_non_alt_hash'       => $media['non_alt_hash'],
