@@ -1,0 +1,162 @@
+function nkt_gpt_par_0723_valid_post_statuses() {
+	$statuses = function_exists( 'get_post_stati' ) ? array_values( (array) get_post_stati( array(), 'names' ) ) : array();
+	if ( ! $statuses ) {
+		$statuses = array( 'publish', 'draft', 'pending', 'private', 'future', 'trash', 'auto-draft', 'inherit' );
+	}
+	return array_values( array_unique( array_map( 'sanitize_key', $statuses ) ) );
+}
+
+/** Validate exact recipe-ID guard maps before any protected draft write. */
+function nkt_gpt_par_0723_validate_recipe_guard_maps( WP_REST_Request $request, $expected_ids = null ) {
+	$ids = null === $expected_ids ? (array) $request->get_param( 'expected_ordered_wprm_recipe_ids' ) : (array) $expected_ids;
+	$ids = array_values( array_map( 'absint', $ids ) );
+	$errors = array();
+	if ( ! $ids || in_array( 0, $ids, true ) || count( $ids ) !== count( array_unique( $ids ) ) ) {
+		$errors['expected_ordered_wprm_recipe_ids'] = 'Recipe IDs must be unique positive integers.';
+	}
+	$key_ids = $ids;
+	sort( $key_ids, SORT_NUMERIC );
+	$raw_maps = array(
+		'expected_recipe_statuses' => (array) $request->get_param( 'expected_recipe_statuses' ),
+		'expected_recipe_object_hashes' => (array) $request->get_param( 'expected_recipe_object_hashes' ),
+		'expected_status_independent_recipe_hashes' => (array) $request->get_param( 'expected_status_independent_recipe_hashes' ),
+	);
+	$maps = array(
+		'expected_recipe_statuses' => nkt_gpt_par_0723_normalize_status_map( $raw_maps['expected_recipe_statuses'] ),
+		'expected_recipe_object_hashes' => nkt_gpt_par_0723_normalize_hash_map( $raw_maps['expected_recipe_object_hashes'] ),
+		'expected_status_independent_recipe_hashes' => nkt_gpt_par_0723_normalize_hash_map( $raw_maps['expected_status_independent_recipe_hashes'] ),
+	);
+	foreach ( $maps as $name => $map ) {
+		$keys = array_map( 'absint', array_keys( $map ) );
+		sort( $keys, SORT_NUMERIC );
+		if ( $keys !== $key_ids ) {
+			$errors[ $name ] = array(
+				'expected_recipe_ids' => $key_ids,
+				'actual_recipe_ids' => $keys,
+				'missing_recipe_ids' => array_values( array_diff( $key_ids, $keys ) ),
+				'extra_recipe_ids' => array_values( array_diff( $keys, $key_ids ) ),
+			);
+		}
+	}
+	$valid_statuses = nkt_gpt_par_0723_valid_post_statuses();
+	foreach ( $maps['expected_recipe_statuses'] as $recipe_id => $status ) {
+		if ( ! in_array( $status, $valid_statuses, true ) ) {
+			$errors['expected_recipe_statuses'][ $recipe_id ] = 'Invalid literal WordPress post status.';
+		}
+	}
+	foreach ( array( 'expected_recipe_object_hashes', 'expected_status_independent_recipe_hashes' ) as $name ) {
+		foreach ( $raw_maps[ $name ] as $recipe_id => $hash ) {
+			if ( ! preg_match( '/^[a-f0-9]{64}$/', trim( (string) $hash ) ) ) {
+				$errors[ $name ][ absint( $recipe_id ) ?: (string) $recipe_id ] = 'Expected exactly 64 lowercase hexadecimal characters.';
+			}
+		}
+	}
+	if ( $errors ) {
+		return new WP_Error(
+			'nkt_gpt_par_recipe_guard_map_invalid',
+			__( 'The protected recipe guard maps are malformed, incomplete, or contain unexpected recipe IDs.', 'nkt-gpt-connector' ),
+			array( 'status' => 400, 'map_errors' => $errors )
+		);
+	}
+	return array(
+		'expected_recipe_ids' => $ids,
+		'expected_recipe_statuses' => $maps['expected_recipe_statuses'],
+		'expected_recipe_object_hashes' => $maps['expected_recipe_object_hashes'],
+		'expected_status_independent_recipe_hashes' => $maps['expected_status_independent_recipe_hashes'],
+	);
+}
+
+/** Build explicit preflight evidence for every protected recipe guard. */
+function nkt_gpt_par_0723_update_recipe_guard_evidence( WP_REST_Request $request, $baseline_live, $current_live, $validated_maps ) {
+	$checks = array(
+		'ordered_recipe_ids_exact' => $validated_maps['expected_recipe_ids'] === (array) $current_live['ordered_wprm_recipe_ids'],
+		'recipe_count_exact' => count( $validated_maps['expected_recipe_ids'] ) === (int) $current_live['wprm_reference_count'],
+	);
+	$recipes = array();
+	foreach ( $validated_maps['expected_recipe_ids'] as $recipe_id ) {
+		$identity = (array) ( $current_live['recipe_identities'][ $recipe_id ] ?? array() );
+		$baseline_identity = (array) ( $baseline_live['recipe_identities'][ $recipe_id ] ?? array() );
+		$row = array(
+			'recipe_id' => $recipe_id,
+			'expected_post_type' => 'wprm_recipe',
+			'actual_post_type' => (string) ( $identity['literal_post_type'] ?? '' ),
+			'expected_status' => (string) $validated_maps['expected_recipe_statuses'][ $recipe_id ],
+			'actual_status' => (string) ( $current_live['recipe_statuses'][ $recipe_id ] ?? '' ),
+			'expected_object_hash' => (string) $validated_maps['expected_recipe_object_hashes'][ $recipe_id ],
+			'actual_object_hash' => (string) ( $current_live['recipe_object_hashes'][ $recipe_id ] ?? '' ),
+			'expected_status_independent_hash' => (string) $validated_maps['expected_status_independent_recipe_hashes'][ $recipe_id ],
+			'actual_status_independent_hash' => (string) ( $current_live['recipe_status_independent_hashes'][ $recipe_id ] ?? '' ),
+			'baseline_wprm_nutrition_hash' => (string) ( $baseline_live['wprm_nutrition_hashes'][ $recipe_id ] ?? '' ),
+			'actual_wprm_nutrition_hash' => (string) ( $current_live['wprm_nutrition_hashes'][ $recipe_id ] ?? '' ),
+			'baseline_post_modified_gmt' => (string) ( $baseline_identity['post_modified_gmt'] ?? '' ),
+			'actual_post_modified_gmt' => (string) ( $identity['post_modified_gmt'] ?? '' ),
+			'baseline_component_hashes' => (array) ( $baseline_live['recipe_component_hashes'][ $recipe_id ] ?? array() ),
+			'actual_component_hashes' => (array) ( $current_live['recipe_component_hashes'][ $recipe_id ] ?? array() ),
+		);
+		$row['checks'] = array(
+			'post_type_matches' => 'wprm_recipe' === $row['actual_post_type'],
+			'status_matches' => $row['expected_status'] === $row['actual_status'],
+			'object_hash_matches' => hash_equals( $row['expected_object_hash'], $row['actual_object_hash'] ),
+			'status_independent_hash_matches' => hash_equals( $row['expected_status_independent_hash'], $row['actual_status_independent_hash'] ),
+			'wprm_nutrition_hash_matches_baseline' => $row['baseline_wprm_nutrition_hash'] === $row['actual_wprm_nutrition_hash'],
+			'post_modified_gmt_matches_baseline' => $row['baseline_post_modified_gmt'] === $row['actual_post_modified_gmt'],
+			'component_hashes_match_baseline' => $row['baseline_component_hashes'] === $row['actual_component_hashes'],
+		);
+		foreach ( $row['checks'] as $name => $passed ) {
+			$checks[ 'recipe_' . $recipe_id . '_' . $name ] = $passed;
+		}
+		$recipes[ $recipe_id ] = $row;
+	}
+	if ( rest_sanitize_boolean( $request->get_param( 'preserve_intentional_multi_recipe_exception' ) ) ) {
+		$exception = (array) ( $current_live['intentional_multi_recipe_exception'] ?? array() );
+		$checks['intentional_multi_recipe_exception_valid'] = ! empty( $exception['valid'] )
+			&& empty( $exception['stale'] )
+			&& ( ! isset( $exception['exact_recipe_ids_match'] ) || ! empty( $exception['exact_recipe_ids_match'] ) );
+	}
+	$failed = array_keys( array_filter( $checks, static function ( $passed ) { return ! $passed; } ) );
+	return array( 'checks' => $checks, 'failed' => $failed, 'recipes' => $recipes );
+}
+
+/** Return exact protected recipe drift evidence after an article write. */
+function nkt_gpt_par_0723_recipe_drift_evidence( $before, $after ) {
+	$result = array();
+	$all_ids = array_values( array_unique( array_merge(
+		array_map( 'absint', (array) ( $before['ordered_wprm_recipe_ids'] ?? array() ) ),
+		array_map( 'absint', (array) ( $after['ordered_wprm_recipe_ids'] ?? array() ) )
+	) ) );
+	foreach ( $all_ids as $recipe_id ) {
+		$before_identity = (array) ( $before['recipe_identities'][ $recipe_id ] ?? array() );
+		$after_identity = (array) ( $after['recipe_identities'][ $recipe_id ] ?? array() );
+		$components_before = (array) ( $before['recipe_component_hashes'][ $recipe_id ] ?? array() );
+		$components_after = (array) ( $after['recipe_component_hashes'][ $recipe_id ] ?? array() );
+		$changed_components = array();
+		foreach ( array_unique( array_merge( array_keys( $components_before ), array_keys( $components_after ) ) ) as $component ) {
+			if ( ( $components_before[ $component ] ?? null ) !== ( $components_after[ $component ] ?? null ) ) {
+				$changed_components[] = $component;
+			}
+		}
+		$result[ $recipe_id ] = array(
+			'status_changed' => ( $before['recipe_statuses'][ $recipe_id ] ?? null ) !== ( $after['recipe_statuses'][ $recipe_id ] ?? null ),
+			'object_hash_changed' => ( $before['recipe_object_hashes'][ $recipe_id ] ?? null ) !== ( $after['recipe_object_hashes'][ $recipe_id ] ?? null ),
+			'status_independent_hash_changed' => ( $before['recipe_status_independent_hashes'][ $recipe_id ] ?? null ) !== ( $after['recipe_status_independent_hashes'][ $recipe_id ] ?? null ),
+			'wprm_nutrition_changed' => ( $before['wprm_nutrition_hashes'][ $recipe_id ] ?? null ) !== ( $after['wprm_nutrition_hashes'][ $recipe_id ] ?? null ),
+			'post_modified_gmt_changed' => ( $before_identity['post_modified_gmt'] ?? null ) !== ( $after_identity['post_modified_gmt'] ?? null ),
+			'changed_components' => $changed_components,
+		);
+		$result[ $recipe_id ]['changed'] = $result[ $recipe_id ]['status_changed']
+			|| $result[ $recipe_id ]['object_hash_changed']
+			|| $result[ $recipe_id ]['status_independent_hash_changed']
+			|| $result[ $recipe_id ]['wprm_nutrition_changed']
+			|| $result[ $recipe_id ]['post_modified_gmt_changed']
+			|| ! empty( $changed_components );
+	}
+	$result['_global'] = array(
+		'ordered_recipe_ids_changed' => (array) ( $before['ordered_wprm_recipe_ids'] ?? array() ) !== (array) ( $after['ordered_wprm_recipe_ids'] ?? array() ),
+		'recipe_count_changed' => (int) ( $before['wprm_reference_count'] ?? 0 ) !== (int) ( $after['wprm_reference_count'] ?? 0 ),
+		'intentional_exception_changed' => nkt_gpt_par_0723_hash( $before['intentional_multi_recipe_exception'] ?? array() ) !== nkt_gpt_par_0723_hash( $after['intentional_multi_recipe_exception'] ?? array() ),
+	);
+	$result['_global']['changed'] = in_array( true, $result['_global'], true );
+	return $result;
+}
+
+/** Verify caller-supplied expected baseline values against current live state. */
