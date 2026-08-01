@@ -113,7 +113,7 @@ function nkt_gpt_par_0723_version_guard( WP_REST_Request $request ) {
 	return true;
 }
 
-/** Remove parser-derived serving evidence from protected baseline equality. */
+/** Remove all parser-derived serving evidence from protected baseline equality. */
 function nkt_gpt_par_0723_baseline_comparison_state( $state ) {
 	$state = (array) $state;
 	unset(
@@ -125,12 +125,21 @@ function nkt_gpt_par_0723_baseline_comparison_state( $state ) {
 		$state['matching_visible_serving_h3_count'],
 		$state['serving_fallback_accepted'],
 		$state['serving_fallback_rejection_reason'],
+		$state['serving_fallback_gate'],
+		$state['serving_fallback_raw_serving_h3_count'],
+		$state['serving_fallback_segment_nutrition_marker_count'],
+		$state['serving_fallback_article_nutrition_marker_count'],
+		$state['serving_fallback_nutrient_label_count'],
+		$state['serving_fallback_daily_value_marker_count'],
+		$state['serving_fallback_calorie_basis_count'],
+		$state['serving_fallback_signature_accepted'],
+		$state['serving_fallback_signature_rejection_reason'],
 		$state['serving_heading_candidates']
 	);
 	return $state;
 }
 
-/** Load a native 0.7.23/0.7.24 baseline or an in-memory compatible 0.7.22 baseline. */
+/** Load a native 0.7.23/0.7.24/0.7.25 baseline or an in-memory compatible 0.7.22 baseline. */
 function nkt_gpt_par_0723_compatible_baseline( $draft_id ) {
 	$current = get_post_meta( $draft_id, NKT_GPT_PAR_0723_BASELINE_META, true );
 	if ( is_array( $current ) && ! empty( $current['live'] ) ) {
