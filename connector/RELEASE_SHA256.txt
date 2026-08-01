@@ -1,1 +1,1 @@
-PENDING  nkt-gpt-connector-0.7.25-zero-section-serving-evidence-upgrader.zip
+ce16e2fe3865124dbcd0059d117e1b654c42ddf70bcd05051f6cfc2dd2cc2cab  nkt-gpt-connector-0.7.25-zero-section-serving-evidence-upgrader.zip
