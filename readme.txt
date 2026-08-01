@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 2.0.44
+Stable tag: 2.0.45
 License: Proprietary project theme
 
 A premium editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -29,9 +29,14 @@ Key features include:
 3. Upload the installable theme ZIP without unzipping it.
 4. Choose Replace current with uploaded.
 5. Clear WP Super Cache and the browser cache.
-6. Confirm the active theme shows version 2.0.44.
+6. Confirm the active theme shows version 2.0.45.
 
 == Changelog ==
+
+= 2.0.45 =
+* Displays recipe H2 section headings in title case so labels such as Recipe Tips use an initial capital on each word.
+* Applies the same title-case presentation to the automatically generated Contents links.
+* Keeps the Contents heading itself unchanged.
 
 = 2.0.44 =
 * Converts legacy all-capital recipe H2 headings to sentence case on public recipe pages.
@@ -89,5 +94,5 @@ Earlier release history remains available in the Git repository.
 
 == Upgrade Notice ==
 
-= 2.0.44 =
-Install this release to present legacy all-capital recipe section headings and their automatic Contents links in sentence case.
+= 2.0.45 =
+Install this release to present recipe section headings and their automatic Contents links in title case.
