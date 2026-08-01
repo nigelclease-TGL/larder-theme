@@ -23,6 +23,15 @@ function nkt_gpt_par_0723_status( WP_REST_Request $request ) {
 			'matching_visible_serving_h3_count' => $live['matching_visible_serving_h3_count'],
 			'fallback_accepted' => $live['serving_fallback_accepted'],
 			'fallback_rejection_reason' => $live['serving_fallback_rejection_reason'],
+			'fallback_gate' => $live['serving_fallback_gate'],
+			'raw_serving_h3_count' => $live['serving_fallback_raw_serving_h3_count'],
+			'segment_nutrition_marker_count' => $live['serving_fallback_segment_nutrition_marker_count'],
+			'article_nutrition_marker_count' => $live['serving_fallback_article_nutrition_marker_count'],
+			'nutrient_label_count' => $live['serving_fallback_nutrient_label_count'],
+			'daily_value_marker_count' => $live['serving_fallback_daily_value_marker_count'],
+			'calorie_basis_count' => $live['serving_fallback_calorie_basis_count'],
+			'signature_accepted' => $live['serving_fallback_signature_accepted'],
+			'signature_rejection_reason' => $live['serving_fallback_signature_rejection_reason'],
 		),
 		'lifecycle_actions' => array(
 			'createProtectedArticleRevision'    => true,
@@ -50,6 +59,15 @@ function nkt_gpt_par_0723_status( WP_REST_Request $request ) {
 			'matching_visible_serving_h3_count' => $data['draft_state']['matching_visible_serving_h3_count'],
 			'fallback_accepted' => $data['draft_state']['serving_fallback_accepted'],
 			'fallback_rejection_reason' => $data['draft_state']['serving_fallback_rejection_reason'],
+			'fallback_gate' => $data['draft_state']['serving_fallback_gate'],
+			'raw_serving_h3_count' => $data['draft_state']['serving_fallback_raw_serving_h3_count'],
+			'segment_nutrition_marker_count' => $data['draft_state']['serving_fallback_segment_nutrition_marker_count'],
+			'article_nutrition_marker_count' => $data['draft_state']['serving_fallback_article_nutrition_marker_count'],
+			'nutrient_label_count' => $data['draft_state']['serving_fallback_nutrient_label_count'],
+			'daily_value_marker_count' => $data['draft_state']['serving_fallback_daily_value_marker_count'],
+			'calorie_basis_count' => $data['draft_state']['serving_fallback_calorie_basis_count'],
+			'signature_accepted' => $data['draft_state']['serving_fallback_signature_accepted'],
+			'signature_rejection_reason' => $data['draft_state']['serving_fallback_signature_rejection_reason'],
 		);
 		$data['baseline']    = get_post_meta( $draft_id, NKT_GPT_PAR_0723_BASELINE_META, true );
 		$data['legacy_baselines'] = nkt_gpt_par_0723_legacy_baselines( $draft_id );
@@ -62,7 +80,7 @@ function nkt_gpt_par_0723_status( WP_REST_Request $request ) {
 		if ( is_array( $data['baseline'] ) && ! empty( $data['baseline']['live'] ) ) {
 			$stored_live = $data['baseline']['live'];
 			$stored_version = isset( $data['baseline']['connector_version'] ) ? (string) $data['baseline']['connector_version'] : '';
-			$data['protected_baseline_valid'] = in_array( $stored_version, array( '0.7.23', '0.7.24' ), true )
+			$data['protected_baseline_valid'] = in_array( $stored_version, array( '0.7.23', '0.7.24', '0.7.25' ), true )
 				&& nkt_gpt_par_0723_hash( nkt_gpt_par_0723_baseline_comparison_state( $stored_live ) ) === nkt_gpt_par_0723_hash( nkt_gpt_par_0723_baseline_comparison_state( $live ) );
 			$data['baseline_serving_evidence_ignored_for_compatibility'] = true;
 			foreach ( (array) $live['ordered_wprm_recipe_ids'] as $recipe_id ) {
