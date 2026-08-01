@@ -3,7 +3,7 @@ Theme Name: Nigel's Kitchen Table
 Theme URI: https://thegourmetlarder.com
 Author: Nigel Clease
 Description: A premium editorial recipe theme for Nigel's Kitchen Table, preserving existing recipe URLs and search visibility.
-Version: 2.0.44
+Version: 2.0.45
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
@@ -142,6 +142,12 @@ Tags: food-and-drink, blog, custom-logo, custom-menu, featured-images, threaded-
 	background-color: transparent !important;
 	box-shadow: none !important;
 	outline: 0 !important;
+}
+
+/* Present recipe section headings and generated Contents labels in title case. */
+.single-recipe .recipe-content h2:not(.nkt-toc-heading),
+.single-recipe .recipe-content .nkt-toc-list a {
+	text-transform: capitalize;
 }
 
 /* Packaged release: legacy recipe panel brand normalisation. */
