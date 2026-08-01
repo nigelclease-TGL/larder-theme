@@ -2,8 +2,10 @@
 from pathlib import Path
 import hashlib
 import zipfile
+from build_source import write as build_source
 
 ROOT = Path(__file__).resolve().parent
+generated_source = build_source()
 OUT = ROOT / 'artifacts'
 OUT.mkdir(parents=True, exist_ok=True)
 zip_path = OUT / 'nkt-gpt-connector-0.7.23-update-runtime-guards-upgrader.zip'
@@ -11,7 +13,7 @@ sha_path = OUT / 'nkt-gpt-connector-0.7.23-update-runtime-guards-upgrader.sha256
 prefix = 'nkt-gpt-connector-upgrader-0.7.23/'
 files = [
     ('updater/nkt-gpt-connector-upgrader.php', 'nkt-gpt-connector-upgrader.php'),
-    ('src/protected-lifecycle-0.7.23.php', 'protected-lifecycle-0.7.23.php'),
+    ('artifacts/generated/protected-lifecycle-0.7.23.php', 'protected-lifecycle-0.7.23.php'),
     ('openapi-0.7.23.json', 'openapi-0.7.23.json'),
     ('CHANGELOG.md', 'CHANGELOG.txt'),
     ('README.md', 'README.txt'),
