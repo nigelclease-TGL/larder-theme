@@ -1,0 +1,235 @@
+function nkt_gpt_par_0723_connector_status() {
+	return nkt_gpt_connector_no_store( new WP_REST_Response( array(
+		'connected'         => true,
+		'site_name'         => get_bloginfo( 'name' ),
+		'site_url'          => home_url( '/' ),
+		'connector_version' => NKT_GPT_PAR_0723_VERSION,
+		'access'            => 'protected article-only lifecycle with runtime-aligned recipe status/object/status-independent guards, section-scoped Nutrition serving evidence, hook-isolated writes, automatic restoration, guarded recipe-status repair, and explicit dry-run-first cleanup of exact inactive workflow objects',
+		'create_protected_article_revision_guards' => array( 'expected_recipe_statuses', 'expected_status_independent_recipe_hashes' ),
+		'create_protected_article_revision_response_fields' => array( 'hook_isolation_active', 'recipe_writes_detected', 'recipe_restoration_required', 'protected_baseline_valid', 'baseline_migration_required' ),
+		'update_protected_article_revision_guards' => array( 'expected_recipe_statuses', 'expected_recipe_object_hashes', 'expected_status_independent_recipe_hashes' ),
+		'cleanup_revision_objects_action_count_reason' => 'A 23rd action is used because the existing archiveRevisionPairs runtime is defined in the primary connector source and cannot be safely replaced by this lifecycle extension.',
+		'protected_article_lifecycle' => array(
+			'createProtectedArticleRevision'    => true,
+			'updateProtectedArticleRevision'    => true,
+			'auditProtectedArticleRevision'     => true,
+			'reviewProtectedArticleRevision'    => true,
+			'applyProtectedArticleRevision'     => true,
+			'rollbackProtectedArticleRevision'  => true,
+			'getProtectedArticleRevisionStatus' => true,
+			'repairProtectedRecipeStatusSideEffects' => true,
+			'cleanupRevisionObjects' => true,
+		),
+	), 200 ) );
+}
+
+
+/** Display the one-time guarded-upgrade result from the self-deactivated upgrader. */
+function nkt_gpt_par_0723_admin_notice() {
+	if ( ! current_user_can( 'activate_plugins' ) ) {
+		return;
+	}
+	$notice = get_option( 'nkt_gpt_connector_0723_upgrade_notice', array() );
+	if ( empty( $notice['success'] ) ) {
+		return;
+	}
+	delete_option( 'nkt_gpt_connector_0723_upgrade_notice' );
+	?>
+	<div class="notice notice-success is-dismissible">
+		<p><strong><?php esc_html_e( 'NKT GPT Connector upgraded to 0.7.23.', 'nkt-gpt-connector' ); ?></strong>
+		<?php esc_html_e( 'Protected update runtime guards now match the schema, Nutrition serving evidence is section-scoped, and exact workflow cleanup is dry-run-first. Refresh the bundled 0.7.23 schema and run isolated capability checks.', 'nkt-gpt-connector' ); ?></p>
+	</div>
+	<?php
+}
+add_action( 'admin_notices', 'nkt_gpt_par_0723_admin_notice' );
+
+/** Register all 0.7.23 protected lifecycle routes. */
+function nkt_gpt_par_0723_register_routes() {
+	$permission = function_exists( 'nkt_gpt_connector_permission_check' ) ? 'nkt_gpt_connector_permission_check' : '__return_false';
+	$namespace  = 'nkt-gpt/v1';
+	$common     = array(
+		'connector_version' => array( 'type' => 'string', 'required' => true ),
+		'live_post_id'      => array( 'type' => 'integer', 'required' => true, 'minimum' => 1 ),
+		'draft_post_id'     => array( 'type' => 'integer', 'required' => true, 'minimum' => 1 ),
+	);
+
+	$operation_guards = array(
+		'correction_scope' => array( 'type' => 'string', 'required' => true, 'enum' => array( 'article_only_editorial', 'article_only_nutrition' ) ),
+		'allowed_article_scope' => array( 'type' => 'array', 'required' => true, 'items' => array( 'type' => 'string', 'enum' => array( 'post_content', 'post_excerpt' ) ) ),
+		'expected_live_status' => array( 'type' => 'string', 'required' => true ),
+		'expected_slug' => array( 'type' => 'string', 'required' => true ),
+		'expected_permalink' => array( 'type' => 'string', 'format' => 'uri', 'required' => true ),
+		'expected_publication_date' => array( 'type' => 'string', 'required' => true ),
+		'expected_featured_media_id' => array( 'type' => 'integer', 'required' => true, 'minimum' => 0 ),
+		'expected_comment_status' => array( 'type' => 'string', 'required' => true ),
+		'expected_live_content_hash' => array( 'type' => 'string', 'required' => true ),
+		'expected_expanded_article_source_hash' => array( 'type' => 'string', 'required' => true ),
+		'expected_reusable_block_ids' => array( 'type' => 'array', 'required' => true, 'items' => array( 'type' => 'integer' ) ),
+		'expected_reusable_block_hashes' => array( 'type' => 'object', 'required' => true, 'additionalProperties' => array( 'type' => 'string' ) ),
+		'expected_draft_content_hash' => array( 'type' => 'string', 'required' => true ),
+		'expected_draft_excerpt_hash' => array( 'type' => 'string', 'required' => true ),
+		'expected_media_reference_hash' => array( 'type' => 'string', 'required' => true ),
+		'expected_ordered_wprm_recipe_ids' => array( 'type' => 'array', 'required' => true, 'items' => array( 'type' => 'integer' ) ),
+		'expected_wprm_reference_count' => array( 'type' => 'integer', 'required' => true, 'minimum' => 0 ),
+		'expected_recipe_object_hashes' => array( 'type' => 'object', 'required' => true, 'additionalProperties' => array( 'type' => 'string' ) ),
+		'expected_recipe_statuses' => array( 'type' => 'object', 'required' => true, 'additionalProperties' => array( 'type' => 'string' ) ),
+		'expected_status_independent_recipe_hashes' => array( 'type' => 'object', 'required' => true, 'additionalProperties' => array( 'type' => 'string' ) ),
+		'expected_nutrition_section_hash' => array( 'type' => 'string', 'required' => true ),
+		'expected_serving_label' => array( 'type' => 'string', 'required' => true ),
+		'expected_wprm_nutrition_hashes' => array( 'type' => 'object', 'required' => true, 'additionalProperties' => array( 'type' => 'string' ) ),
+		'expected_seo_hash' => array( 'type' => 'string', 'required' => true ),
+		'expected_schema_hash' => array( 'type' => 'string', 'required' => true ),
+		'expected_ratings_reviews_hash' => array( 'type' => 'string', 'required' => true ),
+		'expected_amazon_destinations' => array( 'type' => 'array', 'required' => true, 'items' => array( 'type' => 'string' ) ),
+		'expected_amazon_link_count' => array( 'type' => 'integer', 'required' => true, 'minimum' => 0 ),
+		'expected_affiliate_identifiers' => array( 'type' => 'object', 'required' => true ),
+		'preserve_intentional_multi_recipe_exception' => array( 'type' => 'boolean', 'required' => true ),
+		'retain_draft_after_apply' => array( 'type' => 'boolean', 'required' => true ),
+		'atomic_rollback_on_failure' => array( 'type' => 'boolean', 'required' => true ),
+		'allow_article_nutrition_change' => array( 'type' => 'boolean', 'required' => true ),
+		'expected_serving_label_after' => array( 'type' => 'string', 'required' => true ),
+		'allowed_removed_media_ids' => array( 'type' => 'array', 'required' => true, 'items' => array( 'type' => 'integer' ) ),
+		'allowed_added_media_ids' => array( 'type' => 'array', 'required' => true, 'items' => array( 'type' => 'integer' ) ),
+		'allowed_removed_media_urls' => array( 'type' => 'array', 'required' => true, 'items' => array( 'type' => 'string', 'format' => 'uri' ) ),
+		'allowed_added_media_urls' => array( 'type' => 'array', 'required' => true, 'items' => array( 'type' => 'string', 'format' => 'uri' ) ),
+		'allow_media_alt_text_change' => array( 'type' => 'boolean', 'required' => true ),
+		'allow_media_non_alt_markup_change' => array( 'type' => 'boolean', 'required' => true ),
+	);
+	$operation_args = array_merge( $common, $operation_guards );
+
+	register_rest_route( $namespace, '/status', array(
+		'methods'             => WP_REST_Server::READABLE,
+		'callback'            => 'nkt_gpt_par_0723_connector_status',
+		'permission_callback' => $permission,
+	), true );
+
+	register_rest_route( $namespace, '/protected-article-revisions/status', array(
+		'methods'             => array( WP_REST_Server::READABLE, WP_REST_Server::CREATABLE ),
+		'callback'            => 'nkt_gpt_par_0723_status',
+		'permission_callback' => $permission,
+		'args'                => array(
+			'connector_version' => $common['connector_version'],
+			'live_post_id'      => $common['live_post_id'],
+			'draft_post_id'     => array( 'type' => 'integer', 'required' => false, 'minimum' => 0 ),
+		),
+	), true );
+
+	$create_args = array(
+		'connector_version' => $common['connector_version'],
+		'live_post_id'      => $common['live_post_id'],
+		'draft_post_id'     => array( 'type' => 'integer', 'required' => false, 'minimum' => 0 ),
+		'correction_scope'  => array( 'type' => 'string', 'required' => true, 'enum' => array( 'article_only_editorial', 'article_only_nutrition' ) ),
+		'allowed_article_scope' => array( 'type' => 'array', 'required' => true, 'items' => array( 'type' => 'string', 'enum' => array( 'post_content', 'post_excerpt' ) ) ),
+		'expected_live_status' => array( 'type' => 'string', 'required' => true ),
+		'expected_slug' => array( 'type' => 'string', 'required' => true ),
+		'expected_permalink' => array( 'type' => 'string', 'format' => 'uri', 'required' => true ),
+		'expected_publication_date' => array( 'type' => 'string', 'required' => true ),
+		'expected_featured_media_id' => array( 'type' => 'integer', 'required' => true, 'minimum' => 0 ),
+		'expected_comment_status' => array( 'type' => 'string', 'required' => true ),
+		'expected_live_content_hash' => array( 'type' => 'string', 'required' => true ),
+		'expected_expanded_article_source_hash' => array( 'type' => 'string', 'required' => true ),
+		'expected_reusable_block_ids' => array( 'type' => 'array', 'required' => true, 'items' => array( 'type' => 'integer' ) ),
+		'expected_reusable_block_hashes' => array( 'type' => 'object', 'required' => true, 'additionalProperties' => array( 'type' => 'string' ) ),
+		'expected_media_reference_hash' => array( 'type' => 'string', 'required' => true ),
+		'expected_ordered_wprm_recipe_ids' => array( 'type' => 'array', 'required' => true, 'items' => array( 'type' => 'integer' ) ),
+		'expected_wprm_reference_count' => array( 'type' => 'integer', 'required' => true, 'minimum' => 0 ),
+		'expected_recipe_object_hashes' => array( 'type' => 'object', 'required' => true, 'additionalProperties' => array( 'type' => 'string' ) ),
+		'expected_recipe_statuses' => array( 'type' => 'object', 'required' => true, 'additionalProperties' => array( 'type' => 'string' ) ),
+		'expected_status_independent_recipe_hashes' => array( 'type' => 'object', 'required' => true, 'additionalProperties' => array( 'type' => 'string' ) ),
+		'expected_nutrition_section_hash' => array( 'type' => 'string', 'required' => true ),
+		'expected_serving_label' => array( 'type' => 'string', 'required' => true ),
+		'expected_wprm_nutrition_hashes' => array( 'type' => 'object', 'required' => true, 'additionalProperties' => array( 'type' => 'string' ) ),
+		'expected_seo_hash' => array( 'type' => 'string', 'required' => true ),
+		'expected_schema_hash' => array( 'type' => 'string', 'required' => true ),
+		'expected_ratings_reviews_hash' => array( 'type' => 'string', 'required' => true ),
+		'expected_amazon_destinations' => array( 'type' => 'array', 'required' => true, 'items' => array( 'type' => 'string' ) ),
+		'expected_amazon_link_count' => array( 'type' => 'integer', 'required' => true, 'minimum' => 0 ),
+		'expected_affiliate_identifiers' => array( 'type' => 'object', 'required' => true ),
+		'preserve_intentional_multi_recipe_exception' => array( 'type' => 'boolean', 'required' => true ),
+		'retain_draft_after_apply' => array( 'type' => 'boolean', 'required' => true ),
+		'atomic_rollback_on_failure' => array( 'type' => 'boolean', 'required' => true ),
+		'title_prefix' => array( 'type' => 'string', 'required' => false ),
+	);
+	register_rest_route( $namespace, '/protected-article-revisions/create', array(
+		'methods'             => WP_REST_Server::CREATABLE,
+		'callback'            => 'nkt_gpt_par_0723_create',
+		'permission_callback' => $permission,
+		'args'                => $create_args,
+	), true );
+
+	register_rest_route( $namespace, '/protected-article-revisions/update', array(
+		'methods'             => WP_REST_Server::CREATABLE,
+		'callback'            => 'nkt_gpt_par_0723_update',
+		'permission_callback' => $permission,
+		'args'                => array_merge( $operation_args, array(
+			'article_replacements' => array( 'type' => 'array', 'required' => true, 'items' => array( 'type' => 'object' ) ),
+		) ),
+	), true );
+	register_rest_route( $namespace, '/protected-article-revisions/audit', array(
+		'methods'             => WP_REST_Server::CREATABLE,
+		'callback'            => 'nkt_gpt_par_0723_audit',
+		'permission_callback' => $permission,
+		'args'                => $operation_args,
+	), true );
+	register_rest_route( $namespace, '/protected-article-revisions/review', array(
+		'methods'             => WP_REST_Server::CREATABLE,
+		'callback'            => 'nkt_gpt_par_0723_review',
+		'permission_callback' => $permission,
+		'args'                => array_merge( $operation_args, array(
+			'decision' => array( 'type' => 'string', 'required' => true, 'enum' => array( 'approved', 'rejected' ) ),
+			'note'     => array( 'type' => 'string', 'required' => false ),
+		) ),
+	), true );
+	register_rest_route( $namespace, '/protected-article-revisions/apply', array(
+		'methods'             => WP_REST_Server::CREATABLE,
+		'callback'            => 'nkt_gpt_par_0723_apply',
+		'permission_callback' => $permission,
+		'args'                => $operation_args,
+	), true );
+	register_rest_route( $namespace, '/protected-article-revisions/repair-recipe-status-side-effects', array(
+		'methods'             => WP_REST_Server::CREATABLE,
+		'callback'            => 'nkt_gpt_par_0723_repair_recipe_status_side_effects',
+		'permission_callback' => $permission,
+		'args'                => array(
+			'connector_version' => $common['connector_version'],
+			'live_post_id' => $common['live_post_id'],
+			'draft_post_id' => $common['draft_post_id'],
+			'expected_baseline_connector_version' => array( 'type' => 'string', 'required' => true, 'enum' => array( '0.7.18', '0.7.19' ) ),
+			'expected_recipe_ids' => array( 'type' => 'array', 'required' => true, 'items' => array( 'type' => 'integer' ) ),
+			'expected_current_recipe_statuses' => array( 'type' => 'object', 'required' => true, 'additionalProperties' => array( 'type' => 'string' ) ),
+			'expected_baseline_recipe_statuses' => array( 'type' => 'object', 'required' => true, 'additionalProperties' => array( 'type' => 'string' ) ),
+			'expected_current_recipe_object_hashes' => array( 'type' => 'object', 'required' => true, 'additionalProperties' => array( 'type' => 'string' ) ),
+			'expected_baseline_recipe_object_hashes' => array( 'type' => 'object', 'required' => true, 'additionalProperties' => array( 'type' => 'string' ) ),
+			'dry_run' => array( 'type' => 'boolean', 'required' => true ),
+			'repair_reason' => array( 'type' => 'string', 'required' => true ),
+		),
+	), true );
+
+	register_rest_route( $namespace, '/protected-article-revisions/cleanup', array(
+		'methods'             => WP_REST_Server::CREATABLE,
+		'callback'            => 'nkt_gpt_par_0723_cleanup_revision_objects',
+		'permission_callback' => $permission,
+		'args'                => array(
+			'connector_version' => $common['connector_version'],
+			'dry_run' => array( 'type' => 'boolean', 'required' => false, 'default' => true ),
+			'cleanup_mode' => array( 'type' => 'string', 'required' => false, 'enum' => array( 'archive', 'permanent_delete' ), 'default' => 'archive' ),
+			'archive_batch_id' => array( 'type' => 'string', 'required' => true ),
+			'cleanup_reason' => array( 'type' => 'string', 'required' => true ),
+			'draft_post_ids' => array( 'type' => 'array', 'required' => false, 'items' => array( 'type' => 'integer' ) ),
+			'cloned_recipe_ids' => array( 'type' => 'array', 'required' => false, 'items' => array( 'type' => 'integer' ) ),
+			'explicit_permanent_delete_authorisation' => array( 'type' => 'boolean', 'required' => false, 'default' => false ),
+			'explicit_protected_id_authorisation' => array( 'type' => 'boolean', 'required' => false, 'default' => false ),
+			'authorised_protected_ids' => array( 'type' => 'array', 'required' => false, 'items' => array( 'type' => 'integer' ) ),
+		),
+	), true );
+
+	register_rest_route( $namespace, '/protected-article-revisions/rollback', array(
+		'methods'             => WP_REST_Server::CREATABLE,
+		'callback'            => 'nkt_gpt_par_0723_rollback',
+		'permission_callback' => $permission,
+		'args'                => array_merge( $common, array(
+			'rollback_reason' => array( 'type' => 'string', 'required' => true ),
+		) ),
+	), true );
+}
+add_action( 'rest_api_init', 'nkt_gpt_par_0723_register_routes', 99 );
