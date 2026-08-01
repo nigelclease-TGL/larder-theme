@@ -10,13 +10,13 @@ generated_source = build_source()
 generated_openapi = build_openapi()
 OUT = ROOT / 'artifacts'
 OUT.mkdir(parents=True, exist_ok=True)
-zip_path = OUT / 'nkt-gpt-connector-0.7.24-serving-heading-extraction-upgrader.zip'
-sha_path = OUT / 'nkt-gpt-connector-0.7.24-serving-heading-extraction-upgrader.sha256.txt'
-prefix = 'nkt-gpt-connector-upgrader-0.7.24/'
+zip_path = OUT / 'nkt-gpt-connector-0.7.25-zero-section-serving-evidence-upgrader.zip'
+sha_path = OUT / 'nkt-gpt-connector-0.7.25-zero-section-serving-evidence-upgrader.sha256.txt'
+prefix = 'nkt-gpt-connector-upgrader-0.7.25/'
 files = [
     ('updater/nkt-gpt-connector-upgrader.php', 'nkt-gpt-connector-upgrader.php'),
-    ('artifacts/generated/protected-lifecycle-0.7.24.php', 'protected-lifecycle-0.7.24.php'),
-    ('artifacts/generated/openapi-0.7.24.json', 'openapi-0.7.24.json'),
+    ('artifacts/generated/protected-lifecycle-0.7.25.php', 'protected-lifecycle-0.7.25.php'),
+    ('artifacts/generated/openapi-0.7.25.json', 'openapi-0.7.25.json'),
     ('CHANGELOG.md', 'CHANGELOG.txt'),
     ('README.md', 'README.txt'),
     ('VALIDATION.md', 'VALIDATION.txt'),
