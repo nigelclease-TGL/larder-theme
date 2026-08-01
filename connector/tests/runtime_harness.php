@@ -64,7 +64,7 @@ function get_option() { return array(); }
 function delete_option() {}
 function current_user_can() { return false; }
 
-require dirname(__DIR__) . '/src/protected-lifecycle-0.7.23.php';
+require dirname(__DIR__) . '/artifacts/generated/protected-lifecycle-0.7.23.php';
 
 $checks=array();
 function t( $name, $condition ) { global $checks; $checks[$name]=(bool)$condition; if(!$condition){fwrite(STDERR,"FAIL: $name\n");} }
