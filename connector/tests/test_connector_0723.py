@@ -3,7 +3,8 @@ from pathlib import Path
 import json, re, subprocess, tempfile, textwrap, sys
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / 'src' / 'protected-lifecycle-0.7.23.php'
+subprocess.run([sys.executable, str(ROOT / 'build_source.py')], check=True, capture_output=True, text=True)
+SRC = ROOT / 'artifacts' / 'generated' / 'protected-lifecycle-0.7.23.php'
 SCHEMA = ROOT / 'openapi-0.7.23.json'
 text = SRC.read_text(encoding='utf-8')
 schema = json.loads(SCHEMA.read_text(encoding='utf-8'))
