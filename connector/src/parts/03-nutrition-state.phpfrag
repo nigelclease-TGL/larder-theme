@@ -3,45 +3,110 @@ function nkt_gpt_par_0723_block_text( $block ) {
 	return trim( preg_replace( '/\s+/u', ' ', html_entity_decode( wp_strip_all_tags( $html ), ENT_QUOTES | ENT_HTML5, get_bloginfo( 'charset' ) ?: 'UTF-8' ) ) );
 }
 
-/** Find one H3 Serving heading inside a nested block list. */
-function nkt_gpt_par_0723_find_serving_heading_in_blocks( $blocks, $path_prefix = array() ) {
+/** Normalize visible heading text from raw or parsed Gutenberg markup. */
+function nkt_gpt_par_0723_visible_heading_text( $html ) {
+	return trim( preg_replace( '/\s+/u', ' ', html_entity_decode( wp_strip_all_tags( (string) $html ), ENT_QUOTES | ENT_HTML5, get_bloginfo( 'charset' ) ?: 'UTF-8' ) ) );
+}
+
+/** Convert one visible H3 into a serving candidate when it matches exactly. */
+function nkt_gpt_par_0723_serving_heading_candidate( $visible_text, $source, $block_path = null ) {
+	$visible_text = trim( preg_replace( '/\s+/u', ' ', (string) $visible_text ) );
+	if ( ! preg_match( '/^Serving\s*:\s*(.+)$/iu', $visible_text, $match ) ) {
+		return array();
+	}
+	$label = trim( preg_replace( '/\s+/u', ' ', $match[1] ) );
+	if ( '' === $label ) {
+		return array();
+	}
+	return array(
+		'serving_label'            => $label,
+		'serving_label_hash'       => hash( 'sha256', $label ),
+		'serving_label_source'     => (string) $source,
+		'serving_label_block_path' => null === $block_path ? null : (string) $block_path,
+		'visible_heading_text'     => $visible_text,
+	);
+}
+
+/** Recursively collect every parsed Gutenberg H3 whose visible text is Serving: <label>. */
+function nkt_gpt_par_0723_collect_serving_headings_in_blocks( $blocks, $path_prefix = array() ) {
+	$candidates = array();
 	foreach ( (array) $blocks as $index => $block ) {
 		$path = array_merge( $path_prefix, array( (int) $index ) );
 		if ( 'core/heading' === (string) ( $block['blockName'] ?? '' ) ) {
 			$level = isset( $block['attrs']['level'] ) ? absint( $block['attrs']['level'] ) : 2;
-			$text  = nkt_gpt_par_0723_block_text( $block );
-			if ( 3 === $level && preg_match( '/^Serving\s*:\s*(.+)$/iu', $text, $match ) ) {
-				$label = trim( preg_replace( '/\s+/u', ' ', $match[1] ) );
-				return array(
-					'serving_label'      => $label,
-					'serving_label_hash' => hash( 'sha256', $label ),
-					'serving_label_source' => 'nutrition_heading',
-					'serving_label_block_path' => implode( '.', $path ),
+			if ( 3 === $level ) {
+				$candidate = nkt_gpt_par_0723_serving_heading_candidate(
+					nkt_gpt_par_0723_block_text( $block ),
+					'parsed_article_heading',
+					implode( '.', $path )
 				);
+				if ( $candidate ) {
+					$candidates[] = $candidate;
+				}
 			}
 		}
 		$inner = isset( $block['innerBlocks'] ) ? (array) $block['innerBlocks'] : array();
 		if ( $inner ) {
-			$found = nkt_gpt_par_0723_find_serving_heading_in_blocks( $inner, $path );
-			if ( $found ) {
-				return $found;
-			}
+			$candidates = array_merge( $candidates, nkt_gpt_par_0723_collect_serving_headings_in_blocks( $inner, $path ) );
 		}
 	}
-	return array();
+	return $candidates;
 }
 
-/** Extract the literal serving label and hash from the same H3 inside the top-level NUTRITION section. */
-function nkt_gpt_par_0723_extract_nutrition_serving_heading( $content ) {
-	$empty = array(
-		'serving_label' => '',
-		'serving_label_hash' => hash( 'sha256', '' ),
-		'serving_label_source' => null,
-		'serving_label_block_path' => null,
+/** Collect every raw H3 whose normalized visible text is Serving: <label>. */
+function nkt_gpt_par_0723_collect_raw_serving_h3_candidates( $content ) {
+	$candidates = array();
+	if ( ! preg_match_all( '/<h3\b[^>]*>(.*?)<\/h3>/isu', (string) $content, $headings, PREG_SET_ORDER ) ) {
+		return $candidates;
+	}
+	foreach ( $headings as $index => $heading ) {
+		$candidate = nkt_gpt_par_0723_serving_heading_candidate(
+			nkt_gpt_par_0723_visible_heading_text( $heading[1] ),
+			'raw_article_h3',
+			null
+		);
+		if ( $candidate ) {
+			$candidate['raw_heading_index'] = (int) $index;
+			$candidates[] = $candidate;
+		}
+	}
+	return $candidates;
+}
+
+/** Find a unique H3 Serving heading inside a nested block list. */
+function nkt_gpt_par_0723_find_serving_heading_in_blocks( $blocks, $path_prefix = array() ) {
+	$candidates = nkt_gpt_par_0723_collect_serving_headings_in_blocks( $blocks, $path_prefix );
+	if ( 1 !== count( $candidates ) ) {
+		return array();
+	}
+	$candidate = $candidates[0];
+	$candidate['serving_label_source'] = 'nutrition_heading';
+	unset( $candidate['visible_heading_text'] );
+	return $candidate;
+}
+
+/**
+ * Extract serving evidence from the recognized Nutrition section, then use a
+ * unique article-wide H3 fallback only when the legacy parser found exactly
+ * one Nutrition section.
+ */
+function nkt_gpt_par_0723_extract_nutrition_serving_heading( $content, $nutrition_section_count = null ) {
+	$result = array(
+		'serving_label'                    => '',
+		'serving_label_hash'               => hash( 'sha256', '' ),
+		'serving_label_source'             => null,
+		'serving_label_block_path'         => null,
+		'parsed_nutrition_section_count'   => null === $nutrition_section_count ? null : (int) $nutrition_section_count,
+		'matching_visible_serving_h3_count'=> 0,
+		'serving_fallback_accepted'        => false,
+		'serving_fallback_rejection_reason'=> null,
 	);
-	if ( function_exists( 'parse_blocks' ) ) {
-		$blocks = parse_blocks( (string) $content );
+	$blocks = function_exists( 'parse_blocks' ) ? parse_blocks( (string) $content ) : array();
+
+	// Primary extraction: preserve the existing top-level NUTRITION traversal.
+	if ( $blocks ) {
 		$inside_nutrition = false;
+		$primary_candidates = array();
 		foreach ( (array) $blocks as $index => $block ) {
 			if ( 'core/heading' === (string) ( $block['blockName'] ?? '' ) ) {
 				$level = isset( $block['attrs']['level'] ) ? absint( $block['attrs']['level'] ) : 2;
@@ -55,26 +120,73 @@ function nkt_gpt_par_0723_extract_nutrition_serving_heading( $content ) {
 				}
 			}
 			if ( $inside_nutrition ) {
-				$found = nkt_gpt_par_0723_find_serving_heading_in_blocks( array( $block ), array( (int) $index ) );
-				if ( $found ) {
-					return $found;
-				}
+				$primary_candidates = array_merge(
+					$primary_candidates,
+					nkt_gpt_par_0723_collect_serving_headings_in_blocks( array( $block ), array( (int) $index ) )
+				);
 			}
+		}
+		if ( 1 === count( $primary_candidates ) ) {
+			$candidate = $primary_candidates[0];
+			$result['serving_label'] = $candidate['serving_label'];
+			$result['serving_label_hash'] = $candidate['serving_label_hash'];
+			$result['serving_label_source'] = 'nutrition_heading';
+			$result['serving_label_block_path'] = $candidate['serving_label_block_path'];
+			$result['matching_visible_serving_h3_count'] = 1;
+			return $result;
+		}
+		if ( count( $primary_candidates ) > 1 ) {
+			$result['matching_visible_serving_h3_count'] = count( $primary_candidates );
+			$result['serving_fallback_rejection_reason'] = 'multiple_serving_h3_in_primary_nutrition_section';
+			return $result;
 		}
 	}
 
-	// Conservative fallback: restrict matching to markup between the NUTRITION H2 and the next H2.
-	if ( preg_match( '/<h2\b[^>]*>\s*NUTRITION\s*<\/h2>(.*?)(?=<h2\b|\z)/isu', (string) $content, $section )
-		&& preg_match( '/<h3\b[^>]*>\s*Serving\s*:\s*(.*?)\s*<\/h3>/isu', $section[1], $heading ) ) {
-		$label = trim( preg_replace( '/\s+/u', ' ', html_entity_decode( wp_strip_all_tags( $heading[1] ), ENT_QUOTES | ENT_HTML5, get_bloginfo( 'charset' ) ?: 'UTF-8' ) ) );
-		return array(
-			'serving_label' => $label,
-			'serving_label_hash' => hash( 'sha256', $label ),
-			'serving_label_source' => 'nutrition_heading_fallback',
-			'serving_label_block_path' => null,
-		);
+	// Existing raw section-scoped fallback, now tolerant of nested inline markup.
+	if ( preg_match( '/<h2\b[^>]*>\s*NUTRITION\s*<\/h2>(.*?)(?=<h2\b|\z)/isu', (string) $content, $section ) ) {
+		$section_candidates = nkt_gpt_par_0723_collect_raw_serving_h3_candidates( $section[1] );
+		if ( 1 === count( $section_candidates ) ) {
+			$candidate = $section_candidates[0];
+			$result['serving_label'] = $candidate['serving_label'];
+			$result['serving_label_hash'] = $candidate['serving_label_hash'];
+			$result['serving_label_source'] = 'nutrition_heading_fallback';
+			$result['matching_visible_serving_h3_count'] = 1;
+			return $result;
+		}
+		if ( count( $section_candidates ) > 1 ) {
+			$result['matching_visible_serving_h3_count'] = count( $section_candidates );
+			$result['serving_fallback_rejection_reason'] = 'multiple_serving_h3_in_raw_nutrition_section';
+			return $result;
+		}
 	}
-	return $empty;
+
+	// Safe article-wide fallback is permitted only for one parsed Nutrition section.
+	if ( 1 !== (int) $nutrition_section_count ) {
+		$result['serving_fallback_rejection_reason'] = 0 === (int) $nutrition_section_count
+			? 'nutrition_section_count_zero'
+			: 'nutrition_section_count_not_unique';
+		return $result;
+	}
+
+	$article_candidates = $blocks ? nkt_gpt_par_0723_collect_serving_headings_in_blocks( $blocks ) : array();
+	if ( ! $article_candidates ) {
+		$article_candidates = nkt_gpt_par_0723_collect_raw_serving_h3_candidates( $content );
+	}
+	$result['matching_visible_serving_h3_count'] = count( $article_candidates );
+	if ( 1 !== count( $article_candidates ) ) {
+		$result['serving_fallback_rejection_reason'] = count( $article_candidates ) > 1
+			? 'multiple_visible_serving_h3_candidates'
+			: 'no_visible_serving_h3_candidate';
+		return $result;
+	}
+
+	$candidate = $article_candidates[0];
+	$result['serving_label'] = $candidate['serving_label'];
+	$result['serving_label_hash'] = $candidate['serving_label_hash'];
+	$result['serving_label_source'] = 'unique_article_serving_h3_with_single_nutrition_section';
+	$result['serving_label_block_path'] = $candidate['serving_label_block_path'];
+	$result['serving_fallback_accepted'] = true;
+	return $result;
 }
 
 /** Extract a position-independent Nutrition manifest using the connector's parser. */
@@ -122,7 +234,7 @@ function nkt_gpt_par_0723_nutrition_manifest( $content ) {
 		);
 	}
 
-	$serving = nkt_gpt_par_0723_extract_nutrition_serving_heading( $content );
+	$serving = nkt_gpt_par_0723_extract_nutrition_serving_heading( $content, count( $sections ) );
 
 	$manifest = array(
 		'nutrition_sections'                     => $sections,
@@ -135,6 +247,10 @@ function nkt_gpt_par_0723_nutrition_manifest( $content ) {
 		'serving_hash'  => $serving['serving_label_hash'],
 		'serving_label_source' => $serving['serving_label_source'],
 		'serving_label_block_path' => $serving['serving_label_block_path'],
+		'parsed_nutrition_section_count' => $serving['parsed_nutrition_section_count'],
+		'matching_visible_serving_h3_count' => $serving['matching_visible_serving_h3_count'],
+		'serving_fallback_accepted' => $serving['serving_fallback_accepted'],
+		'serving_fallback_rejection_reason' => $serving['serving_fallback_rejection_reason'],
 	);
 }
 
@@ -233,6 +349,10 @@ function nkt_gpt_par_0723_capture_live_state( $post_id ) {
 		'serving_label_hash'        => $nutrition['serving_hash'],
 		'serving_label_source'      => $nutrition['serving_label_source'],
 		'serving_label_block_path'  => $nutrition['serving_label_block_path'],
+		'parsed_nutrition_section_count' => $nutrition['parsed_nutrition_section_count'],
+		'matching_visible_serving_h3_count' => $nutrition['matching_visible_serving_h3_count'],
+		'serving_fallback_accepted' => $nutrition['serving_fallback_accepted'],
+		'serving_fallback_rejection_reason' => $nutrition['serving_fallback_rejection_reason'],
 		'seo_hash'                  => nkt_gpt_par_0723_seo_hash( $post_id ),
 		'schema_hash'               => nkt_gpt_par_0723_schema_hash( $post_id ),
 		'ratings_reviews_hash'      => $ratings['hash'],
@@ -285,6 +405,10 @@ function nkt_gpt_par_0723_capture_draft_state( $draft_id ) {
 		'serving_label_hash'       => $nutrition['serving_hash'],
 		'serving_label_source'      => $nutrition['serving_label_source'],
 		'serving_label_block_path'  => $nutrition['serving_label_block_path'],
+		'parsed_nutrition_section_count' => $nutrition['parsed_nutrition_section_count'],
+		'matching_visible_serving_h3_count' => $nutrition['matching_visible_serving_h3_count'],
+		'serving_fallback_accepted' => $nutrition['serving_fallback_accepted'],
+		'serving_fallback_rejection_reason' => $nutrition['serving_fallback_rejection_reason'],
 		'media_reference_hash'     => $media['reference_hash'],
 		'media_alt_text_hash'      => $media['alt_text_hash'],
 		'media_non_alt_hash'       => $media['non_alt_hash'],
