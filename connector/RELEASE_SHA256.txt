@@ -1,1 +1,1 @@
-662ab03fa909273e418f4b47af012a2fd541ba4f848ca7a93ea9b042a2c3642a  nkt-gpt-connector-0.7.24-serving-heading-extraction-upgrader.zip
+PENDING  nkt-gpt-connector-0.7.25-zero-section-serving-evidence-upgrader.zip
