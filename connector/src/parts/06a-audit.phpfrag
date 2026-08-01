@@ -1,0 +1,193 @@
+function nkt_gpt_par_0723_build_audit( $live_id, $draft_id ) {
+	$pair = nkt_gpt_par_0723_pair( $live_id, $draft_id );
+	if ( is_wp_error( $pair ) ) {
+		return $pair;
+	}
+	$baseline = get_post_meta( $draft_id, NKT_GPT_PAR_0723_BASELINE_META, true );
+	if ( ! is_array( $baseline ) || empty( $baseline['live'] ) ) {
+		return new WP_Error( 'nkt_gpt_par_not_initialised', __( 'The protected article revision has not been initialised under connector 0.7.23.', 'nkt-gpt-connector' ), array( 'status' => 409 ) );
+	}
+	$lifecycle   = nkt_gpt_par_0723_lifecycle( $draft_id );
+	$current_live= nkt_gpt_par_0723_capture_live_state( $live_id );
+	$current_draft = nkt_gpt_par_0723_capture_draft_state( $draft_id );
+	$expected_draft_hash = isset( $lifecycle['draft_content_hash'] ) ? $lifecycle['draft_content_hash'] : $baseline['initial_draft']['content_hash'];
+	$expected_excerpt_hash = isset( $lifecycle['draft_excerpt_hash'] ) ? $lifecycle['draft_excerpt_hash'] : $baseline['initial_draft']['excerpt_hash'];
+	$change_policy = isset( $lifecycle['authorised_change_policy'] ) && is_array( $lifecycle['authorised_change_policy'] )
+		? $lifecycle['authorised_change_policy']
+		: array(
+			'allow_article_nutrition_change' => false,
+			'expected_serving_label_after' => $baseline['live']['serving_label'],
+			'allowed_removed_media_ids' => array(),
+			'allowed_added_media_ids' => array(),
+			'allowed_removed_media_urls' => array(),
+			'allowed_added_media_urls' => array(),
+			'allow_media_alt_text_change' => false,
+			'allow_media_non_alt_markup_change' => false,
+		);
+	$policy_result = nkt_gpt_par_0723_change_policy_checks( $change_policy, $baseline['initial_draft'], $current_draft );
+	$authorised_after = isset( $lifecycle['authorised_after_state'] ) && is_array( $lifecycle['authorised_after_state'] )
+		? $lifecycle['authorised_after_state']
+		: $baseline['initial_draft'];
+
+	$checks = array(
+		'live_status_unchanged'             => $current_live['status'] === $baseline['live']['status'],
+		'slug_unchanged'                    => $current_live['slug'] === $baseline['live']['slug'],
+		'permalink_unchanged'               => $current_live['permalink'] === $baseline['live']['permalink'],
+		'publication_date_unchanged'        => $current_live['publication_date'] === $baseline['live']['publication_date'],
+		'featured_media_unchanged'          => $current_live['featured_media_id'] === $baseline['live']['featured_media_id'],
+		'title_unchanged'                   => $current_live['title_hash'] === $baseline['live']['title_hash'],
+		'comments_unchanged'                => $current_live['comment_status'] === $baseline['live']['comment_status'],
+		'ping_status_unchanged'             => $current_live['ping_status'] === $baseline['live']['ping_status'],
+		'categories_unchanged'              => $current_live['category_ids'] === $baseline['live']['category_ids'],
+		'tags_unchanged'                    => $current_live['tag_ids'] === $baseline['live']['tag_ids'],
+		'seo_unchanged'                     => $current_live['seo_hash'] === $baseline['live']['seo_hash'],
+		'schema_unchanged'                  => $current_live['schema_hash'] === $baseline['live']['schema_hash'],
+		'ratings_reviews_unchanged'         => $current_live['ratings_reviews_hash'] === $baseline['live']['ratings_reviews_hash'],
+		'protected_post_meta_unchanged'     => $current_live['protected_post_meta_hash'] === $baseline['live']['protected_post_meta_hash'],
+		'live_content_baseline_unchanged'   => $current_live['content_hash'] === $baseline['live']['content_hash'],
+		'ordered_wprm_ids_unchanged'        => $current_live['ordered_wprm_recipe_ids'] === $baseline['live']['ordered_wprm_recipe_ids'],
+		'draft_ordered_wprm_ids_preserved'  => $current_draft['ordered_wprm_recipe_ids'] === $baseline['live']['ordered_wprm_recipe_ids'],
+		'wprm_reference_count_unchanged'    => $current_live['wprm_reference_count'] === $baseline['live']['wprm_reference_count'] && $current_draft['wprm_reference_count'] === $baseline['live']['wprm_reference_count'],
+		'recipe_objects_unchanged'          => $current_live['recipe_object_hashes'] === $baseline['live']['recipe_object_hashes'],
+		'wprm_nutrition_unchanged'          => $current_live['wprm_nutrition_hashes'] === $baseline['live']['wprm_nutrition_hashes'],
+		'live_article_nutrition_unchanged'  => $current_live['nutrition_section_hash'] === $baseline['live']['nutrition_section_hash'],
+		'draft_article_nutrition_change_authorised' => empty( $policy_result['failed'] ) && $policy_result['checks']['article_nutrition_policy_satisfied'],
+		'draft_serving_label_authorised'    => $policy_result['checks']['expected_serving_label_after'],
+		'draft_media_change_authorised'     => empty( array_intersect( $policy_result['failed'], array( 'allowed_removed_media_ids', 'allowed_added_media_ids', 'allowed_removed_media_urls', 'allowed_added_media_urls', 'media_alt_text_change_authorised', 'media_non_alt_markup_change_authorised' ) ) ),
+		'draft_nutrition_hash_matches_authorised_state' => $current_draft['nutrition_section_hash'] === (string) $authorised_after['nutrition_section_hash'],
+		'draft_media_hash_matches_authorised_state' => $current_draft['media_reference_hash'] === (string) $authorised_after['media_reference_hash'] && $current_draft['media_non_alt_hash'] === (string) $authorised_after['media_non_alt_hash'] && $current_draft['media_alt_text_hash'] === (string) $authorised_after['media_alt_text_hash'],
+		'reusable_block_ids_unchanged'      => $current_draft['reusable_block_ids'] === $baseline['live']['reusable_block_ids'],
+		'reusable_block_hashes_unchanged'   => $current_draft['reusable_block_hashes'] === $baseline['live']['reusable_block_hashes'],
+		'amazon_destinations_unchanged'     => $current_live['amazon_destinations'] === $baseline['live']['amazon_destinations'] && $current_draft['amazon_destinations'] === $baseline['live']['amazon_destinations'],
+		'amazon_link_count_unchanged'       => $current_live['amazon_link_count'] === $baseline['live']['amazon_link_count'] && $current_draft['amazon_link_count'] === $baseline['live']['amazon_link_count'],
+		'affiliate_identifiers_unchanged'   => $current_live['affiliate_identifiers'] === $baseline['live']['affiliate_identifiers'] && $current_draft['affiliate_identifiers'] === $baseline['live']['affiliate_identifiers'],
+		'draft_content_hash_authorised'     => $current_draft['content_hash'] === $expected_draft_hash,
+		'draft_excerpt_hash_authorised'     => $current_draft['excerpt_hash'] === $expected_excerpt_hash,
+		'draft_retained'                    => true,
+		'atomic_rollback_available'         => true,
+		'intentional_multi_recipe_exception_preserved' => empty( $baseline['preserve_intentional_multi_recipe_exception'] ) || ( ! empty( $current_live['intentional_multi_recipe_exception']['valid'] ) && ! empty( $current_live['intentional_multi_recipe_exception']['exact_recipe_ids_match'] ) ),
+	);
+
+	$failed = array_keys( array_filter( $checks, static function ( $passed ) { return ! $passed; } ) );
+	return array(
+		'read_only'                    => true,
+		'changes_made'                 => false,
+		'connector_version'            => NKT_GPT_PAR_0723_VERSION,
+		'live_post_id'                 => $live_id,
+		'draft_post_id'                => $draft_id,
+		'baseline_live_state'          => $baseline['live'],
+		'current_live_state'           => $current_live,
+		'initial_draft_state'          => $baseline['initial_draft'],
+		'current_draft_state'          => $current_draft,
+		'authorised_replacement_manifest' => isset( $lifecycle['replacement_manifest'] ) ? $lifecycle['replacement_manifest'] : array(),
+		'authorised_change_policy'      => $change_policy,
+		'authorised_change_policy_hash' => nkt_gpt_par_0723_hash( $change_policy ),
+		'media_reference_changes'      => array(
+			'before' => $baseline['live']['media_manifest'],
+			'after'  => $current_draft['media_manifest'],
+			'diff'   => $policy_result['media_diff'],
+			'policy_checks' => array_intersect_key( $policy_result['checks'], array_flip( array( 'allowed_removed_media_ids', 'allowed_added_media_ids', 'allowed_removed_media_urls', 'allowed_added_media_urls', 'media_alt_text_change_authorised', 'media_non_alt_markup_change_authorised' ) ) ),
+			'change_authorised' => $checks['draft_media_change_authorised'],
+		),
+		'amazon_evidence'              => array(
+			'before_destinations' => $baseline['live']['amazon_destinations'],
+			'after_destinations'  => $current_draft['amazon_destinations'],
+			'before_count'        => $baseline['live']['amazon_link_count'],
+			'after_count'         => $current_draft['amazon_link_count'],
+			'before_affiliate_identifiers' => $baseline['live']['affiliate_identifiers'],
+			'after_affiliate_identifiers'  => $current_draft['affiliate_identifiers'],
+		),
+		'link_evidence'                => array(
+			'before' => $baseline['live']['link_manifest'],
+			'after'  => $current_draft['link_manifest'],
+			'internal_diff' => nkt_gpt_par_0723_link_href_diff( $baseline['live']['link_manifest']['internal'], $current_draft['link_manifest']['internal'] ),
+			'external_diff' => nkt_gpt_par_0723_link_href_diff( $baseline['live']['link_manifest']['external'], $current_draft['link_manifest']['external'] ),
+			'email_diff'    => nkt_gpt_par_0723_link_href_diff( $baseline['live']['link_manifest']['email'], $current_draft['link_manifest']['email'] ),
+			'internal_link_replacement_count' => nkt_gpt_par_0723_link_href_diff( $baseline['live']['link_manifest']['internal'], $current_draft['link_manifest']['internal'] )['replacement_count'],
+			'external_link_replacement_count' => nkt_gpt_par_0723_link_href_diff( $baseline['live']['link_manifest']['external'], $current_draft['link_manifest']['external'] )['replacement_count'],
+			'malformed_link_findings' => $current_draft['link_manifest']['malformed'],
+		),
+		'recipe_evidence'              => array(
+			'ordered_ids_before'      => $baseline['live']['ordered_wprm_recipe_ids'],
+			'ordered_ids_after_live'  => $current_live['ordered_wprm_recipe_ids'],
+			'ordered_ids_after_draft' => $current_draft['ordered_wprm_recipe_ids'],
+			'object_hashes_before'    => $baseline['live']['recipe_object_hashes'],
+			'object_hashes_after'     => $current_live['recipe_object_hashes'],
+			'no_recipe_created'       => true,
+			'no_recipe_cloned'        => 0 === absint( get_post_meta( $draft_id, '_nkt_cloned_wprm_recipe_id', true ) ),
+			'no_recipe_replaced'      => $checks['ordered_wprm_ids_unchanged'],
+			'no_recipe_object_edited' => $checks['recipe_objects_unchanged'],
+		),
+		'nutrition_evidence'           => array(
+			'article_hash_before'     => $baseline['live']['nutrition_section_hash'],
+			'article_hash_after_live' => $current_live['nutrition_section_hash'],
+			'article_hash_after_draft'=> $current_draft['nutrition_section_hash'],
+			'wprm_hashes_before'      => $baseline['live']['wprm_nutrition_hashes'],
+			'wprm_hashes_after'       => $current_live['wprm_nutrition_hashes'],
+			'serving_label_before'    => $baseline['live']['serving_label'],
+			'serving_label_after'     => $current_draft['serving_label'],
+			'article_change_authorised' => $checks['draft_article_nutrition_change_authorised'],
+			'authorised_after_hash'   => (string) $authorised_after['nutrition_section_hash'],
+			'wprm_values_unchanged'   => $checks['wprm_nutrition_unchanged'],
+			'wprm_units_unchanged'    => $checks['wprm_nutrition_unchanged'],
+			'wprm_percentages_unchanged' => $checks['wprm_nutrition_unchanged'],
+			'article_presentation_changed' => $baseline['live']['nutrition_section_hash'] !== $current_draft['nutrition_section_hash'],
+		),
+		'workflow_evidence'            => array(
+			'draft_status'        => get_post_status( $draft_id ),
+			'review_status'       => isset( $lifecycle['review_status'] ) ? $lifecycle['review_status'] : 'initialised',
+			'application_status'  => isset( $lifecycle['application_status'] ) ? $lifecycle['application_status'] : 'not_applied',
+			'rollback_status'     => isset( $lifecycle['rollback_status'] ) ? $lifecycle['rollback_status'] : 'not_required',
+			'draft_retained'      => true,
+		),
+		'checks'                       => $checks,
+		'failed_checks'                => $failed,
+		'all_protected_conditions_passed' => empty( $failed ),
+	);
+}
+
+/** Read-only independent audit. */
+function nkt_gpt_par_0723_audit( WP_REST_Request $request ) {
+	$guard = nkt_gpt_par_0723_version_guard( $request );
+	if ( is_wp_error( $guard ) ) {
+		return $guard;
+	}
+	$live_id  = absint( $request->get_param( 'live_post_id' ) );
+	$draft_id = absint( $request->get_param( 'draft_post_id' ) );
+	$pair     = nkt_gpt_par_0723_pair( $live_id, $draft_id );
+	if ( is_wp_error( $pair ) ) {
+		return $pair;
+	}
+	$baseline      = get_post_meta( $draft_id, NKT_GPT_PAR_0723_BASELINE_META, true );
+	$current_live  = nkt_gpt_par_0723_capture_live_state( $live_id );
+	$current_draft = nkt_gpt_par_0723_capture_draft_state( $draft_id );
+	$operation_guards = nkt_gpt_par_0723_validate_operation_guards( $request, $baseline, $current_live, $current_draft );
+	if ( $operation_guards['failed'] ) {
+		return new WP_Error(
+			'nkt_gpt_par_audit_preflight_failed',
+			__( 'The protected audit request did not match the stored and current baseline.', 'nkt-gpt-connector' ),
+			array( 'status' => 409, 'failed_checks' => $operation_guards['failed'], 'checks' => $operation_guards['checks'] )
+		);
+	}
+	$audit = nkt_gpt_par_0723_build_audit( $live_id, $draft_id );
+	if ( is_wp_error( $audit ) ) {
+		return $audit;
+	}
+	$audit['request_guard_checks'] = $operation_guards['checks'];
+	$lifecycle = nkt_gpt_par_0723_lifecycle( $draft_id );
+	$lifecycle['audit_status']        = $audit['all_protected_conditions_passed'] ? 'passed' : 'failed';
+	$lifecycle['audit_hash']          = nkt_gpt_par_0723_hash( $audit );
+	$lifecycle['audit_timestamp']     = gmdate( DATE_ATOM );
+	$lifecycle['audit_failures']      = $audit['failed_checks'];
+	$lifecycle['audited_draft_hash']  = $audit['current_draft_state']['content_hash'];
+	$lifecycle['audited_excerpt_hash']= $audit['current_draft_state']['excerpt_hash'];
+	nkt_gpt_par_0723_save_lifecycle( $draft_id, $lifecycle );
+	$audit['audit_status']            = $lifecycle['audit_status'];
+	$audit['audit_hash']              = $lifecycle['audit_hash'];
+	$audit['audit_timestamp']         = $lifecycle['audit_timestamp'];
+	$audit['workflow_metadata_changed']= true;
+	$audit['content_changed']         = false;
+	return nkt_gpt_connector_no_store( new WP_REST_Response( $audit, 200 ) );
+}
+
+/** Record approval/rejection against the current successful audit. */
