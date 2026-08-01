@@ -1,0 +1,179 @@
+function nkt_gpt_par_0723_cleanup_protected_id( $object_id, $request ) {
+	$protected = array( 41019, 41037, 30780, 30800 );
+	if ( ! in_array( absint( $object_id ), $protected, true ) ) {
+		return false;
+	}
+	$authorised = array_values( array_map( 'absint', (array) $request->get_param( 'authorised_protected_ids' ) ) );
+	return ! rest_sanitize_boolean( $request->get_param( 'explicit_protected_id_authorisation' ) )
+		|| ! in_array( absint( $object_id ), $authorised, true );
+}
+
+/** Return a stored protected lifecycle record across supported baseline versions. */
+function nkt_gpt_par_0723_cleanup_lifecycle( $post_id ) {
+	foreach ( array( '_nkt_par_0723_lifecycle', '_nkt_par_0722_lifecycle', '_nkt_par_0721_lifecycle', '_nkt_par_0720_lifecycle' ) as $key ) {
+		$value = get_post_meta( $post_id, $key, true );
+		if ( is_array( $value ) && $value ) {
+			return $value;
+		}
+	}
+	return array();
+}
+
+/** Count published live references to an exact workflow object. */
+function nkt_gpt_par_0723_cleanup_live_reference_count( $object_id, $kind ) {
+	$object_id = absint( $object_id );
+	if ( ! $object_id ) {
+		return 0;
+	}
+	if ( 'draft' === $kind ) {
+		return 'publish' === get_post_status( $object_id ) ? 1 : 0;
+	}
+	$count = 0;
+	$posts = get_posts( array( 'post_type' => 'post', 'post_status' => 'publish', 'numberposts' => -1, 'fields' => 'ids', 'no_found_rows' => true ) );
+	foreach ( (array) $posts as $post_id ) {
+		$content = (string) get_post_field( 'post_content', $post_id );
+		$patterns = array(
+			'/\[wprm-recipe\b[^\]]*\bid=["\']?' . preg_quote( (string) $object_id, '/' ) . '\b/i',
+			'/"recipe(?:Id|_id|ID)"\s*:\s*' . preg_quote( (string) $object_id, '/' ) . '\b/i',
+			'/\bwprm-recipe-' . preg_quote( (string) $object_id, '/' ) . '\b/i',
+		);
+		foreach ( $patterns as $pattern ) {
+			if ( preg_match( $pattern, $content ) ) {
+				$count++;
+				break;
+			}
+		}
+	}
+	return $count;
+}
+
+/** Protected cleanup for exact inactive workflow-created drafts and cloned recipes. */
+function nkt_gpt_par_0723_cleanup_revision_objects( WP_REST_Request $request ) {
+	$guard = nkt_gpt_par_0723_version_guard( $request );
+	if ( is_wp_error( $guard ) ) {
+		return $guard;
+	}
+	$dry_run = ! $request->has_param( 'dry_run' ) || rest_sanitize_boolean( $request->get_param( 'dry_run' ) );
+	$mode = sanitize_key( (string) $request->get_param( 'cleanup_mode' ) );
+	if ( ! in_array( $mode, array( 'archive', 'permanent_delete' ), true ) ) {
+		$mode = 'archive';
+	}
+	$draft_ids = array_values( array_unique( array_filter( array_map( 'absint', (array) $request->get_param( 'draft_post_ids' ) ) ) ) );
+	$recipe_ids = array_values( array_unique( array_filter( array_map( 'absint', (array) $request->get_param( 'cloned_recipe_ids' ) ) ) ) );
+	if ( ! $draft_ids && ! $recipe_ids ) {
+		return new WP_Error( 'nkt_gpt_par_cleanup_targets_missing', __( 'Exact draft or cloned-recipe IDs are required.', 'nkt-gpt-connector' ), array( 'status' => 400 ) );
+	}
+	if ( 'permanent_delete' === $mode && ! rest_sanitize_boolean( $request->get_param( 'explicit_permanent_delete_authorisation' ) ) ) {
+		return new WP_Error( 'nkt_gpt_par_cleanup_delete_not_authorised', __( 'Permanent deletion requires separate explicit authorisation.', 'nkt-gpt-connector' ), array( 'status' => 409 ) );
+	}
+	$batch_id = sanitize_text_field( (string) $request->get_param( 'archive_batch_id' ) );
+	$reason = sanitize_textarea_field( (string) $request->get_param( 'cleanup_reason' ) );
+	if ( '' === $batch_id || '' === $reason ) {
+		return new WP_Error( 'nkt_gpt_par_cleanup_reason_missing', __( 'An archive batch ID and cleanup reason are required.', 'nkt-gpt-connector' ), array( 'status' => 400 ) );
+	}
+	$considered = array();
+	$blocked = array();
+	$targets = array();
+	foreach ( array( 'draft' => $draft_ids, 'cloned_recipe' => $recipe_ids ) as $kind => $ids ) {
+		foreach ( $ids as $object_id ) {
+			$post = get_post( $object_id );
+			$row = array( 'object_id' => $object_id, 'kind' => $kind, 'eligible' => false, 'reasons' => array() );
+			if ( ! $post ) {
+				$row['reasons'][] = 'object_not_found';
+			} elseif ( nkt_gpt_par_0723_cleanup_protected_id( $object_id, $request ) ) {
+				$row['reasons'][] = 'protected_id_requires_separate_explicit_authorisation';
+			} elseif ( 'draft' === $kind && 'post' !== $post->post_type ) {
+				$row['reasons'][] = 'not_a_revision_draft';
+			} elseif ( 'cloned_recipe' === $kind && 'wprm_recipe' !== $post->post_type ) {
+				$row['reasons'][] = 'not_a_wprm_recipe_clone';
+			} elseif ( ! in_array( $post->post_status, array( 'draft', 'pending', 'private', 'trash' ), true ) ) {
+				$row['reasons'][] = 'object_not_inactive';
+			} else {
+				$workflow_created = 'draft' === $kind
+					? absint( get_post_meta( $object_id, '_nkt_revision_source_post_id', true ) ) > 0
+					: ( absint( get_post_meta( $object_id, '_nkt_revision_source_recipe_id', true ) ) > 0
+						|| absint( get_post_meta( $object_id, '_nkt_source_recipe_id', true ) ) > 0
+						|| absint( get_post_meta( $object_id, '_nkt_cloned_from_recipe_id', true ) ) > 0 );
+				if ( ! $workflow_created ) {
+					$row['reasons'][] = 'not_proven_workflow_created';
+				}
+				$lifecycle = 'draft' === $kind ? nkt_gpt_par_0723_cleanup_lifecycle( $object_id ) : array();
+				if ( 'draft' === $kind && ! in_array( (string) ( $lifecycle['application_status'] ?? '' ), array( 'applied', 'applied_verified', 'verified' ), true ) ) {
+					$row['reasons'][] = 'revision_not_successfully_applied_and_verified';
+				}
+				$references = nkt_gpt_par_0723_cleanup_live_reference_count( $object_id, $kind );
+				$row['live_reference_count'] = $references;
+				if ( $references > 0 ) {
+					$row['reasons'][] = 'live_reference_exists';
+				}
+				$archive = get_post_meta( $object_id, '_nkt_par_0723_cleanup_archive', true );
+				if ( 'permanent_delete' === $mode && ( ! is_array( $archive ) || (string) ( $archive['archive_batch_id'] ?? '' ) !== $batch_id ) ) {
+					$row['reasons'][] = 'object_not_archived_first_in_this_batch';
+				}
+			}
+			$row['eligible'] = empty( $row['reasons'] );
+			$considered[] = $row;
+			if ( $row['eligible'] ) {
+				$targets[] = array( 'object_id' => $object_id, 'kind' => $kind, 'post' => $post );
+			} else {
+				$blocked[] = $row;
+			}
+		}
+	}
+	if ( $blocked ) {
+		return new WP_Error(
+			'nkt_gpt_par_cleanup_preflight_failed',
+			__( 'Protected cleanup was refused because at least one exact target failed its safety checks.', 'nkt-gpt-connector' ),
+			array( 'status' => 409, 'dry_run' => $dry_run, 'mode' => $mode, 'considered' => $considered, 'writes_attempted' => false )
+		);
+	}
+	if ( $dry_run ) {
+		return nkt_gpt_connector_no_store( new WP_REST_Response( array(
+			'connector_version' => NKT_GPT_PAR_0723_VERSION,
+			'dry_run' => true,
+			'cleanup_mode' => $mode,
+			'considered' => $considered,
+			'skipped' => array(),
+			'archived' => array(),
+			'restored' => array(),
+			'deleted' => array(),
+			'writes_attempted' => false,
+			'writes_completed' => false,
+		), 200 ) );
+	}
+	$archived = array();
+	$deleted = array();
+	foreach ( $targets as $target ) {
+		$object_id = $target['object_id'];
+		if ( 'archive' === $mode ) {
+			$snapshot = array( 'post_status' => $target['post']->post_status, 'archived_at' => gmdate( DATE_ATOM ), 'archive_batch_id' => $batch_id, 'reason' => $reason );
+			update_post_meta( $object_id, '_nkt_par_0723_cleanup_archive', $snapshot );
+			$result = nkt_gpt_par_0723_direct_post_row_write( $object_id, array( 'post_status' => 'trash' ), true );
+			if ( is_wp_error( $result ) ) {
+				delete_post_meta( $object_id, '_nkt_par_0723_cleanup_archive' );
+				return new WP_Error( 'nkt_gpt_par_cleanup_archive_failed', $result->get_error_message(), array( 'status' => 500, 'object_id' => $object_id, 'archived' => $archived ) );
+			}
+			$archived[] = array( 'object_id' => $object_id, 'kind' => $target['kind'], 'reason' => 'archived_before_any_permanent_delete' );
+		} else {
+			$result = wp_delete_post( $object_id, true );
+			if ( ! $result ) {
+				return new WP_Error( 'nkt_gpt_par_cleanup_delete_failed', __( 'A separately authorised archived object could not be permanently deleted.', 'nkt-gpt-connector' ), array( 'status' => 500, 'object_id' => $object_id, 'deleted' => $deleted ) );
+			}
+			$deleted[] = array( 'object_id' => $object_id, 'kind' => $target['kind'], 'reason' => 'explicit_permanent_delete_after_archive' );
+		}
+	}
+	return nkt_gpt_connector_no_store( new WP_REST_Response( array(
+		'connector_version' => NKT_GPT_PAR_0723_VERSION,
+		'dry_run' => false,
+		'cleanup_mode' => $mode,
+		'considered' => $considered,
+		'skipped' => array(),
+		'archived' => $archived,
+		'restored' => array(),
+		'deleted' => $deleted,
+		'writes_attempted' => true,
+		'writes_completed' => true,
+	), 200 ) );
+}
+
+/** Override connector status with explicit lifecycle coverage. */
