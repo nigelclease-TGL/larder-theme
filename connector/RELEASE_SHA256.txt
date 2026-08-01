@@ -1,1 +1,1 @@
-67f4366b9a68a92642833a299c2a649a73b0edf5e6b857602eeaaf5da9a7b1d5  nkt-gpt-connector-0.7.23-update-runtime-guards-upgrader.zip
+2f5a3166e156ced17fbc75d8382b8a68ce2edc11c74368a2a5fba8f88fd3591f  nkt-gpt-connector-0.7.24-serving-heading-extraction-upgrader.zip
