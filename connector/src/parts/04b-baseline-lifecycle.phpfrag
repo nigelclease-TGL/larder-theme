@@ -1,0 +1,155 @@
+function nkt_gpt_par_0723_validate_expected_baseline( WP_REST_Request $request, $state ) {
+	$checks = array(
+		'expected_live_status'            => (string) $request->get_param( 'expected_live_status' ) === $state['status'],
+		'expected_slug'                   => (string) $request->get_param( 'expected_slug' ) === $state['slug'],
+		'expected_permalink'              => untrailingslashit( (string) $request->get_param( 'expected_permalink' ) ) === untrailingslashit( $state['permalink'] ),
+		'expected_publication_date'       => (string) $request->get_param( 'expected_publication_date' ) === $state['publication_date'],
+		'expected_featured_media_id'      => absint( $request->get_param( 'expected_featured_media_id' ) ) === $state['featured_media_id'],
+		'expected_comment_status'         => (string) $request->get_param( 'expected_comment_status' ) === $state['comment_status'],
+		'expected_live_content_hash'      => strtolower( (string) $request->get_param( 'expected_live_content_hash' ) ) === $state['content_hash'],
+		'expected_expanded_article_source_hash' => strtolower( (string) $request->get_param( 'expected_expanded_article_source_hash' ) ) === $state['expanded_article_source_hash'],
+		'expected_media_reference_hash'   => strtolower( (string) $request->get_param( 'expected_media_reference_hash' ) ) === $state['media_reference_hash'],
+		'expected_nutrition_section_hash' => strtolower( (string) $request->get_param( 'expected_nutrition_section_hash' ) ) === $state['nutrition_section_hash'],
+		'expected_serving_label'          => (string) $request->get_param( 'expected_serving_label' ) === $state['serving_label'],
+		'expected_seo_hash'               => strtolower( (string) $request->get_param( 'expected_seo_hash' ) ) === $state['seo_hash'],
+		'expected_schema_hash'            => strtolower( (string) $request->get_param( 'expected_schema_hash' ) ) === $state['schema_hash'],
+		'expected_ratings_reviews_hash'   => strtolower( (string) $request->get_param( 'expected_ratings_reviews_hash' ) ) === $state['ratings_reviews_hash'],
+		'expected_wprm_reference_count'   => absint( $request->get_param( 'expected_wprm_reference_count' ) ) === $state['wprm_reference_count'],
+		'expected_amazon_link_count'      => absint( $request->get_param( 'expected_amazon_link_count' ) ) === $state['amazon_link_count'],
+	);
+
+	$expected_ids = array_values( array_map( 'absint', (array) $request->get_param( 'expected_ordered_wprm_recipe_ids' ) ) );
+	$checks['expected_ordered_wprm_recipe_ids'] = $expected_ids === $state['ordered_wprm_recipe_ids'];
+	$checks['expected_reusable_block_ids']      = array_values( array_map( 'absint', (array) $request->get_param( 'expected_reusable_block_ids' ) ) ) === $state['reusable_block_ids'];
+	$checks['expected_reusable_block_hashes']   = nkt_gpt_par_0723_normalize_hash_map( $request->get_param( 'expected_reusable_block_hashes' ) ) === nkt_gpt_par_0723_normalize_hash_map( $state['reusable_block_hashes'] );
+	$checks['expected_recipe_object_hashes']    = nkt_gpt_par_0723_normalize_hash_map( $request->get_param( 'expected_recipe_object_hashes' ) ) === nkt_gpt_par_0723_normalize_hash_map( $state['recipe_object_hashes'] );
+	$checks['expected_recipe_statuses']          = nkt_gpt_par_0723_normalize_status_map( $request->get_param( 'expected_recipe_statuses' ) ) === nkt_gpt_par_0723_normalize_status_map( $state['recipe_statuses'] );
+	$checks['expected_status_independent_recipe_hashes'] = nkt_gpt_par_0723_normalize_hash_map( $request->get_param( 'expected_status_independent_recipe_hashes' ) ) === nkt_gpt_par_0723_normalize_hash_map( $state['recipe_status_independent_hashes'] );
+	$checks['expected_wprm_nutrition_hashes']   = nkt_gpt_par_0723_normalize_hash_map( $request->get_param( 'expected_wprm_nutrition_hashes' ) ) === nkt_gpt_par_0723_normalize_hash_map( $state['wprm_nutrition_hashes'] );
+	$checks['expected_amazon_destinations']     = array_values( (array) $request->get_param( 'expected_amazon_destinations' ) ) === $state['amazon_destinations'];
+	$checks['expected_affiliate_identifiers']   = nkt_gpt_par_0723_canonicalize( (array) $request->get_param( 'expected_affiliate_identifiers' ) ) === nkt_gpt_par_0723_canonicalize( $state['affiliate_identifiers'] );
+	$checks['retain_draft_after_apply']          = true === rest_sanitize_boolean( $request->get_param( 'retain_draft_after_apply' ) );
+	$checks['atomic_rollback_on_failure']        = true === rest_sanitize_boolean( $request->get_param( 'atomic_rollback_on_failure' ) );
+
+	$failed = array_keys( array_filter( $checks, static function ( $passed ) { return ! $passed; } ) );
+	return array( 'checks' => $checks, 'failed' => $failed );
+}
+
+/** Verify the explicit operation guards against both stored baseline and current state. */
+function nkt_gpt_par_0723_validate_operation_guards( WP_REST_Request $request, $baseline, $current_live, $current_draft ) {
+	$validation = nkt_gpt_par_0723_validate_expected_baseline( $request, $current_live );
+	$checks     = $validation['checks'];
+	$checks['stored_live_baseline_unchanged'] = isset( $baseline['live'] ) && nkt_gpt_par_0723_hash( nkt_gpt_par_0723_baseline_comparison_state( $current_live ) ) === nkt_gpt_par_0723_hash( nkt_gpt_par_0723_baseline_comparison_state( $baseline['live'] ) );
+	$checks['correction_scope_matches'] = isset( $baseline['correction_scope'] ) && (string) $request->get_param( 'correction_scope' ) === (string) $baseline['correction_scope'];
+	$request_scope = array_values( array_unique( array_map( 'sanitize_key', (array) $request->get_param( 'allowed_article_scope' ) ) ) );
+	$stored_scope  = array_values( array_unique( array_map( 'sanitize_key', (array) ( isset( $baseline['allowed_article_scope'] ) ? $baseline['allowed_article_scope'] : array() ) ) ) );
+	sort( $request_scope, SORT_STRING );
+	sort( $stored_scope, SORT_STRING );
+	$checks['allowed_article_scope_matches'] = $request_scope === $stored_scope;
+	$checks['preserve_exception_matches'] = isset( $baseline['preserve_intentional_multi_recipe_exception'] )
+		&& rest_sanitize_boolean( $request->get_param( 'preserve_intentional_multi_recipe_exception' ) ) === (bool) $baseline['preserve_intentional_multi_recipe_exception'];
+	$checks['expected_draft_content_hash'] = is_array( $current_draft )
+		&& strtolower( (string) $request->get_param( 'expected_draft_content_hash' ) ) === strtolower( (string) $current_draft['content_hash'] );
+	$checks['expected_draft_excerpt_hash'] = is_array( $current_draft )
+		&& strtolower( (string) $request->get_param( 'expected_draft_excerpt_hash' ) ) === strtolower( (string) $current_draft['excerpt_hash'] );
+	$request_policy = nkt_gpt_par_0723_change_policy( $request );
+	$lifecycle = is_array( $current_draft ) && ! empty( $current_draft['draft_post_id'] )
+		? nkt_gpt_par_0723_lifecycle( $current_draft['draft_post_id'] )
+		: array();
+	$checks['authorised_change_policy_matches'] = empty( $lifecycle['authorised_change_policy'] )
+		|| nkt_gpt_par_0723_hash( $request_policy ) === nkt_gpt_par_0723_hash( $lifecycle['authorised_change_policy'] );
+
+	$failed = array_keys( array_filter( $checks, static function ( $passed ) { return ! $passed; } ) );
+	return array( 'checks' => $checks, 'failed' => $failed );
+}
+
+/** Return or initialise one lifecycle record. */
+function nkt_gpt_par_0723_lifecycle( $draft_id ) {
+	$record = get_post_meta( $draft_id, NKT_GPT_PAR_0723_LIFECYCLE_META, true );
+	return is_array( $record ) ? $record : array();
+}
+
+/** Save one lifecycle record. */
+function nkt_gpt_par_0723_save_lifecycle( $draft_id, $record ) {
+	$record['connector_version'] = NKT_GPT_PAR_0723_VERSION;
+	$record['updated_at']        = gmdate( DATE_ATOM );
+	update_post_meta( $draft_id, NKT_GPT_PAR_0723_LIFECYCLE_META, $record );
+}
+
+/** Pair and lifecycle guard. */
+function nkt_gpt_par_0723_pair( $live_id, $draft_id ) {
+	$live  = get_post( $live_id );
+	$draft = get_post( $draft_id );
+	if ( ! $live || 'post' !== $live->post_type || 'publish' !== $live->post_status ) {
+		return new WP_Error( 'nkt_gpt_par_live_invalid', __( 'The published live post was not found.', 'nkt-gpt-connector' ), array( 'status' => 404 ) );
+	}
+	if ( ! $draft || 'post' !== $draft->post_type || ! in_array( $draft->post_status, array( 'draft', 'pending', 'private' ), true ) ) {
+		return new WP_Error( 'nkt_gpt_par_draft_invalid', __( 'The active protected draft was not found.', 'nkt-gpt-connector' ), array( 'status' => 404 ) );
+	}
+	if ( absint( get_post_meta( $draft_id, '_nkt_revision_source_post_id', true ) ) !== absint( $live_id ) ) {
+		return new WP_Error( 'nkt_gpt_par_pair_mismatch', __( 'The protected draft is not linked to the requested live post.', 'nkt-gpt-connector' ), array( 'status' => 409 ) );
+	}
+	if ( absint( get_post_meta( $draft_id, '_nkt_cloned_wprm_recipe_id', true ) ) ) {
+		return new WP_Error( 'nkt_gpt_par_recipe_clone_forbidden', __( 'Protected article-only revisions cannot depend on a cloned recipe.', 'nkt-gpt-connector' ), array( 'status' => 409 ) );
+	}
+	if ( function_exists( 'nkt_gpt_connector_archived_write_guard' ) ) {
+		$guard = nkt_gpt_connector_archived_write_guard( $draft_id );
+		if ( is_wp_error( $guard ) ) {
+			return $guard;
+		}
+	}
+	return array( 'live' => $live, 'draft' => $draft );
+}
+
+/** Version guard for every lifecycle operation. */
+function nkt_gpt_par_0723_version_guard( WP_REST_Request $request ) {
+	if ( NKT_GPT_PAR_0723_VERSION !== (string) $request->get_param( 'connector_version' ) ) {
+		return new WP_Error(
+			'nkt_gpt_par_version_mismatch',
+			__( 'The request must name the exact active connector version.', 'nkt-gpt-connector' ),
+			array( 'status' => 409, 'connector_version' => NKT_GPT_PAR_0723_VERSION )
+		);
+	}
+	return true;
+}
+
+/** Normalize serving-evidence fields when comparing a 0.7.22 baseline with 0.7.23 extraction. */
+function nkt_gpt_par_0723_baseline_comparison_state( $state ) {
+	$state = (array) $state;
+	unset( $state['serving_label'], $state['serving_label_source'], $state['serving_label_block_path'] );
+	return $state;
+}
+
+/** Load a native 0.7.23 baseline or an in-memory compatible 0.7.22 baseline. */
+function nkt_gpt_par_0723_compatible_baseline( $draft_id ) {
+	$current = get_post_meta( $draft_id, NKT_GPT_PAR_0723_BASELINE_META, true );
+	if ( is_array( $current ) && ! empty( $current['live'] ) ) {
+		return array( 'baseline' => $current, 'source_version' => '0.7.23', 'migration_required' => false );
+	}
+	$legacy = get_post_meta( $draft_id, '_nkt_par_0722_baseline', true );
+	if ( is_array( $legacy ) && ! empty( $legacy['live'] ) ) {
+		return array( 'baseline' => $legacy, 'source_version' => '0.7.22', 'migration_required' => true );
+	}
+	return array( 'baseline' => array(), 'source_version' => null, 'migration_required' => false );
+}
+
+/** Return any protected baselines stored by earlier lifecycle versions. */
+function nkt_gpt_par_0723_legacy_baselines( $draft_id ) {
+	$result = array();
+	foreach ( array(
+		'0.7.22' => '_nkt_par_0722_baseline',
+		'0.7.21' => '_nkt_par_0721_baseline',
+		'0.7.20' => '_nkt_par_0720_baseline',
+		'0.7.19' => '_nkt_par_0719_baseline',
+		'0.7.18' => '_nkt_par_0718_baseline',
+		'0.7.17' => '_nkt_par_0717_baseline',
+	) as $version => $key ) {
+		$value = get_post_meta( $draft_id, $key, true );
+		if ( is_array( $value ) && ! empty( $value['live'] ) ) {
+			$result[ $version ] = $value;
+		}
+	}
+	return $result;
+}
+
+/** Read-only status and baseline-preparation action. */
