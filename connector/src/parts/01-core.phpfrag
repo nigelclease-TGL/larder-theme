@@ -1,0 +1,350 @@
+/** Canonicalise arrays before hashing or equality checks. */
+function nkt_gpt_par_0723_canonicalize( $value ) {
+	if ( is_array( $value ) ) {
+		$is_list = array_keys( $value ) === range( 0, count( $value ) - 1 );
+		if ( ! $is_list ) {
+			ksort( $value, SORT_STRING );
+		}
+		foreach ( $value as $key => $item ) {
+			$value[ $key ] = nkt_gpt_par_0723_canonicalize( $item );
+		}
+	}
+	return $value;
+}
+
+/** Stable SHA-256 hash for structured data. */
+function nkt_gpt_par_0723_hash( $value ) {
+	$encoded = wp_json_encode(
+		nkt_gpt_par_0723_canonicalize( $value ),
+		JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION
+	);
+	return hash( 'sha256', false === $encoded ? serialize( $value ) : $encoded );
+}
+
+/** Return a stable sorted list of positive integer IDs. */
+function nkt_gpt_par_0723_sorted_ids( $values ) {
+	$ids = array_values( array_unique( array_filter( array_map( 'absint', (array) $values ) ) ) );
+	sort( $ids, SORT_NUMERIC );
+	return $ids;
+}
+
+/** Convert an expected map keyed by recipe ID into an integer-keyed map. */
+function nkt_gpt_par_0723_normalize_hash_map( $value ) {
+	$result = array();
+	foreach ( (array) $value as $key => $hash ) {
+		$id = absint( $key );
+		if ( $id ) {
+			$result[ $id ] = strtolower( trim( (string) $hash ) );
+		}
+	}
+	ksort( $result, SORT_NUMERIC );
+	return $result;
+}
+
+/** Capture restorable non-volatile post metadata for protected equality and rollback. */
+function nkt_gpt_par_0723_post_meta_snapshot( $post_id ) {
+	$volatile = array( '_edit_lock', '_edit_last' );
+	$snapshot = array();
+	foreach ( get_post_meta( $post_id ) as $key => $values ) {
+		if ( in_array( $key, $volatile, true ) ) {
+			continue;
+		}
+		$snapshot[ $key ] = array_map( 'maybe_unserialize', (array) $values );
+	}
+	ksort( $snapshot, SORT_STRING );
+	return $snapshot;
+}
+
+/** Restore the complete non-volatile post metadata snapshot. */
+function nkt_gpt_par_0723_restore_post_meta_snapshot( $post_id, $snapshot ) {
+	$volatile = array( '_edit_lock', '_edit_last' );
+	foreach ( array_keys( get_post_meta( $post_id ) ) as $key ) {
+		if ( in_array( $key, $volatile, true ) ) {
+			continue;
+		}
+		delete_post_meta( $post_id, $key );
+	}
+	foreach ( (array) $snapshot as $key => $values ) {
+		if ( in_array( $key, $volatile, true ) ) {
+			continue;
+		}
+		foreach ( (array) $values as $value ) {
+			add_post_meta( $post_id, $key, $value );
+		}
+	}
+}
+
+/** Extract selected post metadata into a deterministic structure. */
+function nkt_gpt_par_0723_selected_post_meta( $post_id, $pattern ) {
+	$all      = get_post_meta( $post_id );
+	$selected = array();
+	foreach ( $all as $key => $values ) {
+		if ( preg_match( $pattern, (string) $key ) ) {
+			$selected[ $key ] = array_map( 'maybe_unserialize', (array) $values );
+		}
+	}
+	ksort( $selected, SORT_STRING );
+	return $selected;
+}
+
+/** Return the canonical payload used by the protected WPRM object hash. */
+function nkt_gpt_par_0723_recipe_object_payload( $recipe_id, $status_override = null ) {
+	$recipe = get_post( $recipe_id );
+	if ( ! $recipe || 'wprm_recipe' !== $recipe->post_type ) {
+		return array();
+	}
+
+	$volatile = array(
+		'_edit_lock',
+		'_edit_last',
+		'easyindexInvalidate',
+		'wprm_metadata_cache',
+		'wprm_video_metadata_updated',
+		'wprm_seo',
+		'wprm_seo_priority',
+	);
+	$meta     = array();
+	foreach ( get_post_meta( $recipe_id ) as $key => $values ) {
+		if ( in_array( $key, $volatile, true ) ) {
+			continue;
+		}
+		if ( 0 !== strpos( $key, 'wprm_' ) && '_thumbnail_id' !== $key ) {
+			continue;
+		}
+		$meta[ $key ] = array_map( 'maybe_unserialize', (array) $values );
+	}
+	ksort( $meta, SORT_STRING );
+
+	return array(
+		'id'           => (int) $recipe->ID,
+		'post_status'  => null === $status_override ? (string) $recipe->post_status : (string) $status_override,
+		'post_title'   => (string) $recipe->post_title,
+		'post_name'    => (string) $recipe->post_name,
+		'post_content' => (string) $recipe->post_content,
+		'post_excerpt' => (string) $recipe->post_excerpt,
+		'post_parent'  => (int) $recipe->post_parent,
+		'menu_order'   => (int) $recipe->menu_order,
+		'meta'         => $meta,
+	);
+}
+
+/** Hash one protected WPRM recipe object while excluding known volatile caches. */
+function nkt_gpt_par_0723_recipe_object_hash( $recipe_id, $status_override = null ) {
+	$payload = nkt_gpt_par_0723_recipe_object_payload( $recipe_id, $status_override );
+	return $payload ? nkt_gpt_par_0723_hash( $payload ) : '';
+}
+
+/** Return a field-level recipe identity and hash manifest. */
+function nkt_gpt_par_0723_recipe_component_manifest( $recipe_id ) {
+	$recipe  = get_post( $recipe_id );
+	$payload = nkt_gpt_par_0723_recipe_object_payload( $recipe_id );
+	if ( ! $recipe || ! $payload ) {
+		return array();
+	}
+	$status_independent = $payload;
+	unset( $status_independent['post_status'] );
+	return array(
+		'recipe_id'               => (int) $recipe->ID,
+		'literal_post_type'        => (string) $recipe->post_type,
+		'literal_post_status'      => (string) $recipe->post_status,
+		'post_status_source'       => 'wp_posts.post_status via get_post',
+		'post_date_gmt'            => mysql2date( DATE_ATOM, $recipe->post_date_gmt, false ),
+		'post_modified_gmt'        => mysql2date( DATE_ATOM, $recipe->post_modified_gmt, false ),
+		'post_parent'              => (int) $recipe->post_parent,
+		'menu_order'               => (int) $recipe->menu_order,
+		'is_revision'              => (bool) wp_is_post_revision( $recipe_id ),
+		'is_autosave'              => (bool) wp_is_post_autosave( $recipe_id ),
+		'object_hash_version'      => NKT_GPT_PAR_0723_RECIPE_HASH_VERSION,
+		'component_hash_version'   => NKT_GPT_PAR_0723_RECIPE_COMPONENT_VERSION,
+		'object_hash'              => nkt_gpt_par_0723_hash( $payload ),
+		'status_independent_hash'  => nkt_gpt_par_0723_hash( $status_independent ),
+		'component_hashes'         => array(
+			'post_status'  => hash( 'sha256', (string) $payload['post_status'] ),
+			'post_title'   => hash( 'sha256', (string) $payload['post_title'] ),
+			'post_name'    => hash( 'sha256', (string) $payload['post_name'] ),
+			'post_content' => hash( 'sha256', (string) $payload['post_content'] ),
+			'post_excerpt' => hash( 'sha256', (string) $payload['post_excerpt'] ),
+			'post_parent'  => nkt_gpt_par_0723_hash( $payload['post_parent'] ),
+			'menu_order'   => nkt_gpt_par_0723_hash( $payload['menu_order'] ),
+			'meta'         => nkt_gpt_par_0723_hash( $payload['meta'] ),
+		),
+	);
+}
+
+/** Capture a restorable WPRM recipe snapshot for side-effect protection. */
+function nkt_gpt_par_0723_recipe_snapshot( $recipe_id ) {
+	$recipe = get_post( $recipe_id, ARRAY_A );
+	if ( ! $recipe || 'wprm_recipe' !== $recipe['post_type'] ) {
+		return array();
+	}
+	$meta = array();
+	foreach ( get_post_meta( $recipe_id ) as $key => $values ) {
+		if ( in_array( $key, array( '_edit_lock', '_edit_last' ), true ) ) {
+			continue;
+		}
+		$meta[ $key ] = array_map( 'maybe_unserialize', (array) $values );
+	}
+	ksort( $meta, SORT_STRING );
+	return array(
+		'post' => $recipe,
+		'meta' => $meta,
+		'object_hash' => nkt_gpt_par_0723_recipe_object_hash( $recipe_id ),
+		'nutrition_hash' => nkt_gpt_par_0723_wprm_nutrition_hash( $recipe_id ),
+	);
+}
+
+/** Capture snapshots for an ordered recipe list. */
+function nkt_gpt_par_0723_recipe_snapshots( $recipe_ids ) {
+	$result = array();
+	foreach ( array_map( 'absint', (array) $recipe_ids ) as $recipe_id ) {
+		$result[ $recipe_id ] = nkt_gpt_par_0723_recipe_snapshot( $recipe_id );
+	}
+	return $result;
+}
+
+/** Restore one recipe snapshot without firing recipe save hooks. */
+function nkt_gpt_par_0723_restore_recipe_snapshot( $recipe_id, $snapshot ) {
+	global $wpdb;
+	if ( empty( $snapshot['post'] ) || empty( $snapshot['meta'] ) && ! isset( $snapshot['meta'] ) ) {
+		return new WP_Error( 'nkt_gpt_par_recipe_snapshot_invalid', __( 'The protected recipe snapshot is incomplete.', 'nkt-gpt-connector' ) );
+	}
+	$post = (array) $snapshot['post'];
+	$allowed_columns = array(
+		'post_author', 'post_date', 'post_date_gmt', 'post_content', 'post_title', 'post_excerpt',
+		'post_status', 'comment_status', 'ping_status', 'post_password', 'post_name', 'to_ping',
+		'pinged', 'post_modified', 'post_modified_gmt', 'post_content_filtered', 'post_parent',
+		'guid', 'menu_order', 'post_type', 'post_mime_type', 'comment_count',
+	);
+	$post = array_intersect_key( $post, array_fill_keys( $allowed_columns, true ) );
+	$updated = $wpdb->update( $wpdb->posts, $post, array( 'ID' => absint( $recipe_id ) ) );
+	if ( false === $updated ) {
+		return new WP_Error( 'nkt_gpt_par_recipe_restore_post_failed', __( 'The protected recipe row could not be restored.', 'nkt-gpt-connector' ) );
+	}
+	foreach ( array_keys( get_post_meta( $recipe_id ) ) as $key ) {
+		if ( in_array( $key, array( '_edit_lock', '_edit_last' ), true ) ) {
+			continue;
+		}
+		delete_post_meta( $recipe_id, $key );
+	}
+	foreach ( (array) $snapshot['meta'] as $key => $values ) {
+		foreach ( (array) $values as $value ) {
+			add_post_meta( $recipe_id, $key, $value );
+		}
+	}
+	clean_post_cache( $recipe_id );
+	return true;
+}
+
+/** Restore all recipe snapshots and report verification. */
+function nkt_gpt_par_0723_restore_recipe_snapshots( $snapshots ) {
+	$results = array();
+	foreach ( (array) $snapshots as $recipe_id => $snapshot ) {
+		$restored = nkt_gpt_par_0723_restore_recipe_snapshot( $recipe_id, $snapshot );
+		$results[ $recipe_id ] = array(
+			'restored' => ! is_wp_error( $restored ),
+			'error' => is_wp_error( $restored ) ? $restored->get_error_message() : null,
+			'object_hash_verified' => ! is_wp_error( $restored ) && nkt_gpt_par_0723_recipe_object_hash( $recipe_id ) === (string) $snapshot['object_hash'],
+			'nutrition_hash_verified' => ! is_wp_error( $restored ) && nkt_gpt_par_0723_wprm_nutrition_hash( $recipe_id ) === (string) $snapshot['nutrition_hash'],
+		);
+	}
+	return $results;
+}
+
+/** Write article fields directly to avoid WPRM save-hook side effects. */
+function nkt_gpt_par_0723_direct_article_write( $post_id, $fields ) {
+	global $wpdb;
+	$allowed = array_intersect_key( (array) $fields, array( 'post_content' => true, 'post_excerpt' => true ) );
+	if ( ! $allowed ) {
+		return new WP_Error( 'nkt_gpt_par_direct_write_empty', __( 'No protected article fields were supplied.', 'nkt-gpt-connector' ) );
+	}
+	$allowed['post_modified'] = current_time( 'mysql' );
+	$allowed['post_modified_gmt'] = current_time( 'mysql', true );
+	$result = $wpdb->update( $wpdb->posts, $allowed, array( 'ID' => absint( $post_id ) ) );
+	if ( false === $result ) {
+		return new WP_Error( 'nkt_gpt_par_direct_write_failed', __( 'The protected article fields could not be written.', 'nkt-gpt-connector' ) );
+	}
+	clean_post_cache( $post_id );
+	return absint( $post_id );
+}
+
+/** Write selected post-row fields directly without save-post hooks. */
+function nkt_gpt_par_0723_direct_post_row_write( $post_id, $fields, $touch_modified = false ) {
+	global $wpdb;
+	$post_type = get_post_type( $post_id );
+	$allowed_names = array(
+		'post_title', 'post_name', 'post_content', 'post_excerpt', 'post_status',
+		'post_date', 'post_date_gmt', 'post_modified', 'post_modified_gmt', 'comment_status', 'ping_status',
+	);
+	$data = array();
+	foreach ( (array) $fields as $key => $value ) {
+		if ( in_array( $key, $allowed_names, true ) ) {
+			$data[ $key ] = $value;
+		}
+	}
+	if ( $touch_modified ) {
+		$data['post_modified'] = current_time( 'mysql' );
+		$data['post_modified_gmt'] = current_time( 'mysql', true );
+	}
+	if ( ! $data ) {
+		return new WP_Error( 'nkt_gpt_par_direct_row_write_empty', __( 'No protected post-row fields were supplied.', 'nkt-gpt-connector' ) );
+	}
+	$result = $wpdb->update( $wpdb->posts, $data, array( 'ID' => absint( $post_id ) ) );
+	if ( false === $result ) {
+		return new WP_Error( 'nkt_gpt_par_direct_row_write_failed', __( 'The protected post row could not be written.', 'nkt-gpt-connector' ) );
+	}
+	clean_post_cache( $post_id );
+	if ( $post_type ) {
+		wp_cache_delete( $post_type, 'counts' );
+	}
+	return absint( $post_id );
+}
+
+/** Hash nutrition and serving fields from one WPRM recipe. */
+function nkt_gpt_par_0723_wprm_nutrition_hash( $recipe_id ) {
+	$recipe = get_post( $recipe_id );
+	if ( ! $recipe || 'wprm_recipe' !== $recipe->post_type ) {
+		return '';
+	}
+	$meta = nkt_gpt_par_0723_selected_post_meta( $recipe_id, '/^(wprm_.*(?:nutrition|serving|yield)|wprm_nutrition)$/i' );
+	return nkt_gpt_par_0723_hash( $meta );
+}
+
+/** Capture recipe object and WPRM nutrition hashes for an ordered ID list. */
+function nkt_gpt_par_0723_recipe_hashes( $recipe_ids ) {
+	$objects      = array();
+	$nutrition    = array();
+	$statuses     = array();
+	$identities   = array();
+	$components   = array();
+	$status_free  = array();
+	foreach ( array_map( 'absint', (array) $recipe_ids ) as $recipe_id ) {
+		$recipe                    = get_post( $recipe_id );
+		$manifest                  = nkt_gpt_par_0723_recipe_component_manifest( $recipe_id );
+		$objects[ $recipe_id ]     = isset( $manifest['object_hash'] ) ? $manifest['object_hash'] : '';
+		$nutrition[ $recipe_id ]   = nkt_gpt_par_0723_wprm_nutrition_hash( $recipe_id );
+		$statuses[ $recipe_id ]    = $recipe ? $recipe->post_status : null;
+		$identities[ $recipe_id ]  = $manifest ? array(
+			'literal_post_type'   => $manifest['literal_post_type'],
+			'literal_post_status' => $manifest['literal_post_status'],
+			'post_status_source'  => $manifest['post_status_source'],
+			'post_date_gmt'       => $manifest['post_date_gmt'],
+			'post_modified_gmt'   => $manifest['post_modified_gmt'],
+			'post_parent'         => $manifest['post_parent'],
+			'menu_order'          => $manifest['menu_order'],
+		) : array();
+		$components[ $recipe_id ] = isset( $manifest['component_hashes'] ) ? $manifest['component_hashes'] : array();
+		$status_free[ $recipe_id ] = isset( $manifest['status_independent_hash'] ) ? $manifest['status_independent_hash'] : '';
+	}
+	return array(
+		'object_hash_version'       => NKT_GPT_PAR_0723_RECIPE_HASH_VERSION,
+		'component_hash_version'    => NKT_GPT_PAR_0723_RECIPE_COMPONENT_VERSION,
+		'object_hashes'             => $objects,
+		'nutrition_hashes'          => $nutrition,
+		'statuses'                  => $statuses,
+		'identities'                => $identities,
+		'component_hashes'          => $components,
+		'status_independent_hashes' => $status_free,
+	);
+}
+
+/** Extract article media references while distinguishing alt-text-only edits. */
