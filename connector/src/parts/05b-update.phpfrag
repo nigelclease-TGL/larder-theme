@@ -1,0 +1,243 @@
+function nkt_gpt_par_0723_update( WP_REST_Request $request ) {
+	$guard = nkt_gpt_par_0723_version_guard( $request );
+	if ( is_wp_error( $guard ) ) {
+		return $guard;
+	}
+	$live_id  = absint( $request->get_param( 'live_post_id' ) );
+	$draft_id = absint( $request->get_param( 'draft_post_id' ) );
+	$pair     = nkt_gpt_par_0723_pair( $live_id, $draft_id );
+	if ( is_wp_error( $pair ) ) {
+		return $pair;
+	}
+	$baseline_info = nkt_gpt_par_0723_compatible_baseline( $draft_id );
+	$baseline = $baseline_info['baseline'];
+	if ( ! is_array( $baseline ) || empty( $baseline['live'] ) ) {
+		return new WP_Error( 'nkt_gpt_par_not_initialised', __( 'The protected article revision has not been initialised under connector 0.7.23.', 'nkt-gpt-connector' ), array( 'status' => 409 ) );
+	}
+	$validated_maps = nkt_gpt_par_0723_validate_recipe_guard_maps( $request );
+	if ( is_wp_error( $validated_maps ) ) {
+		return $validated_maps;
+	}
+	$current_live = nkt_gpt_par_0723_capture_live_state( $live_id );
+	$recipe_guard_evidence = nkt_gpt_par_0723_update_recipe_guard_evidence( $request, $baseline['live'], $current_live, $validated_maps );
+	if ( $recipe_guard_evidence['failed'] ) {
+		return new WP_Error(
+			'nkt_gpt_par_update_recipe_preflight_failed',
+			__( 'The protected draft update was blocked because one or more recipe guards failed.', 'nkt-gpt-connector' ),
+			array( 'status' => 409, 'failed_checks' => $recipe_guard_evidence['failed'], 'recipe_guard_evidence' => $recipe_guard_evidence )
+		);
+	}
+	if ( nkt_gpt_par_0723_hash( nkt_gpt_par_0723_baseline_comparison_state( $current_live ) ) !== nkt_gpt_par_0723_hash( nkt_gpt_par_0723_baseline_comparison_state( $baseline['live'] ) ) ) {
+		return new WP_Error( 'nkt_gpt_par_live_changed', __( 'The live protected baseline changed after revision creation.', 'nkt-gpt-connector' ), array( 'status' => 409, 'recipe_guard_evidence' => $recipe_guard_evidence ) );
+	}
+
+	$draft        = $pair['draft'];
+	$before_state = nkt_gpt_par_0723_capture_draft_state( $draft_id );
+	$operation_guards = nkt_gpt_par_0723_validate_operation_guards( $request, $baseline, $current_live, $before_state );
+	if ( $operation_guards['failed'] ) {
+		return new WP_Error(
+			'nkt_gpt_par_update_preflight_failed',
+			__( 'The protected draft update was blocked because one or more explicit baseline guards failed.', 'nkt-gpt-connector' ),
+			array( 'status' => 409, 'failed_checks' => $operation_guards['failed'], 'checks' => $operation_guards['checks'] )
+		);
+	}
+	$recipe_snapshots = nkt_gpt_par_0723_recipe_snapshots( $current_live['ordered_wprm_recipe_ids'] );
+	$before       = array( 'post_content' => $draft->post_content, 'post_excerpt' => $draft->post_excerpt );
+	$after        = $before;
+	$report       = array();
+	$replacements = (array) $request->get_param( 'article_replacements' );
+	if ( ! $replacements ) {
+		return new WP_Error( 'nkt_gpt_par_replacements_missing', __( 'At least one guarded article replacement is required.', 'nkt-gpt-connector' ), array( 'status' => 400 ) );
+	}
+	if ( count( $replacements ) > 50 ) {
+		return new WP_Error( 'nkt_gpt_par_replacements_too_many', __( 'No more than 50 guarded replacements may be supplied per request.', 'nkt-gpt-connector' ), array( 'status' => 400 ) );
+	}
+
+	foreach ( $replacements as $index => $replacement ) {
+		$field = isset( $replacement['field'] ) ? sanitize_key( $replacement['field'] ) : 'post_content';
+		if ( ! in_array( $field, (array) $baseline['allowed_article_scope'], true ) ) {
+			return new WP_Error( 'nkt_gpt_par_field_not_allowed', __( 'A replacement targeted an article field outside the approved scope.', 'nkt-gpt-connector' ), array( 'status' => 409, 'field' => $field ) );
+		}
+		$find     = isset( $replacement['find'] ) ? (string) $replacement['find'] : '';
+		$replace  = isset( $replacement['replace'] ) ? (string) $replacement['replace'] : '';
+		$expected = isset( $replacement['expected_matches'] ) ? absint( $replacement['expected_matches'] ) : 0;
+		if ( '' === $find || 1 > $expected ) {
+			return new WP_Error( 'nkt_gpt_par_replacement_invalid', __( 'Every replacement requires non-empty find text and a positive exact expected match count.', 'nkt-gpt-connector' ), array( 'status' => 400, 'index' => $index ) );
+		}
+		$actual = substr_count( $after[ $field ], $find );
+		if ( $actual !== $expected ) {
+			return new WP_Error( 'nkt_gpt_par_replacement_count_mismatch', __( 'A guarded article replacement did not match the exact expected count.', 'nkt-gpt-connector' ), array( 'status' => 409, 'index' => $index, 'field' => $field, 'expected_matches' => $expected, 'actual_matches' => $actual ) );
+		}
+		$after[ $field ] = str_replace( $find, $replace, $after[ $field ], $changed );
+		$report[]        = array(
+			'index'            => $index,
+			'field'            => $field,
+			'expected_matches' => $expected,
+			'actual_matches'   => $actual,
+			'replaced_matches' => $changed,
+			'find_hash'        => hash( 'sha256', $find ),
+			'replace_hash'     => hash( 'sha256', $replace ),
+		);
+	}
+
+	$result = nkt_gpt_par_0723_direct_article_write( $draft_id, array(
+		'post_content' => $after['post_content'],
+		'post_excerpt' => $after['post_excerpt'],
+	) );
+	if ( is_wp_error( $result ) ) {
+		return $result;
+	}
+	$after_state = nkt_gpt_par_0723_capture_draft_state( $draft_id );
+	$live_after_draft_write = nkt_gpt_par_0723_capture_live_state( $live_id );
+	$recipe_drift = is_wp_error( $live_after_draft_write )
+		? array( '_capture_error' => array( 'changed' => true, 'message' => $live_after_draft_write->get_error_message() ) )
+		: nkt_gpt_par_0723_recipe_drift_evidence( $current_live, $live_after_draft_write );
+	$recipe_side_effects = is_wp_error( $live_after_draft_write );
+	foreach ( $recipe_drift as $drift_row ) {
+		if ( is_array( $drift_row ) && ! empty( $drift_row['changed'] ) ) {
+			$recipe_side_effects = true;
+			break;
+		}
+	}
+	if ( $recipe_side_effects ) {
+		$recipe_restore = nkt_gpt_par_0723_restore_recipe_snapshots( $recipe_snapshots );
+		$draft_restore = nkt_gpt_par_0723_direct_article_write( $draft_id, $before );
+		$restored_live = nkt_gpt_par_0723_capture_live_state( $live_id );
+		$restored_draft = nkt_gpt_par_0723_capture_draft_state( $draft_id );
+		return new WP_Error(
+			'nkt_gpt_par_recipe_side_effect_on_update',
+			__( 'The guarded article update triggered protected recipe drift. Recipe snapshots and the exact draft content were restored.', 'nkt-gpt-connector' ),
+			array(
+				'status' => 500,
+				'recipe_writes_detected' => true,
+				'recipe_restoration_required' => true,
+				'draft_restoration_performed' => ! is_wp_error( $draft_restore ),
+				'recipe_restore' => $recipe_restore,
+				'recipe_drift' => $recipe_drift,
+				'restored_recipe_state_matches' => ! is_wp_error( $restored_live ) && nkt_gpt_par_0723_hash( $restored_live ) === nkt_gpt_par_0723_hash( $current_live ),
+				'restored_draft_content_hash' => is_wp_error( $restored_draft ) ? null : $restored_draft['content_hash'],
+				'replacement_manifest' => $report,
+			)
+		);
+	}
+	$change_policy = nkt_gpt_par_0723_change_policy( $request );
+	$policy_result = nkt_gpt_par_0723_change_policy_checks( $change_policy, $baseline['initial_draft'], $after_state );
+	$protected_checks = array(
+		'ordered_wprm_recipe_ids_preserved' => $after_state['ordered_wprm_recipe_ids'] === $baseline['live']['ordered_wprm_recipe_ids'],
+		'wprm_reference_count_preserved' => $after_state['wprm_reference_count'] === $baseline['live']['wprm_reference_count'],
+		'reusable_block_ids_preserved' => $after_state['reusable_block_ids'] === $baseline['live']['reusable_block_ids'],
+		'reusable_block_hashes_preserved' => $after_state['reusable_block_hashes'] === $baseline['live']['reusable_block_hashes'],
+		'unresolved_reusable_blocks_preserved' => $after_state['unresolved_reusable_blocks'] === $baseline['live']['unresolved_reusable_blocks'],
+		'amazon_destinations_preserved' => $after_state['amazon_destinations'] === $baseline['live']['amazon_destinations'],
+		'amazon_link_count_preserved' => $after_state['amazon_link_count'] === $baseline['live']['amazon_link_count'],
+		'affiliate_identifiers_preserved' => $after_state['affiliate_identifiers'] === $baseline['live']['affiliate_identifiers'],
+	);
+	foreach ( $policy_result['checks'] as $check_name => $passed ) {
+		$protected_checks[ $check_name ] = $passed;
+	}
+	$protected_failures = array_keys( array_filter( $protected_checks, static function ( $passed ) { return ! $passed; } ) );
+
+	if ( $protected_failures ) {
+		nkt_gpt_par_0723_direct_article_write( $draft_id, $before );
+		return new WP_Error(
+			'nkt_gpt_par_update_protected_field_changed',
+			__( 'The draft update exceeded its explicit article Nutrition or media authorisation and was rolled back.', 'nkt-gpt-connector' ),
+			array(
+				'status' => 409,
+				'draft_rolled_back' => true,
+				'draft_restoration_performed' => true,
+				'recipe_writes_detected' => false,
+				'recipe_restoration_required' => false,
+				'failed_checks' => $protected_failures,
+				'checks' => $protected_checks,
+				'replacement_manifest' => $report,
+				'authorised_change_policy' => $change_policy,
+				'media_diff' => $policy_result['media_diff'],
+			)
+		);
+	}
+
+	if ( ! empty( $baseline_info['migration_required'] ) ) {
+		$baseline['migrated_from_connector_version'] = (string) $baseline_info['source_version'];
+		$baseline['connector_version'] = NKT_GPT_PAR_0723_VERSION;
+		$baseline['migrated_at'] = gmdate( DATE_ATOM );
+		$baseline['live'] = $current_live;
+		$baseline['initial_draft'] = $before_state;
+		$baseline['protected_baseline_valid'] = true;
+		$baseline['baseline_migration_required'] = false;
+		update_post_meta( $draft_id, NKT_GPT_PAR_0723_BASELINE_META, $baseline );
+	}
+
+	$lifecycle = nkt_gpt_par_0723_lifecycle( $draft_id );
+	$lifecycle['update_status']       = 'updated';
+	$lifecycle['review_status']       = 'ready_for_review';
+	$lifecycle['audit_status']        = 'stale';
+	$lifecycle['application_status']  = 'not_applied';
+	$lifecycle['replacement_manifest']= $report;
+	$lifecycle['authorised_change_policy'] = $change_policy;
+	$lifecycle['authorised_change_policy_hash'] = nkt_gpt_par_0723_hash( $change_policy );
+	$lifecycle['authorised_after_state'] = array(
+		'content_hash' => $after_state['content_hash'],
+		'excerpt_hash' => $after_state['excerpt_hash'],
+		'nutrition_section_hash' => $after_state['nutrition_section_hash'],
+		'serving_label' => $after_state['serving_label'],
+		'serving_label_hash' => $after_state['serving_label_hash'],
+		'media_reference_hash' => $after_state['media_reference_hash'],
+		'media_alt_text_hash' => $after_state['media_alt_text_hash'],
+		'media_non_alt_hash' => $after_state['media_non_alt_hash'],
+		'media_manifest' => $after_state['media_manifest'],
+		'amazon_manifest_hash' => $after_state['amazon_manifest_hash'],
+		'reusable_block_ids' => $after_state['reusable_block_ids'],
+		'reusable_block_hashes' => $after_state['reusable_block_hashes'],
+	);
+	$lifecycle['authorised_media_diff'] = $policy_result['media_diff'];
+	$lifecycle['draft_content_hash']  = $after_state['content_hash'];
+	$lifecycle['draft_excerpt_hash']  = $after_state['excerpt_hash'];
+	$lifecycle['updated_by_user_id']  = get_current_user_id();
+	nkt_gpt_par_0723_save_lifecycle( $draft_id, $lifecycle );
+	update_post_meta( $draft_id, '_nkt_revision_article_content_hash', $after_state['content_hash'] );
+	update_post_meta( $draft_id, '_nkt_revision_article_replacement_report', $report );
+	update_post_meta( $draft_id, '_nkt_revision_review_status', 'ready_for_review' );
+
+	return nkt_gpt_connector_no_store( new WP_REST_Response( array(
+		'message'             => __( 'The isolated protected article draft was updated by exact guarded replacements. No live post or recipe object was changed.', 'nkt-gpt-connector' ),
+		'connector_version'   => NKT_GPT_PAR_0723_VERSION,
+		'live_post_id'        => $live_id,
+		'draft_post_id'       => $draft_id,
+		'before_draft_state'  => $before_state,
+		'after_draft_state'   => $after_state,
+		'replacement_manifest'=> $report,
+		'authorised_change_policy' => $change_policy,
+		'authorised_change_policy_hash' => $lifecycle['authorised_change_policy_hash'],
+		'media_diff' => $policy_result['media_diff'],
+		'protected_checks' => $protected_checks,
+		'expected_recipe_statuses' => $validated_maps['expected_recipe_statuses'],
+		'actual_recipe_statuses' => $live_after_draft_write['recipe_statuses'],
+		'expected_recipe_object_hashes' => $validated_maps['expected_recipe_object_hashes'],
+		'actual_recipe_object_hashes' => $live_after_draft_write['recipe_object_hashes'],
+		'expected_status_independent_recipe_hashes' => $validated_maps['expected_status_independent_recipe_hashes'],
+		'actual_status_independent_recipe_hashes' => $live_after_draft_write['recipe_status_independent_hashes'],
+		'wprm_nutrition_hashes_before' => $current_live['wprm_nutrition_hashes'],
+		'wprm_nutrition_hashes_after' => $live_after_draft_write['wprm_nutrition_hashes'],
+		'recipe_guard_evidence' => $recipe_guard_evidence,
+		'recipe_writes_detected' => false,
+		'recipe_restoration_required' => false,
+		'draft_restoration_performed' => false,
+		'exact_matches_found' => array_sum( array_column( $report, 'actual_matches' ) ),
+		'exact_replacements_made' => array_sum( array_column( $report, 'replaced_matches' ) ),
+		'update_persisted' => true,
+		'baseline_migrated_from' => ! empty( $baseline_info['migration_required'] ) ? (string) $baseline_info['source_version'] : null,
+		'baseline_migration_required' => false,
+		'draft_content_hash_before' => $before_state['content_hash'],
+		'draft_content_hash_after' => $after_state['content_hash'],
+		'live_post_changed'   => false,
+		'recipe_content_changed' => false,
+		'draft_article_nutrition_changed' => $after_state['nutrition_section_hash'] !== $before_state['nutrition_section_hash'],
+		'live_nutrition_changed' => false,
+		'wprm_nutrition_changed' => false,
+		'nutrition_changed'   => $after_state['nutrition_section_hash'] !== $before_state['nutrition_section_hash'],
+		'all_protected_conditions_passed' => true,
+	), 200 ) );
+}
+
+/** Build a complete audit record without writing. */
