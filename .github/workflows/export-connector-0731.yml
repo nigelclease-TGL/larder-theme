@@ -30,13 +30,16 @@ jobs:
         with:
           ref: audit-2026-07-24
           path: audit-2026-07-24
-      - name: Upload connector source snapshots
+      - name: Remove checkout metadata
+        run: |
+          rm -rf current/.git connector-0723/.git audit-2026-07-24/.git
+      - name: Upload repository source snapshots
         uses: actions/upload-artifact@v4
         with:
           name: connector-0.7.31-development-source
           path: |
-            current/connector
-            connector-0723/connector
-            audit-2026-07-24/connector
+            current
+            connector-0723
+            audit-2026-07-24
           if-no-files-found: error
           retention-days: 1
