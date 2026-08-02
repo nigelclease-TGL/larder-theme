@@ -36,6 +36,12 @@ jobs:
           base64 -d .github/connector-0731-review-fixes.patch.gz.b64 > /tmp/connector-0731-review-fixes.patch.gz
           test "$(sha256sum /tmp/connector-0731-review-fixes.patch.gz | awk '{print $1}')" = "656ceab819b9841426bcd8c7366c00d3e2c700f38490b2c6d5cb6396f177241c"
           gzip -dc /tmp/connector-0731-review-fixes.patch.gz > /tmp/connector-0731-review-fixes.patch
+          sed -i \
+            -e 's#mnt/data/08g-before-review-fixes.phpfrag#connector/src/parts/08g-recipe-name-only-revision.phpfrag#g' \
+            -e 's#mnt/data/connector0731_work/src/parts/08g-recipe-name-only-revision.phpfrag#connector/src/parts/08g-recipe-name-only-revision.phpfrag#g' \
+            -e 's#mnt/data/test-recipe-before-review-fixes.py#connector/tests/test_recipe_name_only_0731.py#g' \
+            -e 's#mnt/data/connector0731_work/tests/test_recipe_name_only_0731.py#connector/tests/test_recipe_name_only_0731.py#g' \
+            /tmp/connector-0731-review-fixes.patch
           git apply --check /tmp/connector-0731-review-fixes.patch
           git apply /tmp/connector-0731-review-fixes.patch
           rm -f .github/connector-0731-review-fixes.patch.gz.b64
