@@ -35,7 +35,8 @@ def assemble() -> str:
 \t$old_marker      = \"/* NKT protected article lifecycle 0.7.25 */\";
 \t$new_marker      = \"/* NKT protected article lifecycle 0.7.26 */\";
 """
-    new_definitions = """\t$source_constant_pattern = \"~define\\s*\\(\\s*['\\\"]NKT_GPT_CONNECTOR_VERSION['\\\"]\\s*,\\s*['\\\"]0\\.7\\.25['\\\"]\\s*\\)\\s*;~\";
+    new_definitions = """\t/* Semantic source compatibility: protected article lifecycle 0.7.25. */
+\t$source_constant_pattern = \"~define\\s*\\(\\s*['\\\"]NKT_GPT_CONNECTOR_VERSION['\\\"]\\s*,\\s*['\\\"]0\\.7\\.25['\\\"]\\s*\\)\\s*;~\";
 \t$target_constant_pattern = \"~define\\s*\\(\\s*['\\\"]NKT_GPT_CONNECTOR_VERSION['\\\"]\\s*,\\s*['\\\"]0\\.7\\.26['\\\"]\\s*\\)\\s*;~\";
 \t$source_loader_pattern   = \"~require_once\\s+__DIR__\\s*\\.\\s*['\\\"]/protected-lifecycle-0\\.7\\.25\\.php['\\\"]\\s*;~\";
 \t$target_loader_pattern   = \"~require_once\\s+__DIR__\\s*\\.\\s*['\\\"]/protected-lifecycle-0\\.7\\.26\\.php['\\\"]\\s*;~\";
