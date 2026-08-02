@@ -28,8 +28,16 @@ def build_source() -> Path:
     required = [
         "const NKT_GPT_PAR_0723_VERSION         = '0.7.30';",
         'function nkt_gpt_par_0730_inspect_reusable_block',
-        "'exists_accessible'", "'exists_wrong_post_type'", "'missing_or_deleted'", "'exists_inaccessible'",
-        "'/reusable-block-evidence'", "'writes_attempted'        => false",
+        'function nkt_gpt_par_0730_reusable_block_evidence',
+        "'exists_accessible'",
+        "'exists_wrong_post_type'",
+        "'missing_or_deleted'",
+        "'exists_inaccessible'",
+        "'/reusable-block-evidence'",
+        "'writes_attempted'",
+        "'writes_performed'",
+        "'inspectReusableBlockEvidence' => true",
+        "'protected_baseline_changed' => false",
     ]
     missing = [item for item in required if item not in inherited]
     if missing:
@@ -110,8 +118,13 @@ def build_updater() -> Path:
     required = [
         "NKT_GPT_UPGRADER_0730_SOURCE_VERSION = '0.7.29'",
         "NKT_GPT_UPGRADER_0730_TARGET_VERSION = '0.7.30'",
-        'protected-lifecycle-0.7.29.php', 'protected-lifecycle-0.7.30.php', 'openapi-0.7.30.json',
-        'Version: 0.7.30', 'restore_all', 'opcache_invalidate', 'wp_cache_flush',
+        'protected-lifecycle-0.7.29.php',
+        'protected-lifecycle-0.7.30.php',
+        'openapi-0.7.30.json',
+        'Version: 0.7.30',
+        'restore_all',
+        'opcache_invalidate',
+        'wp_cache_flush',
     ]
     missing = [item for item in required if item not in inherited]
     if missing:
@@ -132,6 +145,7 @@ def build_release() -> tuple[Path, Path]:
         (source, 'protected-lifecycle-0.7.30.php'),
         (openapi, 'openapi-0.7.30.json'),
         (ROOT / 'CHANGELOG.md', 'CHANGELOG.txt'),
+        (ROOT / 'CHANGELOG-0.7.30.md', 'CHANGELOG-0.7.30.txt'),
         (ROOT / 'README.md', 'README.txt'),
         (ROOT / 'VALIDATION-0.7.30.md', 'VALIDATION.txt'),
     ]
