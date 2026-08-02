@@ -1,5 +1,6 @@
 # NKT GPT Connector 0.7.30 changelog
 
+- Hotfixes the one-time updater so its preflight, header replacement and lifecycle-loader regular expressions consistently target the installed 0.7.29 source; updater package revision is 0.7.30.2.
 - Adds `inspectReusableBlockEvidence`, a standalone read-only action for arbitrary WordPress object IDs expected to be reusable blocks (`wp_block`).
 - Uses canonical raw server-side `get_post` lookup rather than the ordinary-post REST endpoint.
 - Distinguishes accessible reusable blocks, existing wrong-post-type objects, access denial, and missing/deleted IDs.
