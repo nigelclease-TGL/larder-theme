@@ -1,16 +1,13 @@
 name: Apply Connector 0.7.31 Payload
 
 on:
-  pull_request:
-    branches: [ main ]
-    types: [ opened, synchronize, reopened ]
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
   apply:
-    if: github.head_ref == 'connector-0.7.31-recipe-name-only-revision'
     runs-on: ubuntu-latest
     steps:
       - name: Check out development branch
@@ -22,28 +19,11 @@ jobs:
       - name: Extract and verify committed payload
         shell: bash
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          import base64
-          import hashlib
-          import re
-
-          text = Path('.github/workflows/export-connector-0731.yml').read_text(encoding='utf-8')
-          candidates = re.findall(r'H4sI[A-Za-z0-9+/=]+', text)
-          if not candidates:
-              raise SystemExit('No gzip base64 payload found')
-          payload = max(candidates, key=len)
-          if payload.endswith('PAYLOAD'):
-              payload = payload[:-7]
-          payload += '=' * (-len(payload) % 4)
-          archive = base64.b64decode(payload, validate=True)
-          digest = hashlib.sha256(archive).hexdigest()
-          expected = '6515c3054731e0a3007476b77be6771f9ce9f03b6d5e9758e5b4065e6a215725'
-          if digest != expected:
-              raise SystemExit(f'Payload SHA mismatch: {digest}')
-          Path('/tmp/connector-0731.tar.gz').write_bytes(archive)
-          PY
+          cat .github/connector-0731-payload/part-*.txt > /tmp/connector-0731.b64
+          base64 -d /tmp/connector-0731.b64 > /tmp/connector-0731.tar.gz
+          test "$(sha256sum /tmp/connector-0731.tar.gz | awk '{print $1}')" = "6515c3054731e0a3007476b77be6771f9ce9f03b6d5e9758e5b4065e6a215725"
           tar -xzf /tmp/connector-0731.tar.gz -C .
+          rm -rf .github/connector-0731-payload
           rm -f .github/workflows/export-connector-0731.yml .github/workflows/apply-connector-0731.yml
 
       - name: Validate connector 0.7.31
