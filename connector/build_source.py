@@ -20,7 +20,7 @@ FRAGMENTS = [
     ROOT / 'src' / 'parts' / '08a-cleanup.phpfrag',
     ROOT / 'src' / 'parts' / '08b-routes.phpfrag',
 ]
-OUTPUT = ROOT / 'artifacts' / 'generated' / 'protected-lifecycle-0.7.26.php'
+OUTPUT = ROOT / 'artifacts' / 'generated' / 'protected-lifecycle-0.7.27.php'
 
 OLD_NUTRIENT_BLOCK = """\t$nutrient_count = 0;
 \tforeach ( array( 'Calories', 'Total Fat', 'Carbohydrates', 'Carbs', 'Sugars', 'Protein', 'Sodium', 'Fiber', 'Fibre' ) as $label ) {
@@ -40,12 +40,18 @@ NEW_NUTRIENT_BLOCK = """\t$nutrient_evidence = nkt_gpt_par_0723_structured_nutri
 def assemble() -> str:
     text = ''.join(path.read_text(encoding='utf-8') for path in FRAGMENTS)
     if text.count(OLD_NUTRIENT_BLOCK) != 1:
-        raise RuntimeError('Expected exactly one 0.7.25 nutrient-label counter block')
+        raise RuntimeError('Expected exactly one inherited colon-only nutrient-label counter block')
     text = text.replace(OLD_NUTRIENT_BLOCK, NEW_NUTRIENT_BLOCK, 1)
     text = text.replace(
         "array( '0.7.23', '0.7.24', '0.7.25' )",
-        "array( '0.7.23', '0.7.24', '0.7.25', '0.7.26' )",
+        "array( '0.7.23', '0.7.24', '0.7.25', '0.7.26', '0.7.27' )",
     )
+    text = text.replace(
+        "array( '0.7.23', '0.7.24', '0.7.25', '0.7.26' )",
+        "array( '0.7.23', '0.7.24', '0.7.25', '0.7.26', '0.7.27' )",
+    )
+    if "const NKT_GPT_PAR_0723_VERSION         = '0.7.27';" not in text:
+        raise RuntimeError('Generated lifecycle does not target 0.7.27')
     return text
 
 

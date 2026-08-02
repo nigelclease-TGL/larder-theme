@@ -34,7 +34,7 @@ jobs:
           python-version: '3.12'
 
       - name: Run isolated connector tests
-        run: python connector/tests/test_connector_0726.py
+        run: python connector/tests/test_connector_0727.py
 
       - name: Build deterministic updater package
         run: bash connector/build.sh
@@ -42,11 +42,11 @@ jobs:
       - name: Upload connector release artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: nkt-gpt-connector-0.7.26
+          name: nkt-gpt-connector-0.7.27
           path: |
-            connector/artifacts/nkt-gpt-connector-0.7.26-structured-nutrient-evidence-upgrader.zip
-            connector/artifacts/nkt-gpt-connector-0.7.26-structured-nutrient-evidence-upgrader.sha256.txt
-            connector/artifacts/generated/openapi-0.7.26.json
+            connector/artifacts/nkt-gpt-connector-0.7.27-colon-tolerant-structured-nutrient-evidence-upgrader.zip
+            connector/artifacts/nkt-gpt-connector-0.7.27-colon-tolerant-structured-nutrient-evidence-upgrader.sha256.txt
+            connector/artifacts/generated/openapi-0.7.27.json
             connector/VALIDATION.md
           if-no-files-found: error
           retention-days: 30
