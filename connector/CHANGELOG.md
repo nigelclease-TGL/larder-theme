@@ -1,5 +1,22 @@
 # Changelog
 
+## NKT GPT Connector 0.7.29
+
+- Adds the read-only paginated `inventoryLegacyConnectorDraftReconciliation` action for drafts carrying connector metadata signals.
+- Requires a published source article, exact draft status, protected baseline or lifecycle structure, at least three independent connector signals and consistent source/draft IDs before legacy ownership can be considered reconcilable.
+- Never infers ownership or obsolescence from titles, authors, slugs, dates or content similarity.
+- Limits reconciliation eligibility to drafts currently blocked only by `preserve_manual_or_unknown` and `preserve_required_workflow`.
+- Continues to block hard-preserved, active, initialised, audited, approved, not-applied, applied, failure, clone, ledger and intentional-multi-recipe records.
+- Returns deterministic reconciliation, classification and ownership hashes plus exact newer retained connector-managed successor IDs for the same source article.
+- Adds `reconcileLegacyConnectorDraftSupersession`, requiring exact obsolete/superseding pairs, two explicit confirmations and complete current evidence, status, lifecycle, ledger, clone and failure-evidence guards.
+- Rejects the entire batch before writing when any pair fails, when IDs are duplicated, or when a draft appears as both obsolete and superseding in the same batch.
+- Supports a write-free dry run.
+- A non-dry-run writes only connector ownership, obsolete disposition, cleanup reason, superseding-draft ID and an audit record to the obsolete draft.
+- Re-runs the unchanged cleanup classifier and requires `safe_to_trash: true`; exact metadata snapshots are restored if verification fails.
+- Contains no article-content write, Trash invocation, archive action, permanent deletion or empty-Trash capability in the reconciliation action.
+- Retains all 0.7.28 cleanup inventory, native Trash, hard-preservation and protected article/recipe/WPRM/media/link safeguards.
+- Adds a guarded 0.7.28-to-0.7.29 updater and expands the compact OpenAPI schema from 25 to 27 actions.
+
 ## NKT GPT Connector 0.7.28
 
 - Adds stable explicit connector ownership metadata for newly initialised protected article drafts.
@@ -57,7 +74,7 @@
 - Recursively scans parsed Gutenberg blocks and falls back to raw H3 markup with nested-markup removal, HTML-entity decoding and whitespace normalization.
 - Reports serving-label source, block path, parsed Nutrition-section count, matching Serving-H3 count, fallback acceptance and rejection reason.
 - Rejects zero, ambiguous and multi-Nutrition-section fallback states without guessing.
-- Keeps existing 0.7.23 protected drafts valid by excluding only parser-derived serving evidence from baseline equality while retaining content, Nutrition, recipe, media, reusable-block, metadata, Amazon and affiliate guards.
+- Keeps existing 0.7.23 protected drafts valid by excluding only parser-derived serving evidence from baseline equality while retaining content, Nutrition, recipe, media, reusable blocks, metadata, Amazon and affiliate guards.
 - Adds a guarded 0.7.23-to-0.7.24 updater with primary/lifecycle backups, exact loader replacement, opcode-cache invalidation, SHA-256 verification, automatic restoration and self-deactivation.
 - Keeps the complete compact OpenAPI schema at 23 actions.
 
