@@ -57,11 +57,42 @@ def _operation(schema: dict, path: str, method: str) -> dict:
         raise RuntimeError(f'Missing OpenAPI operation {method.upper()} {path}') from exc
 
 
+def _require_body_connector_version(operation: dict) -> None:
+    body = operation['requestBody']['content']['application/json']['schema']
+    body.setdefault('properties', {})['connector_version'] = {
+        'type': 'string',
+        'enum': [VERSION],
+        'description': 'Exact active connector version required by the protected runtime guard.',
+    }
+    required = body.setdefault('required', [])
+    if 'connector_version' not in required:
+        required.insert(0, 'connector_version')
+
+
+def _require_query_connector_version(operation: dict) -> None:
+    parameters = operation.setdefault('parameters', [])
+    existing = [item for item in parameters if item.get('name') == 'connector_version']
+    if existing:
+        existing[0].update({
+            'in': 'query',
+            'required': True,
+            'schema': {'type': 'string', 'enum': [VERSION]},
+        })
+        return
+    parameters.insert(0, {
+        'name': 'connector_version',
+        'in': 'query',
+        'required': True,
+        'schema': {'type': 'string', 'enum': [VERSION]},
+        'description': 'Exact active connector version required by the protected runtime guard.',
+    })
+
+
 def build_openapi() -> Path:
     schema = json.loads(build_0730_openapi().read_text(encoding='utf-8').replace('0.7.30', '0.7.31'))
     schema['info'].update({
         'title': "Nigel's Kitchen Table GPT Connector - Compact Complete 0.7.31",
-        'version': '0.7.31-schema.1',
+        'version': '0.7.31-schema.2',
         'description': (
             'Complete compact schema for connector 0.7.31. Retains all existing actions and adds the exact '
             'recipe_name_only scope to the existing protected complete-recipe clone, audit, review and apply lifecycle.'
@@ -69,6 +100,7 @@ def build_openapi() -> Path:
     })
 
     start = _operation(schema, '/workflow/revisions/start', 'post')
+    _require_body_connector_version(start)
     start_schema = start['requestBody']['content']['application/json']['schema']
     start_props = start_schema['properties']
     start_props['correction_scope']['enum'] = ['nutrition_section_only', 'recipe_name_only']
@@ -83,25 +115,47 @@ def build_openapi() -> Path:
     )
 
     update = _operation(schema, '/workflow/revisions/recipes/update', 'post')
+    _require_body_connector_version(update)
     update['summary'] = 'Update isolated cloned recipe revisions within their protected scope'
     update['description'] = (
         'Uses the stored protected scope. recipe_name_only accepts exactly one item and only draft_post_id, cloned_recipe_id and a non-empty changed name; every other field is rejected before writing and unexpected drift is restored.'
     )
 
     audit = _operation(schema, '/workflow/revisions/recipes/audit', 'get')
+    _require_query_connector_version(audit)
     audit['description'] = (
         'Audits the current clone and draft. For recipe_name_only, only the approved name and exact article recipe-ID substitution may differ; source recipe, Nutrition and every other protected component must remain unchanged.'
     )
 
     review = _operation(schema, '/workflow/revisions/review', 'post')
+    _require_body_connector_version(review)
     review['description'] = (
         'Records the existing review decision. Approval for recipe_name_only requires a fresh passing audit whose current source, clone and draft state hash still matches exactly.'
     )
 
     apply = _operation(schema, '/workflow/revisions/apply', 'post')
+    _require_body_connector_version(apply)
     apply['description'] = (
         'Applies one approved protected pair once. recipe_name_only substitutes only the recipe ID, retains the source and draft, verifies the target name and all protected fields, and restores exact snapshots on failure.'
     )
+
+    body_guard_operations = {
+        'startCompleteRecipeRevision': start,
+        'updateClonedRecipeRevisions': update,
+        'reviewRecipeRevision': review,
+        'applyCompleteRecipeRevision': apply,
+    }
+    for operation_id, operation in body_guard_operations.items():
+        body = operation['requestBody']['content']['application/json']['schema']
+        version_property = body.get('properties', {}).get('connector_version', {})
+        if 'connector_version' not in body.get('required', []) or version_property.get('enum') != [VERSION]:
+            raise RuntimeError(f'{operation_id} must require connector_version {VERSION}')
+    audit_version_parameters = [
+        item for item in audit.get('parameters', [])
+        if item.get('name') == 'connector_version' and item.get('in') == 'query'
+    ]
+    if len(audit_version_parameters) != 1 or not audit_version_parameters[0].get('required') or audit_version_parameters[0].get('schema', {}).get('enum') != [VERSION]:
+        raise RuntimeError(f'auditClonedRecipeRevision must require connector_version {VERSION}')
 
     operations = []
     violations = []
