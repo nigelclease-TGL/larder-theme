@@ -108,6 +108,13 @@ def build_openapi() -> Path:
 
 def build_updater() -> Path:
     inherited = build_0729_updater().read_text(encoding='utf-8')
+
+    # The inherited updater contains both literal versions and escaped versions
+    # inside PHP regular expressions. Replace both forms deliberately so the
+    # runtime guard and the actual replacements target the same source version.
+    inherited = inherited.replace(r'0\.7\.29', '__NKT_TARGET_ESCAPED__')
+    inherited = inherited.replace(r'0\.7\.28', r'0\.7\.29')
+    inherited = inherited.replace('__NKT_TARGET_ESCAPED__', r'0\.7\.30')
     inherited = inherited.replace('0.7.29', '__NKT_TARGET__').replace('0.7.28', '0.7.29').replace('__NKT_TARGET__', '0.7.30')
     inherited = inherited.replace('0729', '0730')
     inherited = inherited.replace('Guarded Legacy Draft Reconciliation Upgrader', 'Reusable Block Object Evidence Upgrader')
@@ -115,13 +122,24 @@ def build_updater() -> Path:
         'with read-only legacy connector evidence and exact-pair guarded ownership, supersession, and obsolescence metadata reconciliation.',
         'with standalone read-only reusable-block object evidence and no protected lifecycle write changes.',
     )
+    inherited = inherited.replace(
+        "'NKT GPT Connector 0.7.29 Connector Draft Ownership and Guarded Trash Upgrader'",
+        "'NKT GPT Connector 0.7.29 Guarded Legacy Draft Reconciliation Upgrader'",
+    )
+    inherited = inherited.replace('Version: 0.7.30.1', 'Version: 0.7.30.2')
+
     required = [
         "NKT_GPT_UPGRADER_0730_SOURCE_VERSION = '0.7.29'",
         "NKT_GPT_UPGRADER_0730_TARGET_VERSION = '0.7.30'",
         'protected-lifecycle-0.7.29.php',
         'protected-lifecycle-0.7.30.php',
         'openapi-0.7.30.json',
-        'Version: 0.7.30',
+        'Version: 0.7.30.2',
+        r'Version:\s*0\.7\.29\s*$',
+        r'Version:\s*)0\.7\.29(\s*$)',
+        r'NKT protected article lifecycle 0\.7\.29',
+        r"protected-lifecycle-0\.7\.29\.php",
+        "'NKT GPT Connector 0.7.29 Guarded Legacy Draft Reconciliation Upgrader'",
         'restore_all',
         'opcache_invalidate',
         'wp_cache_flush',
@@ -129,6 +147,10 @@ def build_updater() -> Path:
     missing = [item for item in required if item not in inherited]
     if missing:
         raise RuntimeError('0.7.30 updater missing: ' + ', '.join(missing))
+    stale = ['0.7.28', r'0\.7\.28']
+    found = [item for item in stale if item in inherited]
+    if found:
+        raise RuntimeError('0.7.30 updater contains stale source markers: ' + ', '.join(found))
     output = GENERATED / 'nkt-gpt-connector-upgrader-0.7.30.php'
     output.write_text(inherited, encoding='utf-8')
     return output
