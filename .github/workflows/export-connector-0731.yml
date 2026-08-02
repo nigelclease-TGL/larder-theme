@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - connector-0.7.31-recipe-name-only-revision
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
