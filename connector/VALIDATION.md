@@ -4,6 +4,17 @@
 
 Isolated source, schema, generated-updater, helper-runtime, protected-policy, packaging and syntax validation only. No live WordPress site was inspected or mutated.
 
+## Results
+
+- Static/source/schema/updater checks: **67/67 passed**
+- Isolated PHP runtime checks with WordPress mocks: **25/25 passed**
+- Generated updater PHP syntax: passed
+- Generated lifecycle PHP syntax: passed
+- OpenAPI: valid compact JSON, **23 operations**, no `allOf`, `oneOf` or `anyOf`
+- Deterministic updater archive: integrity verified with `unzip -tq`
+- Connector Check: passed
+- Theme Check: passed
+
 ## Production-shaped evidence
 
 The positive fixture reproduces the confirmed article structure:
@@ -18,7 +29,7 @@ The positive fixture reproduces the confirmed article structure:
 - one 2,000-calorie basis marker;
 - zero sections from the legacy Nutrition parser.
 
-Expected result: five distinct value-backed nutrient labels and accepted source `unique_article_serving_h3_with_unique_nutrition_presentation`.
+The isolated result is five distinct value-backed nutrient labels and accepted source `unique_article_serving_h3_with_unique_nutrition_presentation`.
 
 ## Structured nutrient evidence coverage
 
@@ -58,10 +69,6 @@ Expected result: five distinct value-backed nutrient labels and accepted source 
 ## Action-count decision
 
 The compact schema remains at **23 actions**. No new public action is required.
-
-## Results
-
-Final test totals, syntax results, deterministic package integrity and checksum are recorded by the Connector Check workflow and PR description before deployment.
 
 ## Limitation
 
