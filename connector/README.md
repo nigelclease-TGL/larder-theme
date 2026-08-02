@@ -1,52 +1,62 @@
-# NKT GPT Connector 0.7.28 source
+# NKT GPT Connector 0.7.29 source
 
-This directory extends connector 0.7.27 to 0.7.28 while retaining the internal 0723 lifecycle function and metadata names required to resume existing protected drafts safely.
+This directory extends connector 0.7.28 to 0.7.29 while retaining the internal 0723 lifecycle function and metadata names required to resume existing protected drafts safely.
 
-## Connector-managed draft ownership
+## Why 0.7.29 exists
 
-Newly initialised protected article drafts receive stable connector ownership metadata after the protected baseline and lifecycle are complete. The ownership bundle records the connector identity and creation version, workflow type, protected revision ID, source live post, timestamp, lifecycle/review/application states, supersession links, linked clone and failure-evidence IDs, programme-ledger state and active-protection state.
+The complete 0.7.28 live cleanup inventory found 270 article drafts but no `safe_to_trash: true` rows. Most drafts were correctly preserved as manual or ownership-ambiguous, and no record contained the explicit obsolete disposition plus valid superseding connector draft required by the existing cleanup classifier.
 
-Legacy ownership is accepted only when the draft has a mutually consistent source-live-post association, protected workflow type, protected baseline and protected lifecycle. Titles, authors, dates, duplicate-looking content and draft status are never sufficient. Ambiguous drafts remain `preserve_manual_or_unknown`.
+Connector 0.7.29 adds a separate reconciliation stage. It does not weaken 0.7.28 cleanup classification and it does not infer obsolescence from titles, authors, slugs, dates or content similarity.
 
-## Read-only cleanup inventory
+## Read-only legacy reconciliation inventory
 
-`inventoryConnectorManagedDraftCleanup` is a paginated GET action. It returns deterministic ownership and cleanup evidence for every inspected article draft, including:
+`inventoryLegacyConnectorDraftReconciliation` is a paginated GET action restricted to article drafts carrying connector metadata signals. Each row reports:
 
-- WordPress status and source live post;
-- ownership proof and evidence source;
-- lifecycle, review and application status;
-- active protected-draft state;
-- complete programme-ledger reference state;
+- exact source-live-post, protected-baseline, protected-lifecycle and workflow signals;
+- baseline, lifecycle, ownership, classification and reconciliation hashes;
+- source, lifecycle and draft-ID consistency failures;
+- current review, application, active-protection and programme-ledger state;
 - linked recipe-clone and failure-evidence IDs;
-- supersession and conclusive-obsolescence state;
-- preservation reasons;
-- `safe_to_trash` and classification/ownership hashes.
+- current preservation reasons;
+- whether ownership can be reconciled without inference;
+- whether the draft is otherwise blocked only by `preserve_manual_or_unknown` and `preserve_required_workflow`;
+- exact newer connector-managed drafts for the same source that are retained and may be proposed as successors.
 
-The inventory fails closed. An unavailable or incomplete programme-ledger scan produces `unknown`, which blocks cleanup.
+A draft is not eligible when it is hard-preserved, programme-ledger referenced, active, initialised, audited, approved, not-applied, applied, failure evidence, clone-linked, intentional-multi-recipe evidence, already safe to Trash, structurally inconsistent, or missing sufficient independent connector evidence.
 
-## Guarded native WordPress Trash
+## Guarded exact-pair reconciliation
 
-`trashConnectorManagedArticleDrafts` accepts only an exact draft-ID allowlist. Every ID must repeat the latest inventory evidence through required status, ownership, lifecycle, ledger, active-protection, clone/evidence and classification-hash maps. The whole batch is rejected before writing if any guard differs or any draft is not `safe_to_trash: true`.
+`reconcileLegacyConnectorDraftSupersession` accepts one to 100 exact obsolete/superseding draft pairs. Every pair must include all current reconciliation, classification, ownership, WordPress-status, review, application, programme-ledger, clone and failure-evidence guards from the immediately preceding inventory.
 
-A non-dry-run operation uses `wp_trash_post` only. It does not archive, permanently delete, empty Trash, process titles or accept an unrestricted all-drafts selector. If a native Trash write fails after earlier IDs were processed, the action attempts to restore those IDs with `wp_untrash_post`.
+The whole batch is rejected before writing when:
 
-## Hard preservation
+- either confirmation is absent;
+- an ID is missing, duplicated or used as both obsolete and superseding in the same batch;
+- any current hash or status differs;
+- the obsolete draft has any preservation reason beyond the two reconciliation-only blockers;
+- the proposed successor is not a newer, retained, connector-owned draft for the same source article;
+- the source, baseline or lifecycle evidence is inconsistent;
+- the supersession reason is empty.
 
-The protected Pumpkin Chocolate Chip Cookies, Giant Flat Chocolate Chunk Cookies and Spiced Ginger & Chocolate Loaf Cake workflow objects are hard-preserved by ID. The general classifier also preserves active, initialised, audited, approved, not-applied, applied, rejected/failure, clone-linked, ledger-linked, intentional multi-recipe and manually created or ownership-ambiguous records.
+A dry run performs no write. A successful non-dry-run writes only explicit connector ownership, obsolete disposition, cleanup reason, superseding-draft ID and an audit record to the obsolete draft. It then invokes the unchanged 0.7.28 classifier and requires `safe_to_trash: true` with classification `eligible_obsolete_connector_draft`. If verification fails, exact prior metadata snapshots are restored where possible.
 
-## Existing protections
+This action never edits article content, live posts, recipes, WPRM Nutrition, media, reusable blocks, links, Amazon destinations or affiliate identifiers. It never invokes WordPress Trash, archive or permanent deletion.
 
-The 0.7.27 colon-tolerant structured nutrient evidence fix and all existing content, Nutrition, recipe, WPRM Nutrition, media, reusable-block, metadata, Amazon, affiliate, exact-replacement, audit and rollback protections remain included. Stored protected baselines through 0.7.28 remain readable.
+## Existing cleanup protections
+
+`inventoryConnectorManagedDraftCleanup` and `trashConnectorManagedArticleDrafts` remain unchanged in principle. Trash still requires an exact current allowlist and every 0.7.28 ownership, lifecycle, ledger, active-protection, clone/evidence and classification guard. It uses `wp_trash_post` only and never archives, permanently deletes or empties Trash.
+
+The protected Pumpkin Chocolate Chip Cookies, Giant Flat Chocolate Chunk Cookies and Spiced Ginger & Chocolate Loaf Cake workflow objects remain hard-preserved by ID. Stored protected baselines through 0.7.29 remain readable.
 
 ## Updater
 
-The generated one-time updater requires exactly one active 0.7.27 connector. It backs up the primary connector and 0.7.27 lifecycle file, installs the 0.7.28 lifecycle and schema, replaces the version and loader exactly once, invalidates opcode cache when available, flushes WordPress caches, verifies the lifecycle SHA-256, restores prior files on failure and self-deactivates after success.
+The generated one-time updater requires exactly one active 0.7.28 connector. It backs up the primary connector and 0.7.28 lifecycle file, installs the 0.7.29 lifecycle and schema, replaces the version and loader exactly once, invalidates opcode cache when available, flushes WordPress caches, verifies the lifecycle SHA-256, restores prior files on failure and self-deactivates after success.
 
 ## Build and test
 
 ```bash
-python connector/tests/test_connector_0728.py
+python connector/tests/test_connector_0729.py
 bash connector/build.sh
 ```
 
-Repository validation is isolated. It generates and syntax-checks the lifecycle and updater, validates the 25-operation schema and verifies that the new Trash action contains no permanent-delete, archive-mode or empty-Trash path. It does not connect to or modify the live WordPress site.
+Repository validation is isolated. It generates and syntax-checks the lifecycle and updater, validates the 27-operation schema, verifies exact reconciliation guards and confirms that the reconciliation action contains no article-content, Trash, archive or permanent-delete path. It does not connect to or modify the live WordPress site.
