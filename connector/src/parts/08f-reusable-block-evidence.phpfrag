@@ -1,4 +1,3 @@
-
 /**
  * Read-only reusable-block object evidence for connector 0.7.30.
  *
@@ -22,25 +21,172 @@ function nkt_gpt_par_0730_direct_block_references( $content ) {
 	return $ids;
 }
 
-/** Build deterministic status-independent reusable-block object evidence. */
+/** Build deterministic reusable-block object evidence. */
 function nkt_gpt_par_0730_block_hash_payload( $post, $include_status ) {
 	$payload = array(
-		'ID'                => (int) $post->ID,
-		'post_type'         => (string) $post->post_type,
-		'post_title'        => (string) $post->post_title,
-		'post_name'         => (string) $post->post_name,
-		'post_author'       => (int) $post->post_author,
-		'post_parent'       => (int) $post->post_parent,
-		'post_date'         => (string) $post->post_date,
-		'post_date_gmt'     => (string) $post->post_date_gmt,
-		'post_modified'     => (string) $post->post_modified,
-		'post_modified_gmt' => (string) $post->post_modified_gmt,
-		'post_content'      => (string) $post->post_content,
+		'ID'           => (int) $post->ID,
+		'post_type'    => (string) $post->post_type,
+		'post_title'   => (string) $post->post_title,
+		'post_name'    => (string) $post->post_name,
+		'post_author'  => (int) $post->post_author,
+		'post_parent'  => (int) $post->post_parent,
+		'post_content' => (string) $post->post_content,
 	);
 	if ( $include_status ) {
 		$payload['post_status'] = (string) $post->post_status;
 	}
 	return $payload;
+}
+
+/** Return a stable common response envelope. */
+function nkt_gpt_par_0730_block_evidence_envelope( $block_id ) {
+	return array(
+		'connector_version'              => NKT_GPT_PAR_0723_VERSION,
+		'read_only'                      => true,
+		'changes_made'                   => false,
+		'writes_attempted'               => false,
+		'writes_performed'               => 0,
+		'reusable_block_id'              => absint( $block_id ),
+		'lookup_success'                 => false,
+		'object_exists'                  => false,
+		'access_classification'          => 'not_found',
+		'literal_post_type'              => null,
+		'literal_wordpress_status'       => null,
+		'title'                          => null,
+		'slug'                           => null,
+		'author_id'                      => null,
+		'parent_id'                      => null,
+		'created_local'                  => null,
+		'created_gmt'                    => null,
+		'modified_local'                 => null,
+		'modified_gmt'                   => null,
+		'raw_content_included'           => false,
+		'raw_content_length'             => 0,
+		'raw_content_hash'               => null,
+		'object_hash_version'            => 'nkt-wp-block-object-v1',
+		'status_independent_object_hash' => null,
+		'status_inclusive_object_hash'   => null,
+		'reference_scan_performed'       => false,
+		'direct_core_block_references'   => array(),
+		'public_render_evidence'         => array(
+			'requested'               => false,
+			'checked'                 => false,
+			'available'               => false,
+			'reason'                  => 'not_requested',
+			'rendered_content_length' => 0,
+			'rendered_content_hash'   => null,
+		),
+		'classification'                 => 'missing_or_deleted',
+		'error_code'                     => 'nkt_gpt_reusable_block_missing',
+		'error_message'                  => 'No WordPress object exists for the supplied ID.',
+		'exact_error_code'               => 'nkt_gpt_reusable_block_missing',
+		'exact_error_message'            => 'No WordPress object exists for the supplied ID.',
+	);
+}
+
+/** Build evidence without relying on the ordinary-post REST endpoint. */
+function nkt_gpt_par_0730_reusable_block_evidence( $block_id, $options = array() ) {
+	$block_id = absint( $block_id );
+	$options  = wp_parse_args(
+		(array) $options,
+		array(
+			'include_raw_content'            => false,
+			'include_reference_scan'          => true,
+			'include_public_render_evidence'  => false,
+			'request'                         => null,
+		)
+	);
+	$response = nkt_gpt_par_0730_block_evidence_envelope( $block_id );
+	$response['public_render_evidence']['requested'] = ! empty( $options['include_public_render_evidence'] );
+
+	if ( ! $block_id ) {
+		$response['object_exists']         = 'unproven';
+		$response['access_classification'] = 'invalid_id';
+		$response['classification']        = 'insufficient_evidence';
+		$response['error_code']            = 'nkt_gpt_reusable_block_id_invalid';
+		$response['error_message']         = 'A positive reusable_block_id is required.';
+		$response['exact_error_code']      = $response['error_code'];
+		$response['exact_error_message']   = $response['error_message'];
+		return $response;
+	}
+
+	$post = get_post( $block_id, OBJECT, 'raw' );
+	if ( ! $post ) {
+		return $response;
+	}
+
+	$response['object_exists']            = true;
+	$response['literal_post_type']        = (string) $post->post_type;
+	$response['literal_wordpress_status'] = (string) $post->post_status;
+	$response['title']                     = (string) $post->post_title;
+	$response['slug']                      = (string) $post->post_name;
+	$response['author_id']                 = (int) $post->post_author;
+	$response['parent_id']                 = (int) $post->post_parent;
+	$response['created_local']             = (string) $post->post_date;
+	$response['created_gmt']               = (string) $post->post_date_gmt;
+	$response['modified_local']            = (string) $post->post_modified;
+	$response['modified_gmt']              = (string) $post->post_modified_gmt;
+
+	/*
+	 * Route permission is enforced by the connector API-key permission callback.
+	 * Do not require a logged-in WordPress user here: API-key requests may have no
+	 * current user. Sites may deny a specific object through this read-only filter.
+	 */
+	$access = apply_filters( 'nkt_gpt_par_0730_reusable_block_evidence_access', true, $post, $options['request'] );
+	if ( is_wp_error( $access ) || false === $access ) {
+		$response['lookup_success']         = true;
+		$response['access_classification']  = 'access_denied';
+		$response['classification']         = 'exists_inaccessible';
+		$response['error_code']             = is_wp_error( $access ) ? $access->get_error_code() : 'nkt_gpt_reusable_block_inaccessible';
+		$response['error_message']          = is_wp_error( $access ) ? $access->get_error_message() : 'The object exists but reusable-block evidence access was denied.';
+		$response['exact_error_code']       = $response['error_code'];
+		$response['exact_error_message']    = $response['error_message'];
+		return $response;
+	}
+
+	$content                    = (string) $post->post_content;
+	$is_block                   = 'wp_block' === (string) $post->post_type;
+	$status_independent_payload = nkt_gpt_par_0730_block_hash_payload( $post, false );
+	$status_inclusive_payload   = nkt_gpt_par_0730_block_hash_payload( $post, true );
+
+	$response['lookup_success']                 = true;
+	$response['access_classification']          = $is_block ? 'accessible' : 'wrong_post_type';
+	$response['raw_content_length']             = strlen( $content );
+	$response['raw_content_hash']               = hash( 'sha256', $content );
+	$response['status_independent_object_hash'] = nkt_gpt_par_0723_hash( $status_independent_payload );
+	$response['status_inclusive_object_hash']   = nkt_gpt_par_0723_hash( $status_inclusive_payload );
+	$response['classification']                 = $is_block ? 'exists_accessible' : 'exists_wrong_post_type';
+	$response['error_code']                     = $is_block ? null : 'nkt_gpt_reusable_block_wrong_post_type';
+	$response['error_message']                  = $is_block ? null : 'The supplied ID exists but is not a wp_block object.';
+	$response['exact_error_code']               = $response['error_code'];
+	$response['exact_error_message']            = $response['error_message'];
+
+	if ( ! empty( $options['include_raw_content'] ) ) {
+		$response['raw_post_content']   = $content;
+		$response['raw_content_included'] = true;
+	}
+	if ( ! empty( $options['include_reference_scan'] ) ) {
+		$response['reference_scan_performed']     = true;
+		$response['direct_core_block_references'] = nkt_gpt_par_0730_direct_block_references( $content );
+	}
+
+	if ( ! empty( $options['include_public_render_evidence'] ) ) {
+		if ( $is_block && 'publish' === (string) $post->post_status && function_exists( 'do_blocks' ) ) {
+			$rendered = (string) do_blocks( $content );
+			$response['public_render_evidence'] = array(
+				'requested'               => true,
+				'checked'                 => true,
+				'available'               => true,
+				'reason'                  => null,
+				'rendered_content_length' => strlen( $rendered ),
+				'rendered_content_hash'   => hash( 'sha256', $rendered ),
+			);
+		} else {
+			$response['public_render_evidence']['reason'] = $is_block ? 'object_not_published' : 'wrong_post_type';
+		}
+	}
+
+	return $response;
 }
 
 /** Inspect one arbitrary WordPress object as reusable-block evidence. */
@@ -50,99 +196,20 @@ function nkt_gpt_par_0730_inspect_reusable_block( WP_REST_Request $request ) {
 		return $guard;
 	}
 
-	$block_id              = absint( $request->get_param( 'reusable_block_id' ) );
-	$include_raw_content    = filter_var( $request->get_param( 'include_raw_content' ), FILTER_VALIDATE_BOOLEAN );
-	$include_reference_scan = null === $request->get_param( 'include_reference_scan' ) ? true : filter_var( $request->get_param( 'include_reference_scan' ), FILTER_VALIDATE_BOOLEAN );
-	$include_public_render  = filter_var( $request->get_param( 'include_public_render_evidence' ), FILTER_VALIDATE_BOOLEAN );
-
+	$block_id = absint( $request->get_param( 'reusable_block_id' ) );
 	if ( ! $block_id ) {
 		return new WP_Error( 'nkt_gpt_reusable_block_id_invalid', 'A positive reusable_block_id is required.', array( 'status' => 400 ) );
 	}
 
-	$post = get_post( $block_id, OBJECT, 'raw' );
-	if ( ! $post ) {
-		return nkt_gpt_connector_no_store( new WP_REST_Response( array(
-			'connector_version'       => NKT_GPT_PAR_0723_VERSION,
-			'read_only'               => true,
-			'writes_attempted'        => false,
-			'reusable_block_id'       => $block_id,
-			'lookup_success'          => true,
-			'object_exists'           => false,
-			'access_classification'   => 'not_found',
-			'classification'          => 'missing_or_deleted',
-			'exact_error_code'        => 'nkt_gpt_reusable_block_missing',
-			'exact_error_message'     => 'No WordPress object exists for the supplied ID.',
-		), 200 ) );
-	}
-
-	$can_read = current_user_can( 'read_post', $block_id );
-	if ( ! $can_read ) {
-		return nkt_gpt_connector_no_store( new WP_REST_Response( array(
-			'connector_version'       => NKT_GPT_PAR_0723_VERSION,
-			'read_only'               => true,
-			'writes_attempted'        => false,
-			'reusable_block_id'       => $block_id,
-			'lookup_success'          => true,
-			'object_exists'           => true,
-			'access_classification'   => 'read_post_capability_denied',
-			'literal_post_type'       => (string) $post->post_type,
-			'literal_wordpress_status'=> (string) $post->post_status,
-			'classification'          => 'exists_inaccessible',
-			'exact_error_code'        => 'nkt_gpt_reusable_block_inaccessible',
-			'exact_error_message'     => 'The object exists but the authenticated connector principal cannot read it.',
-		), 200 ) );
-	}
-
-	$content = (string) $post->post_content;
-	$is_block = 'wp_block' === (string) $post->post_type;
-	$status_independent_payload = nkt_gpt_par_0730_block_hash_payload( $post, false );
-	$status_inclusive_payload   = nkt_gpt_par_0730_block_hash_payload( $post, true );
-	$direct_refs = $include_reference_scan ? nkt_gpt_par_0730_direct_block_references( $content ) : array();
-	$public_render = array(
-		'checked' => false,
-		'rendered' => false,
-		'rendered_content_hash' => '',
+	$response = nkt_gpt_par_0730_reusable_block_evidence(
+		$block_id,
+		array(
+			'include_raw_content'           => filter_var( $request->get_param( 'include_raw_content' ), FILTER_VALIDATE_BOOLEAN ),
+			'include_reference_scan'         => null === $request->get_param( 'include_reference_scan' ) ? true : filter_var( $request->get_param( 'include_reference_scan' ), FILTER_VALIDATE_BOOLEAN ),
+			'include_public_render_evidence' => filter_var( $request->get_param( 'include_public_render_evidence' ), FILTER_VALIDATE_BOOLEAN ),
+			'request'                       => $request,
+		)
 	);
-	if ( $include_public_render && $is_block && 'publish' === (string) $post->post_status ) {
-		$rendered = do_blocks( $content );
-		$public_render = array(
-			'checked' => true,
-			'rendered' => '' !== trim( (string) $rendered ),
-			'rendered_content_hash' => hash( 'sha256', (string) $rendered ),
-		);
-	}
-
-	$response = array(
-		'connector_version'              => NKT_GPT_PAR_0723_VERSION,
-		'read_only'                      => true,
-		'writes_attempted'               => false,
-		'reusable_block_id'              => $block_id,
-		'lookup_success'                 => true,
-		'object_exists'                  => true,
-		'access_classification'          => 'accessible',
-		'literal_post_type'              => (string) $post->post_type,
-		'literal_wordpress_status'       => (string) $post->post_status,
-		'title'                          => (string) $post->post_title,
-		'slug'                           => (string) $post->post_name,
-		'author_id'                      => (int) $post->post_author,
-		'parent_id'                      => (int) $post->post_parent,
-		'created_local'                  => (string) $post->post_date,
-		'created_gmt'                    => (string) $post->post_date_gmt,
-		'modified_local'                 => (string) $post->post_modified,
-		'modified_gmt'                   => (string) $post->post_modified_gmt,
-		'raw_content_length'             => strlen( $content ),
-		'raw_content_hash'               => hash( 'sha256', $content ),
-		'status_independent_object_hash' => nkt_gpt_par_0723_hash( $status_independent_payload ),
-		'status_inclusive_object_hash'   => nkt_gpt_par_0723_hash( $status_inclusive_payload ),
-		'direct_core_block_references'   => $direct_refs,
-		'public_render_evidence'         => $public_render,
-		'classification'                 => $is_block ? 'exists_accessible' : 'exists_wrong_post_type',
-		'exact_error_code'               => $is_block ? '' : 'nkt_gpt_reusable_block_wrong_post_type',
-		'exact_error_message'            => $is_block ? '' : 'The supplied ID exists but is not a wp_block object.',
-	);
-	if ( $include_raw_content ) {
-		$response['raw_post_content'] = $content;
-	}
 	return nkt_gpt_connector_no_store( new WP_REST_Response( $response, 200 ) );
 }
 
@@ -163,3 +230,28 @@ function nkt_gpt_par_0730_register_reusable_block_evidence_route() {
 	), true );
 }
 add_action( 'rest_api_init', 'nkt_gpt_par_0730_register_reusable_block_evidence_route', 98 );
+
+/** Advertise the evidence-only action without changing lifecycle semantics. */
+function nkt_gpt_par_0730_augment_connector_status( $response, $server, $request ) {
+	if ( ! $request || ! method_exists( $request, 'get_route' ) || '/nkt-gpt/v1/status' !== $request->get_route() ) {
+		return $response;
+	}
+	if ( ! $response instanceof WP_REST_Response ) {
+		return $response;
+	}
+	$data = $response->get_data();
+	if ( ! is_array( $data ) ) {
+		return $response;
+	}
+	$data['read_only_evidence_actions'] = array(
+		'inspectReusableBlockEvidence' => true,
+	);
+	$data['reusable_block_evidence'] = array(
+		'read_only'                  => true,
+		'arbitrary_wp_block_lookup'  => true,
+		'protected_baseline_changed' => false,
+	);
+	$response->set_data( $data );
+	return $response;
+}
+add_filter( 'rest_post_dispatch', 'nkt_gpt_par_0730_augment_connector_status', 10, 3 );
