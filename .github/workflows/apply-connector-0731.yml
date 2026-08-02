@@ -1,13 +1,16 @@
 name: Apply Connector 0.7.31 Payload
 
 on:
-  workflow_dispatch:
+  pull_request:
+    branches: [ main ]
+    types: [ opened, synchronize, reopened ]
 
 permissions:
   contents: write
 
 jobs:
   apply:
+    if: github.head_ref == 'connector-0.7.31-recipe-name-only-revision'
     runs-on: ubuntu-latest
     steps:
       - name: Check out development branch
@@ -15,6 +18,17 @@ jobs:
         with:
           ref: connector-0.7.31-recipe-name-only-revision
           fetch-depth: 0
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          coverage: none
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
       - name: Extract and verify committed payload
         shell: bash
