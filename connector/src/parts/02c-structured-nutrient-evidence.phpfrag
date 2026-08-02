@@ -24,9 +24,17 @@ function nkt_gpt_par_0723_boundary_preserving_text( $html ) {
 	return trim( (string) $text );
 }
 
-/** Return the canonical spelling for one exact visible nutrient label. */
+/**
+ * Return the canonical spelling for one exact visible nutrient label.
+ *
+ * Legacy tables omit the visual colon while the standardized article table
+ * stores exactly one terminal ASCII colon in the label cell. Accept either
+ * representation, but do not accept extra punctuation or descriptive text.
+ */
 function nkt_gpt_par_0723_canonical_nutrient_label( $text ) {
 	$text = trim( preg_replace( '/\s+/u', ' ', (string) $text ) );
+	$text = preg_replace( '/\s*:\s*$/u', '', $text, 1, $colon_replacements );
+	$text = trim( (string) $text );
 	foreach ( nkt_gpt_par_0723_recognized_nutrient_labels() as $label ) {
 		if ( 0 === strcasecmp( $text, $label ) ) {
 			return $label;
@@ -50,12 +58,13 @@ function nkt_gpt_par_0723_add_nutrient_evidence( &$matched, &$modes, $label, $mo
 }
 
 /**
- * Extract distinct, value-backed nutrient labels from legacy article markup.
+ * Extract distinct, value-backed nutrient labels from legacy or standardized
+ * article markup.
  *
  * Supported representations:
  * - literal "Label: numeric value" text;
- * - Gutenberg table rows with the exact label in the first cell and a numeric
- *   value in a following cell;
+ * - Gutenberg table rows with an exact label, optionally followed by one
+ *   terminal colon, in the first cell and a numeric value in a following cell;
  * - list/paragraph/block records where an exact label is immediately followed
  *   by a numeric value, either in the same record or the next boundary record.
  *
@@ -98,7 +107,8 @@ function nkt_gpt_par_0723_structured_nutrient_evidence( $html ) {
 				nkt_gpt_par_0723_add_nutrient_evidence( $matched, $modes, $label, 'same_record' );
 				continue;
 			}
-			if ( 0 === strcasecmp( trim( $record ), $label ) && isset( $records[ $index + 1 ] ) && preg_match( '/^\s*' . $number . '\b/u', $records[ $index + 1 ] ) ) {
+			$record_label = nkt_gpt_par_0723_canonical_nutrient_label( $record );
+			if ( $label === $record_label && isset( $records[ $index + 1 ] ) && preg_match( '/^\s*' . $number . '\b/u', $records[ $index + 1 ] ) ) {
 				nkt_gpt_par_0723_add_nutrient_evidence( $matched, $modes, $label, 'adjacent_record' );
 			}
 		}
