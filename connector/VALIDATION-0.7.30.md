@@ -22,6 +22,10 @@ The existing connector API-key permission callback protects the route. The evide
 
 The callback contains no post, metadata, status, Trash, archive, deletion, recipe, Nutrition, media or reusable-block mutation call. It reports `changes_made: false`, `writes_attempted: false` and `writes_performed: 0`. It is not wired into protected article baseline acceptance. Existing unavailable reusable blocks remain unavailable to protected create/update/apply operations until their literal states have been established and separately reviewed.
 
+## Updater guard hotfix
+
+The first 0.7.30 package retained escaped 0.7.28 regular-expression markers in three updater checks even though its literal source version was 0.7.29. Activation therefore stopped safely before backups or writes. Package revision 0.7.30.2 transforms both literal and escaped versions, requires the exact 0.7.29 header, constant, lifecycle marker and loader, and rejects any generated updater containing a stale 0.7.28 source marker.
+
 ## Automated checks
 
 The 0.7.30 suite verifies:
@@ -39,9 +43,10 @@ The 0.7.30 suite verifies:
 11. connection-status capability reporting without protected-lifecycle semantic changes;
 12. retention of all existing protected lifecycle, cleanup and reconciliation functions;
 13. exactly 28 unique OpenAPI actions, no combinators and every action description below 300 characters;
-14. guarded 0.7.29-to-0.7.30 updater generation, backup, SHA verification, cache invalidation, restoration and self-deactivation;
-15. PHP syntax for generated lifecycle and updater;
-16. deterministic updater ZIP integrity.
+14. guarded 0.7.29-to-0.7.30 updater generation, including exact literal and escaped source markers, predecessor-updater identity, backups, SHA verification, cache invalidation, restoration and self-deactivation;
+15. rejection of every stale literal or escaped 0.7.28 source marker in the generated updater;
+16. PHP syntax for generated lifecycle and updater;
+17. deterministic updater ZIP integrity.
 
 ## Post-deployment acceptance
 
