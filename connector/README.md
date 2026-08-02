@@ -1,6 +1,12 @@
-# NKT GPT Connector 0.7.30 source
+# NKT GPT Connector 0.7.31 source
 
-This directory extends connector 0.7.29 to 0.7.30 while retaining the internal 0723 lifecycle function and metadata names required to resume existing protected drafts safely.
+This directory extends connector 0.7.30 to 0.7.31 while retaining the internal 0723 lifecycle function and metadata names required to resume existing protected drafts safely.
+
+## Protected recipe-name-only complete revisions
+
+`recipe_name_only` extends the existing five-action complete-recipe lifecycle without changing `nutrition_section_only`. It creates one fresh protected article draft and one fresh recipe clone, permits exactly one non-empty changed recipe `name`, audits every other recipe and article component, requires a fresh passing audit for approval and apply, preserves the source recipe and retained draft, and restores exact snapshots after any delegated-write or verification failure.
+
+A connector-created recipe that is currently the sole live reference may be used as source only with explicit authorisation. The scope never edits the source recipe directly and does not expose a generic recipe-edit operation.
 
 ## Reusable-block object evidence
 
@@ -30,7 +36,7 @@ The protected Pumpkin Chocolate Chip Cookies, Giant Flat Chocolate Chunk Cookies
 
 ## Updater
 
-The generated one-time updater requires exactly one active 0.7.29 connector. It backs up the primary connector and 0.7.29 lifecycle file, installs the 0.7.30 lifecycle and schema, replaces the version and loader exactly once, invalidates opcode cache when available, flushes WordPress caches, verifies the lifecycle SHA-256, restores prior files on failure and self-deactivates after success.
+The generated one-time updater requires exactly one active 0.7.30 connector. It backs up the primary connector and 0.7.29 lifecycle file, installs the 0.7.31 lifecycle and schema, replaces the version and loader exactly once, invalidates opcode cache when available, flushes WordPress caches, verifies the lifecycle SHA-256, restores prior files on failure and self-deactivates after success.
 
 ## Build and test
 
@@ -38,4 +44,4 @@ The generated one-time updater requires exactly one active 0.7.29 connector. It 
 bash connector/build.sh
 ```
 
-The repository suite generates and syntax-checks the lifecycle and updater, validates the 28-operation compact OpenAPI schema, runs object-state fixtures for published, draft, private, trashed, missing, wrong-type and access-denied objects, verifies nested references and deterministic hashes, and checks deterministic ZIP integrity. It does not connect to or modify the live WordPress site.
+The repository suite generates and syntax-checks the lifecycle and updater, validates the 28-operation compact OpenAPI schema, runs recipe-name-only protected lifecycle fixtures and retains object-state fixtures for published, draft, private, trashed, missing, wrong-type and access-denied objects, verifies nested references and deterministic hashes, and checks deterministic ZIP integrity. It does not connect to or modify the live WordPress site.
