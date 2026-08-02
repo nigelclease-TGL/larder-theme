@@ -1,0 +1,123 @@
+
+/** Return the canonical article Nutrition labels accepted as corroborating evidence. */
+function nkt_gpt_par_0723_recognized_nutrient_labels() {
+	return array(
+		'Calories',
+		'Total Fat',
+		'Carbohydrates',
+		'Carbs',
+		'Sugars',
+		'Protein',
+		'Sodium',
+		'Fiber',
+		'Fibre',
+	);
+}
+
+/** Normalize raw article markup while preserving record and cell boundaries. */
+function nkt_gpt_par_0723_boundary_preserving_text( $html ) {
+	$html = preg_replace( '/<br\b[^>]*>/iu', "\n", (string) $html );
+	$html = preg_replace( '/<\/(?:p|li|td|th|tr|div|figure|figcaption|section|article|span|strong|b)>/iu', "$0\n", $html );
+	$text = html_entity_decode( wp_strip_all_tags( $html ), ENT_QUOTES | ENT_HTML5, get_bloginfo( 'charset' ) ?: 'UTF-8' );
+	$text = preg_replace( '/[\t\x0B\f\r ]+/u', ' ', (string) $text );
+	$text = preg_replace( '/ *\n+ */u', "\n", (string) $text );
+	return trim( (string) $text );
+}
+
+/** Return the canonical spelling for one exact visible nutrient label. */
+function nkt_gpt_par_0723_canonical_nutrient_label( $text ) {
+	$text = trim( preg_replace( '/\s+/u', ' ', (string) $text ) );
+	foreach ( nkt_gpt_par_0723_recognized_nutrient_labels() as $label ) {
+		if ( 0 === strcasecmp( $text, $label ) ) {
+			return $label;
+		}
+	}
+	return null;
+}
+
+/** Add one distinct label and retain every evidence mode that proved it. */
+function nkt_gpt_par_0723_add_nutrient_evidence( &$matched, &$modes, $label, $mode ) {
+	if ( null === $label || '' === $label ) {
+		return;
+	}
+	$matched[ $label ] = true;
+	if ( ! isset( $modes[ $label ] ) ) {
+		$modes[ $label ] = array();
+	}
+	if ( ! in_array( $mode, $modes[ $label ], true ) ) {
+		$modes[ $label ][] = $mode;
+	}
+}
+
+/**
+ * Extract distinct, value-backed nutrient labels from legacy article markup.
+ *
+ * Supported representations:
+ * - literal "Label: numeric value" text;
+ * - Gutenberg table rows with the exact label in the first cell and a numeric
+ *   value in a following cell;
+ * - list/paragraph/block records where an exact label is immediately followed
+ *   by a numeric value, either in the same record or the next boundary record.
+ *
+ * A label mention without a paired numeric value is never accepted.
+ */
+function nkt_gpt_par_0723_structured_nutrient_evidence( $html ) {
+	$matched = array();
+	$modes   = array();
+	$number  = '[-+]?(?:\d+(?:[.,]\d+)?|[.,]\d+)';
+
+	// Gutenberg/core-table and equivalent raw table rows.
+	if ( preg_match_all( '/<tr\b[^>]*>(.*?)<\/tr>/isu', (string) $html, $rows, PREG_SET_ORDER ) ) {
+		foreach ( $rows as $row ) {
+			if ( ! preg_match_all( '/<(?:td|th)\b[^>]*>(.*?)<\/(?:td|th)>/isu', $row[1], $cells, PREG_SET_ORDER ) || count( $cells ) < 2 ) {
+				continue;
+			}
+			$label = nkt_gpt_par_0723_canonical_nutrient_label( nkt_gpt_par_0723_visible_heading_text( $cells[0][1] ) );
+			if ( null === $label ) {
+				continue;
+			}
+			$value_text = '';
+			for ( $index = 1; $index < count( $cells ); $index++ ) {
+				$value_text .= ' ' . nkt_gpt_par_0723_visible_heading_text( $cells[ $index ][1] );
+			}
+			if ( preg_match( '/' . $number . '/u', $value_text ) ) {
+				nkt_gpt_par_0723_add_nutrient_evidence( $matched, $modes, $label, 'table_cells' );
+			}
+		}
+	}
+
+	// Boundary-preserving records cover paragraphs, lists, columns and adjacent cells.
+	$boundary_text = nkt_gpt_par_0723_boundary_preserving_text( $html );
+	$records = array_values( array_filter( array_map( 'trim', preg_split( '/\n+/u', $boundary_text ) ?: array() ), static function ( $value ) {
+		return '' !== $value;
+	} ) );
+	foreach ( $records as $index => $record ) {
+		foreach ( nkt_gpt_par_0723_recognized_nutrient_labels() as $label ) {
+			$quoted = preg_quote( $label, '/' );
+			if ( preg_match( '/^' . $quoted . '\s*:?\s*(' . $number . ')\b/iu', $record ) ) {
+				nkt_gpt_par_0723_add_nutrient_evidence( $matched, $modes, $label, 'same_record' );
+				continue;
+			}
+			if ( 0 === strcasecmp( trim( $record ), $label ) && isset( $records[ $index + 1 ] ) && preg_match( '/^\s*' . $number . '\b/u', $records[ $index + 1 ] ) ) {
+				nkt_gpt_par_0723_add_nutrient_evidence( $matched, $modes, $label, 'adjacent_record' );
+			}
+		}
+	}
+
+	// Preserve support for conventional colon-form Nutrition text even when tags collapse.
+	$visible = nkt_gpt_par_0723_visible_heading_text( $html );
+	foreach ( nkt_gpt_par_0723_recognized_nutrient_labels() as $label ) {
+		if ( preg_match( '/(?:^|\s)' . preg_quote( $label, '/' ) . '\s*:\s*' . $number . '\b/iu', $visible ) ) {
+			nkt_gpt_par_0723_add_nutrient_evidence( $matched, $modes, $label, 'colon_text' );
+		}
+	}
+
+	$labels = array_keys( $matched );
+	sort( $labels, SORT_STRING );
+	ksort( $modes, SORT_STRING );
+	return array(
+		'count'  => count( $labels ),
+		'labels' => $labels,
+		'modes'  => $modes,
+	);
+}
