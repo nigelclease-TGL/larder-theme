@@ -45,7 +45,9 @@ def assemble() -> str:
 """
     text = replace_once(text, old_definitions, new_definitions, 'semantic source definitions')
 
-    old_preflight = """\tif ( 1 !== preg_match_all( '/^\\s*\\*\\s*Version:\\s*0\\.7\\.25\\s*$/m', $main_source )
+    # Escaped version text in the inherited regex is not changed by the simple
+    # literal replacements above, so match the actual generated 0.7.24 regex.
+    old_preflight = """\tif ( 1 !== preg_match_all( '/^\\s*\\*\\s*Version:\\s*0\\.7\\.24\\s*$/m', $main_source )
 \t\t|| 1 !== substr_count( $main_source, $source_constant )
 \t\t|| false === strpos( $main_source, $old_marker )
 \t\t|| false !== strpos( $main_source, $new_marker ) ) {
@@ -65,12 +67,14 @@ def assemble() -> str:
 """
     text = replace_once(text, old_preflight, new_preflight, 'semantic preflight')
 
+    old_header_patch = "\t$patched = preg_replace( '/(^\\s*\\*\\s*Version:\\s*)0\\.7\\.24(\\s*$)/m', '${1}0.7.26${2}', $main_source, 1, $header_replacements );\n"
+    new_header_patch = "\t$patched = preg_replace( '/(^\\s*\\*\\s*Version:\\s*)0\\.7\\.25(\\s*$)/m', '${1}0.7.26${2}', $main_source, 1, $header_replacements );\n"
+    text = replace_once(text, old_header_patch, new_header_patch, 'source header replacement')
+
     old_constant_patch = "\t$patched = str_replace( $source_constant, \"define( 'NKT_GPT_CONNECTOR_VERSION', '0.7.26' );\", $patched, $constant_replacements );\n"
     new_constant_patch = "\t$patched = preg_replace( $source_constant_pattern, \"define( 'NKT_GPT_CONNECTOR_VERSION', '0.7.26' );\", $patched, 1, $constant_replacements );\n"
     text = replace_once(text, old_constant_patch, new_constant_patch, 'semantic constant replacement')
 
-    # The inherited updater stores its loader regex with escaped 0\.7\.24 text,
-    # so the simple literal version replacements above do not alter that regex.
     old_loader_pattern = "\t$loader_pattern = \"~\\s*/\\* NKT protected article lifecycle 0\\.7\\.24 \\*/\\s*require_once __DIR__ \\. '/protected-lifecycle-0\\.7\\.24\\.php';\\s*~\";\n"
     new_loader_pattern = "\t$loader_pattern = \"~(?:\\s*/\\*\\s*NKT protected article lifecycle [^*]+\\*/\\s*)?require_once\\s+__DIR__\\s*\\.\\s*['\\\"]/protected-lifecycle-0\\.7\\.25\\.php['\\\"]\\s*;~\";\n"
     text = replace_once(text, old_loader_pattern, new_loader_pattern, 'semantic loader replacement')
@@ -106,8 +110,8 @@ def assemble() -> str:
         raise RuntimeError('Generated updater is missing: ' + ', '.join(missing))
     if 'exact expected 0.7.25 source markers' in text:
         raise RuntimeError('Generated updater still depends on the rejected exact-comment marker gate')
-    if "protected article lifecycle 0\\.7\\.24" in text:
-        raise RuntimeError('Generated updater still contains the stale escaped 0.7.24 loader regex')
+    if "Version:\\s*0\\.7\\.24" in text or "protected article lifecycle 0\\.7\\.24" in text:
+        raise RuntimeError('Generated updater still contains a stale escaped 0.7.24 source regex')
     return text
 
 
