@@ -16,12 +16,27 @@ jobs:
   export:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
+      - name: Check out current development branch
         uses: actions/checkout@v4
-      - name: Upload connector source snapshot
+        with:
+          path: current
+      - name: Check out connector 0.7.23 source branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/connector-0.7.23
+          path: connector-0723
+      - name: Check out pre-connector audit branch
+        uses: actions/checkout@v4
+        with:
+          ref: audit-2026-07-24
+          path: audit-2026-07-24
+      - name: Upload connector source snapshots
         uses: actions/upload-artifact@v4
         with:
           name: connector-0.7.31-development-source
-          path: connector
+          path: |
+            current/connector
+            connector-0723/connector
+            audit-2026-07-24/connector
           if-no-files-found: error
           retention-days: 1
