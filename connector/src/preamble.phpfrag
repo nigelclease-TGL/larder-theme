@@ -1,10 +1,10 @@
 <?php
 /**
- * Protected article-only lifecycle extension for NKT GPT Connector 0.7.27.
+ * Protected article-only lifecycle extension for NKT GPT Connector 0.7.28.
  *
- * Loaded by the primary connector after the one-time upgrader patches 0.7.26.
+ * Loaded by the primary connector after the one-time upgrader patches 0.7.27.
  * Internal function and metadata names retain the 0723 suffix so existing
- * protected 0.7.23 through 0.7.26 drafts remain readable and resumable
+ * protected 0.7.23 through 0.7.27 drafts remain readable and resumable
  * without migration.
  */
 
@@ -12,14 +12,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( ! defined( 'NKT_GPT_CONNECTOR_VERSION' ) || '0.7.27' !== NKT_GPT_CONNECTOR_VERSION ) {
+if ( ! defined( 'NKT_GPT_CONNECTOR_VERSION' ) || '0.7.28' !== NKT_GPT_CONNECTOR_VERSION ) {
 	return;
 }
 
 const NKT_GPT_PAR_0723_BASELINE_META  = '_nkt_par_0723_baseline';
 const NKT_GPT_PAR_0723_LIFECYCLE_META = '_nkt_par_0723_lifecycle';
 const NKT_GPT_PAR_0723_BACKUP_META    = '_nkt_par_0723_live_backup';
-const NKT_GPT_PAR_0723_VERSION         = '0.7.27';
+const NKT_GPT_PAR_0723_VERSION         = '0.7.28';
 const NKT_GPT_PAR_0723_RECIPE_HASH_VERSION = 'nkt-wprm-object-v1';
 const NKT_GPT_PAR_0723_RECIPE_COMPONENT_VERSION = 'nkt-wprm-components-v1';
 const NKT_GPT_PAR_0723_RECIPE_REPAIR_META = '_nkt_par_0723_recipe_status_repair';
