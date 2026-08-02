@@ -10,10 +10,12 @@ subprocess.run([sys.executable, str(ROOT / 'build_0730.py')], check=True, captur
 SRC = ROOT / 'artifacts' / 'generated' / 'protected-lifecycle-0.7.30.php'
 SCHEMA = ROOT / 'artifacts' / 'generated' / 'openapi-0.7.30.json'
 UPDATER = ROOT / 'artifacts' / 'generated' / 'nkt-gpt-connector-upgrader-0.7.30.php'
+FRAGMENT = ROOT / 'src' / 'parts' / '08f-reusable-block-evidence.phpfrag'
 text = SRC.read_text(encoding='utf-8')
 schema_text = SCHEMA.read_text(encoding='utf-8')
 schema = json.loads(schema_text)
 updater = UPDATER.read_text(encoding='utf-8')
+fragment_text = FRAGMENT.read_text(encoding='utf-8')
 checks = []
 
 
@@ -35,7 +37,7 @@ check('literal WordPress status returned', "'literal_wordpress_status'" in text 
 check('missing object classification exists', "'missing_or_deleted'" in text and 'nkt_gpt_reusable_block_missing' in text)
 check('wrong post type classification exists', "'exists_wrong_post_type'" in text and 'nkt_gpt_reusable_block_wrong_post_type' in text)
 check('access failure classification exists', "'exists_inaccessible'" in text and 'nkt_gpt_par_0730_reusable_block_evidence_access' in text)
-check('API key flow does not require logged-in WordPress user', 'current_user_can(' not in text)
+check('new API-key evidence action does not require logged-in WordPress user', 'current_user_can(' not in fragment_text)
 check('direct reference scan exists', 'nkt_gpt_par_0730_direct_block_references' in text and 'direct_core_block_references' in text)
 check('raw content optional', "'include_raw_content'" in text and "response['raw_post_content']" in text)
 check('raw content hash exists', "'raw_content_hash'" in text and "hash( 'sha256', $content )" in text)
@@ -47,11 +49,11 @@ check('timestamps author parent and slug returned', all(field in text for field 
 check('response declares read only and no writes', all(item in text for item in ["'read_only'", "'changes_made'", "'writes_attempted'", "'writes_performed'"]))
 check('status capability reporting exists', "'inspectReusableBlockEvidence' => true" in text and "'protected_baseline_changed' => false" in text)
 
-callback_start = text.index('function nkt_gpt_par_0730_reusable_block_evidence')
-callback_end = text.index('/** Inspect one arbitrary WordPress object')
-callback = text[callback_start:callback_end]
+helper_start = text.index('function nkt_gpt_par_0730_reusable_block_evidence')
+helper_end = text.index('/** Inspect one arbitrary WordPress object')
+helper = text[helper_start:helper_end]
 for forbidden in ['wp_update_post', 'wp_insert_post', 'wp_delete_post', 'wp_trash_post', 'update_post_meta', 'delete_post_meta', 'add_post_meta']:
-    check('evidence helper contains no mutation ' + forbidden, forbidden not in callback)
+    check('evidence helper contains no mutation ' + forbidden, forbidden not in helper)
 
 check('standalone GET route exists', "'/reusable-block-evidence'" in text and 'WP_REST_Server::READABLE' in text)
 check('existing protected create retained', 'function nkt_gpt_par_0723_create' in text)
