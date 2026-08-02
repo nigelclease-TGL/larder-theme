@@ -3,7 +3,7 @@ from pathlib import Path
 import json
 
 ROOT = Path(__file__).resolve().parents[1]
-SCHEMA = ROOT / 'artifacts' / 'generated' / 'openapi-0.7.30.json'
+SCHEMA = ROOT / 'artifacts' / 'generated' / 'openapi-0.7.31.json'
 schema = json.loads(SCHEMA.read_text(encoding='utf-8'))
 operations = []
 violations = []
@@ -26,6 +26,11 @@ for operation_id in [
     'inventoryLegacyConnectorDraftReconciliation',
     'reconcileLegacyConnectorDraftSupersession',
     'inspectReusableBlockEvidence',
+    'startCompleteRecipeRevision',
+    'updateClonedRecipeRevisions',
+    'auditClonedRecipeRevision',
+    'reviewRecipeRevision',
+    'applyCompleteRecipeRevision',
 ]:
     assert operation_id in lengths, f'Missing operation: {operation_id}'
     assert lengths[operation_id] <= 300, f'{operation_id} description exceeds 300 characters'
