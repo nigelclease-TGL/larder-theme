@@ -113,18 +113,29 @@ function nkt_gpt_par_0723_version_guard( WP_REST_Request $request ) {
 	return true;
 }
 
-/** Normalize serving-evidence fields when comparing a 0.7.22 baseline with 0.7.23 extraction. */
+/** Remove parser-derived serving evidence from protected baseline equality. */
 function nkt_gpt_par_0723_baseline_comparison_state( $state ) {
 	$state = (array) $state;
-	unset( $state['serving_label'], $state['serving_label_source'], $state['serving_label_block_path'] );
+	unset(
+		$state['serving_label'],
+		$state['serving_label_hash'],
+		$state['serving_label_source'],
+		$state['serving_label_block_path'],
+		$state['parsed_nutrition_section_count'],
+		$state['matching_visible_serving_h3_count'],
+		$state['serving_fallback_accepted'],
+		$state['serving_fallback_rejection_reason'],
+		$state['serving_heading_candidates']
+	);
 	return $state;
 }
 
-/** Load a native 0.7.23 baseline or an in-memory compatible 0.7.22 baseline. */
+/** Load a native 0.7.23/0.7.24 baseline or an in-memory compatible 0.7.22 baseline. */
 function nkt_gpt_par_0723_compatible_baseline( $draft_id ) {
 	$current = get_post_meta( $draft_id, NKT_GPT_PAR_0723_BASELINE_META, true );
 	if ( is_array( $current ) && ! empty( $current['live'] ) ) {
-		return array( 'baseline' => $current, 'source_version' => '0.7.23', 'migration_required' => false );
+		$source_version = isset( $current['connector_version'] ) ? (string) $current['connector_version'] : '0.7.23';
+		return array( 'baseline' => $current, 'source_version' => $source_version, 'migration_required' => false );
 	}
 	$legacy = get_post_meta( $draft_id, '_nkt_par_0722_baseline', true );
 	if ( is_array( $legacy ) && ! empty( $legacy['live'] ) ) {

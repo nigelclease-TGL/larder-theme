@@ -19,7 +19,7 @@ FRAGMENTS = [
     ROOT / 'src' / 'parts' / '08a-cleanup.phpfrag',
     ROOT / 'src' / 'parts' / '08b-routes.phpfrag',
 ]
-OUTPUT = ROOT / 'artifacts' / 'generated' / 'protected-lifecycle-0.7.23.php'
+OUTPUT = ROOT / 'artifacts' / 'generated' / 'protected-lifecycle-0.7.24.php'
 
 def assemble() -> str:
     return ''.join(path.read_text(encoding='utf-8') for path in FRAGMENTS)

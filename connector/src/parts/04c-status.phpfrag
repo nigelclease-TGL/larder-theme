@@ -15,6 +15,15 @@ function nkt_gpt_par_0723_status( WP_REST_Request $request ) {
 		'changes_made'      => false,
 		'connector_version' => NKT_GPT_PAR_0723_VERSION,
 		'live_state'        => $live,
+		'live_serving_evidence' => array(
+			'serving_label' => $live['serving_label'],
+			'serving_label_source' => $live['serving_label_source'],
+			'serving_label_block_path' => $live['serving_label_block_path'],
+			'parsed_nutrition_section_count' => $live['parsed_nutrition_section_count'],
+			'matching_visible_serving_h3_count' => $live['matching_visible_serving_h3_count'],
+			'fallback_accepted' => $live['serving_fallback_accepted'],
+			'fallback_rejection_reason' => $live['serving_fallback_rejection_reason'],
+		),
 		'lifecycle_actions' => array(
 			'createProtectedArticleRevision'    => true,
 			'updateProtectedArticleRevision'    => true,
@@ -33,6 +42,15 @@ function nkt_gpt_par_0723_status( WP_REST_Request $request ) {
 			return $pair;
 		}
 		$data['draft_state'] = nkt_gpt_par_0723_capture_draft_state( $draft_id );
+		$data['draft_serving_evidence'] = array(
+			'serving_label' => $data['draft_state']['serving_label'],
+			'serving_label_source' => $data['draft_state']['serving_label_source'],
+			'serving_label_block_path' => $data['draft_state']['serving_label_block_path'],
+			'parsed_nutrition_section_count' => $data['draft_state']['parsed_nutrition_section_count'],
+			'matching_visible_serving_h3_count' => $data['draft_state']['matching_visible_serving_h3_count'],
+			'fallback_accepted' => $data['draft_state']['serving_fallback_accepted'],
+			'fallback_rejection_reason' => $data['draft_state']['serving_fallback_rejection_reason'],
+		);
 		$data['baseline']    = get_post_meta( $draft_id, NKT_GPT_PAR_0723_BASELINE_META, true );
 		$data['legacy_baselines'] = nkt_gpt_par_0723_legacy_baselines( $draft_id );
 		$data['baseline_version'] = is_array( $data['baseline'] ) && ! empty( $data['baseline']['connector_version'] )
@@ -43,9 +61,10 @@ function nkt_gpt_par_0723_status( WP_REST_Request $request ) {
 		$data['recipe_drift'] = array();
 		if ( is_array( $data['baseline'] ) && ! empty( $data['baseline']['live'] ) ) {
 			$stored_live = $data['baseline']['live'];
-			$data['protected_baseline_valid'] = isset( $data['baseline']['connector_version'] )
-				&& NKT_GPT_PAR_0723_VERSION === (string) $data['baseline']['connector_version']
+			$stored_version = isset( $data['baseline']['connector_version'] ) ? (string) $data['baseline']['connector_version'] : '';
+			$data['protected_baseline_valid'] = in_array( $stored_version, array( '0.7.23', '0.7.24' ), true )
 				&& nkt_gpt_par_0723_hash( nkt_gpt_par_0723_baseline_comparison_state( $stored_live ) ) === nkt_gpt_par_0723_hash( nkt_gpt_par_0723_baseline_comparison_state( $live ) );
+			$data['baseline_serving_evidence_ignored_for_compatibility'] = true;
 			foreach ( (array) $live['ordered_wprm_recipe_ids'] as $recipe_id ) {
 				$recipe_id = absint( $recipe_id );
 				$stored_status = isset( $stored_live['recipe_statuses'][ $recipe_id ] ) ? (string) $stored_live['recipe_statuses'][ $recipe_id ] : null;

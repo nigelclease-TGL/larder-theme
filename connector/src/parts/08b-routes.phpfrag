@@ -4,7 +4,7 @@ function nkt_gpt_par_0723_connector_status() {
 		'site_name'         => get_bloginfo( 'name' ),
 		'site_url'          => home_url( '/' ),
 		'connector_version' => NKT_GPT_PAR_0723_VERSION,
-		'access'            => 'protected article-only lifecycle with runtime-aligned recipe status/object/status-independent guards, section-scoped Nutrition serving evidence, hook-isolated writes, automatic restoration, guarded recipe-status repair, and explicit dry-run-first cleanup of exact inactive workflow objects',
+		'access'            => 'protected article-only lifecycle with runtime-aligned recipe guards, robust unique Serving H3 extraction with diagnostics, 0.7.23 baseline compatibility, hook-isolated writes, automatic restoration, guarded recipe-status repair, and dry-run-first cleanup of exact inactive workflow objects',
 		'create_protected_article_revision_guards' => array( 'expected_recipe_statuses', 'expected_status_independent_recipe_hashes' ),
 		'create_protected_article_revision_response_fields' => array( 'hook_isolation_active', 'recipe_writes_detected', 'recipe_restoration_required', 'protected_baseline_valid', 'baseline_migration_required' ),
 		'update_protected_article_revision_guards' => array( 'expected_recipe_statuses', 'expected_recipe_object_hashes', 'expected_status_independent_recipe_hashes' ),
@@ -29,21 +29,21 @@ function nkt_gpt_par_0723_admin_notice() {
 	if ( ! current_user_can( 'activate_plugins' ) ) {
 		return;
 	}
-	$notice = get_option( 'nkt_gpt_connector_0723_upgrade_notice', array() );
+	$notice = get_option( 'nkt_gpt_connector_0724_upgrade_notice', array() );
 	if ( empty( $notice['success'] ) ) {
 		return;
 	}
-	delete_option( 'nkt_gpt_connector_0723_upgrade_notice' );
+	delete_option( 'nkt_gpt_connector_0724_upgrade_notice' );
 	?>
 	<div class="notice notice-success is-dismissible">
-		<p><strong><?php esc_html_e( 'NKT GPT Connector upgraded to 0.7.23.', 'nkt-gpt-connector' ); ?></strong>
-		<?php esc_html_e( 'Protected update runtime guards now match the schema, Nutrition serving evidence is section-scoped, and exact workflow cleanup is dry-run-first. Refresh the bundled 0.7.23 schema and run isolated capability checks.', 'nkt-gpt-connector' ); ?></p>
+		<p><strong><?php esc_html_e( 'NKT GPT Connector upgraded to 0.7.24.', 'nkt-gpt-connector' ); ?></strong>
+		<?php esc_html_e( 'Serving headings now support a guarded unique article-wide fallback with diagnostics while existing 0.7.23 protected baselines remain compatible. Refresh the bundled 0.7.24 schema and begin with read-only capability checks.', 'nkt-gpt-connector' ); ?></p>
 	</div>
 	<?php
 }
 add_action( 'admin_notices', 'nkt_gpt_par_0723_admin_notice' );
 
-/** Register all 0.7.23 protected lifecycle routes. */
+/** Register all 0.7.24 protected lifecycle routes. */
 function nkt_gpt_par_0723_register_routes() {
 	$permission = function_exists( 'nkt_gpt_connector_permission_check' ) ? 'nkt_gpt_connector_permission_check' : '__return_false';
 	$namespace  = 'nkt-gpt/v1';
