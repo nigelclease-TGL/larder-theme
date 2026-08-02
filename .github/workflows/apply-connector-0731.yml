@@ -37,17 +37,21 @@ jobs:
           base64 -d /tmp/connector-0731.b64 > /tmp/connector-0731.tar.gz
           test "$(sha256sum /tmp/connector-0731.tar.gz | awk '{print $1}')" = "6515c3054731e0a3007476b77be6771f9ce9f03b6d5e9758e5b4065e6a215725"
           tar -xzf /tmp/connector-0731.tar.gz -C .
+          git restore --source=HEAD -- .github/workflows/connector-check.yml
           rm -rf .github/connector-0731-payload
-          rm -f .github/workflows/export-connector-0731.yml .github/workflows/apply-connector-0731.yml
+          find connector -type d -name __pycache__ -prune -exec rm -rf {} +
+          chmod 0644 connector/build.sh connector/build_0731.py connector/tests/test_connector_0731.py connector/tests/test_recipe_name_only_0731.py
 
       - name: Validate connector 0.7.31
         run: bash connector/build.sh
 
-      - name: Commit implementation
+      - name: Commit implementation source
         shell: bash
         run: |
+          find connector -type d -name __pycache__ -prune -exec rm -rf {} +
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add -A
+          git add connector
+          git add -u .github/connector-0731-payload
           git commit -m "Implement connector 0.7.31 recipe-name-only revision scope"
           git push origin HEAD:connector-0.7.31-recipe-name-only-revision
