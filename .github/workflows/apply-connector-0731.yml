@@ -22,7 +22,8 @@ jobs:
       - name: Extract and verify committed payload
         shell: bash
         run: |
-          sed -n "/<<'PAYLOAD'/,/^PAYLOAD$/p" .github/workflows/export-connector-0731.yml | sed '1d;$d' > /tmp/connector-0731.b64
+          grep -oE 'H4sI[A-Za-z0-9+/=]+' .github/workflows/export-connector-0731.yml > /tmp/connector-0731.b64
+          test -s /tmp/connector-0731.b64
           base64 -d /tmp/connector-0731.b64 > /tmp/connector-0731.tar.gz
           test "$(sha256sum /tmp/connector-0731.tar.gz | awk '{print $1}')" = "6515c3054731e0a3007476b77be6771f9ce9f03b6d5e9758e5b4065e6a215725"
           tar -xzf /tmp/connector-0731.tar.gz -C .
