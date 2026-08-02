@@ -69,7 +69,9 @@ def assemble() -> str:
     new_constant_patch = "\t$patched = preg_replace( $source_constant_pattern, \"define( 'NKT_GPT_CONNECTOR_VERSION', '0.7.26' );\", $patched, 1, $constant_replacements );\n"
     text = replace_once(text, old_constant_patch, new_constant_patch, 'semantic constant replacement')
 
-    old_loader_pattern = "\t$loader_pattern = \"~\\s*/\\* NKT protected article lifecycle 0\\.7\\.25 \\*/\\s*require_once __DIR__ \\. '/protected-lifecycle-0\\.7\\.25\\.php';\\s*~\";\n"
+    # The inherited updater stores its loader regex with escaped 0\.7\.24 text,
+    # so the simple literal version replacements above do not alter that regex.
+    old_loader_pattern = "\t$loader_pattern = \"~\\s*/\\* NKT protected article lifecycle 0\\.7\\.24 \\*/\\s*require_once __DIR__ \\. '/protected-lifecycle-0\\.7\\.24\\.php';\\s*~\";\n"
     new_loader_pattern = "\t$loader_pattern = \"~(?:\\s*/\\*\\s*NKT protected article lifecycle [^*]+\\*/\\s*)?require_once\\s+__DIR__\\s*\\.\\s*['\\\"]/protected-lifecycle-0\\.7\\.25\\.php['\\\"]\\s*;~\";\n"
     text = replace_once(text, old_loader_pattern, new_loader_pattern, 'semantic loader replacement')
 
@@ -104,6 +106,8 @@ def assemble() -> str:
         raise RuntimeError('Generated updater is missing: ' + ', '.join(missing))
     if 'exact expected 0.7.25 source markers' in text:
         raise RuntimeError('Generated updater still depends on the rejected exact-comment marker gate')
+    if "protected article lifecycle 0\\.7\\.24" in text:
+        raise RuntimeError('Generated updater still contains the stale escaped 0.7.24 loader regex')
     return text
 
 
