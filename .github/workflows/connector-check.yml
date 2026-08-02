@@ -33,6 +33,9 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Generate connector 0.7.30 artifacts
+        run: python connector/build_0730.py
+
       - name: Run isolated connector tests
         run: python connector/tests/test_connector_0730.py
 
