@@ -1,0 +1,266 @@
+
+/**
+ * Guarded legacy connector-draft ownership and supersession reconciliation.
+ *
+ * This stage never trashes, archives, deletes, changes article content, or infers
+ * ownership from titles, authors, dates, slugs, or content similarity. It only
+ * records exact, explicitly authorised metadata after deterministic evidence and
+ * current-state hashes have been revalidated.
+ */
+
+/** Return a stable list of preservation reasons allowed before reconciliation. */
+function nkt_gpt_par_0729_reconcilable_preservation_reasons() {
+	return array( 'preserve_manual_or_unknown', 'preserve_required_workflow' );
+}
+
+/** Return preservation reasons that prove a proposed successor is retained. */
+function nkt_gpt_par_0729_retained_successor_reasons() {
+	return array(
+		'preserve_active',
+		'preserve_initialised',
+		'preserve_audited',
+		'preserve_approved',
+		'preserve_not_applied',
+		'preserve_applied_record',
+		'preserve_failure_evidence',
+		'preserve_clone_evidence',
+		'preserve_ledger_reference',
+		'preserve_intentional_exception',
+		'preserve_required_workflow',
+	);
+}
+
+/** Extract a source live-post ID from protected baseline evidence when present. */
+function nkt_gpt_par_0729_baseline_live_post_id( $baseline ) {
+	if ( ! is_array( $baseline ) ) {
+		return 0;
+	}
+	return absint( $baseline['live']['live_post_id'] ?? ( $baseline['live_post_id'] ?? 0 ) );
+}
+
+/** Capture exact legacy connector signals without writing. */
+function nkt_gpt_par_0729_legacy_signal_snapshot( $draft_id ) {
+	$draft_id  = absint( $draft_id );
+	$post      = get_post( $draft_id );
+	$baseline  = get_post_meta( $draft_id, NKT_GPT_PAR_0723_BASELINE_META, true );
+	$lifecycle = nkt_gpt_par_0723_cleanup_lifecycle( $draft_id );
+	$workflow  = sanitize_key( (string) get_post_meta( $draft_id, '_nkt_revision_workflow_type', true ) );
+	$source_id = absint( get_post_meta( $draft_id, '_nkt_revision_source_post_id', true ) );
+	if ( ! $source_id && is_array( $lifecycle ) ) {
+		$source_id = absint( $lifecycle['live_post_id'] ?? 0 );
+	}
+	if ( ! $source_id ) {
+		$source_id = nkt_gpt_par_0729_baseline_live_post_id( $baseline );
+	}
+
+	$source_post       = $source_id ? get_post( $source_id ) : null;
+	$baseline_live_id  = nkt_gpt_par_0729_baseline_live_post_id( $baseline );
+	$lifecycle_live_id = is_array( $lifecycle ) ? absint( $lifecycle['live_post_id'] ?? 0 ) : 0;
+	$lifecycle_draft_id= is_array( $lifecycle ) ? absint( $lifecycle['draft_post_id'] ?? 0 ) : 0;
+	$review_status     = sanitize_key( (string) ( is_array( $lifecycle ) ? ( $lifecycle['review_status'] ?? '' ) : '' ) );
+	if ( '' === $review_status ) {
+		$review_status = sanitize_key( (string) get_post_meta( $draft_id, '_nkt_revision_review_status', true ) );
+	}
+	$application_status = sanitize_key( (string) ( is_array( $lifecycle ) ? ( $lifecycle['application_status'] ?? '' ) : '' ) );
+
+	$signals = array();
+	if ( absint( get_post_meta( $draft_id, '_nkt_revision_source_post_id', true ) ) ) {
+		$signals[] = '_nkt_revision_source_post_id';
+	}
+	if ( is_array( $baseline ) && ! empty( $baseline ) ) {
+		$signals[] = NKT_GPT_PAR_0723_BASELINE_META;
+	}
+	if ( is_array( $lifecycle ) && ! empty( $lifecycle ) ) {
+		$signals[] = NKT_GPT_PAR_0723_LIFECYCLE_META;
+	}
+	if ( '' !== $workflow && preg_match( '/(?:protected|revision|article_only|nutrition)/', $workflow ) ) {
+		$signals[] = '_nkt_revision_workflow_type';
+	}
+	if ( '' !== (string) get_post_meta( $draft_id, '_nkt_revision_created_at', true ) ) {
+		$signals[] = '_nkt_revision_created_at';
+	}
+	if ( '' !== (string) get_post_meta( $draft_id, '_nkt_revision_review_status', true ) ) {
+		$signals[] = '_nkt_revision_review_status';
+	}
+	$signals = array_values( array_unique( $signals ) );
+
+	$consistency_failures = array();
+	if ( ! $post || 'post' !== $post->post_type || 'draft' !== $post->post_status ) {
+		$consistency_failures[] = 'draft_post_state_not_exact';
+	}
+	if ( ! $source_id ) {
+		$consistency_failures[] = 'source_live_post_missing';
+	} elseif ( ! $source_post || 'post' !== $source_post->post_type || 'publish' !== $source_post->post_status ) {
+		$consistency_failures[] = 'source_live_post_not_published_article';
+	}
+	if ( $baseline_live_id && $source_id && $baseline_live_id !== $source_id ) {
+		$consistency_failures[] = 'baseline_source_live_post_mismatch';
+	}
+	if ( $lifecycle_live_id && $source_id && $lifecycle_live_id !== $source_id ) {
+		$consistency_failures[] = 'lifecycle_source_live_post_mismatch';
+	}
+	if ( $lifecycle_draft_id && $lifecycle_draft_id !== $draft_id ) {
+		$consistency_failures[] = 'lifecycle_draft_id_mismatch';
+	}
+	if ( ( ! is_array( $baseline ) || empty( $baseline ) ) && ( ! is_array( $lifecycle ) || empty( $lifecycle ) ) ) {
+		$consistency_failures[] = 'protected_structural_evidence_missing';
+	}
+	if ( count( $signals ) < 3 ) {
+		$consistency_failures[] = 'insufficient_independent_connector_signals';
+	}
+
+	$class = nkt_gpt_par_0728_classify_draft( $draft_id );
+	$reasons = array_values( array_unique( (array) ( $class['preservation_reasons'] ?? array() ) ) );
+	$disallowed_reasons = array_values( array_diff( $reasons, nkt_gpt_par_0729_reconcilable_preservation_reasons() ) );
+	$ownership = nkt_gpt_par_0728_connector_ownership_evidence( $draft_id );
+	$reconcilable_ownership = empty( $consistency_failures ) && ( ! empty( $ownership['proven'] ) || count( $signals ) >= 3 );
+	$eligible = $reconcilable_ownership
+		&& empty( $class['safe_to_trash'] )
+		&& empty( $disallowed_reasons )
+		&& 'not_referenced' === (string) ( $class['programme_ledger_reference_state'] ?? '' )
+		&& empty( $class['protected_draft_active'] )
+		&& empty( $class['linked_recipe_clone_ids'] )
+		&& empty( $class['linked_failure_evidence_ids'] )
+		&& empty( nkt_gpt_par_0728_required_preservation_ids()[ $draft_id ] );
+
+	$snapshot = array(
+		'draft_id'                        => $draft_id,
+		'wordpress_status'                => $post ? (string) $post->post_status : '',
+		'post_type'                       => $post ? (string) $post->post_type : '',
+		'post_date_gmt'                   => $post ? (string) $post->post_date_gmt : '',
+		'source_live_post_id'             => $source_id,
+		'workflow_type'                   => $workflow,
+		'baseline_present'                => is_array( $baseline ) && ! empty( $baseline ),
+		'baseline_hash'                   => nkt_gpt_par_0723_hash( is_array( $baseline ) ? $baseline : array() ),
+		'baseline_source_live_post_id'    => $baseline_live_id,
+		'lifecycle_present'               => is_array( $lifecycle ) && ! empty( $lifecycle ),
+		'lifecycle_hash'                  => nkt_gpt_par_0723_hash( is_array( $lifecycle ) ? $lifecycle : array() ),
+		'lifecycle_source_live_post_id'   => $lifecycle_live_id,
+		'lifecycle_draft_id'              => $lifecycle_draft_id,
+		'review_status'                   => $review_status,
+		'application_status'              => $application_status,
+		'connector_signals'               => $signals,
+		'connector_signal_count'          => count( $signals ),
+		'consistency_failures'            => $consistency_failures,
+		'connector_ownership_proven'      => ! empty( $ownership['proven'] ),
+		'ownership_mode'                  => (string) ( $ownership['mode'] ?? '' ),
+		'current_classification'          => (string) ( $class['classification'] ?? '' ),
+		'current_safe_to_trash'           => ! empty( $class['safe_to_trash'] ),
+		'current_classification_hash'     => (string) ( $class['safe_to_trash_classification_hash'] ?? '' ),
+		'current_ownership_hash'          => (string) ( $class['connector_ownership_hash'] ?? '' ),
+		'programme_ledger_reference_state'=> (string) ( $class['programme_ledger_reference_state'] ?? 'unknown' ),
+		'protected_draft_active'          => ! empty( $class['protected_draft_active'] ),
+		'linked_recipe_clone_ids'         => nkt_gpt_par_0728_id_list( $class['linked_recipe_clone_ids'] ?? array() ),
+		'linked_failure_evidence_ids'     => nkt_gpt_par_0728_id_list( $class['linked_failure_evidence_ids'] ?? array() ),
+		'preservation_reasons'            => $reasons,
+		'disallowed_preservation_reasons' => $disallowed_reasons,
+		'reconcilable_ownership'          => $reconcilable_ownership,
+		'eligible_for_supersession_recording' => $eligible,
+	);
+	$snapshot['reconciliation_evidence_hash'] = nkt_gpt_par_0723_hash( $snapshot );
+	return $snapshot;
+}
+
+/** Return exact retained connector-managed successor IDs for one legacy draft. */
+function nkt_gpt_par_0729_eligible_successor_ids( $snapshot ) {
+	$draft_id  = absint( $snapshot['draft_id'] ?? 0 );
+	$source_id = absint( $snapshot['source_live_post_id'] ?? 0 );
+	if ( ! $draft_id || ! $source_id || empty( $snapshot['eligible_for_supersession_recording'] ) ) {
+		return array();
+	}
+	$query = new WP_Query( array(
+		'post_type'      => 'post',
+		'post_status'    => 'draft',
+		'posts_per_page' => 100,
+		'orderby'        => 'ID',
+		'order'          => 'ASC',
+		'fields'         => 'ids',
+		'no_found_rows'  => true,
+		'meta_query'     => array(
+			array(
+				'key'   => '_nkt_revision_source_post_id',
+				'value' => $source_id,
+			),
+		),
+	) );
+	$ids = array();
+	foreach ( (array) $query->posts as $candidate_id ) {
+		$candidate_id = absint( $candidate_id );
+		if ( ! $candidate_id || $candidate_id <= $draft_id ) {
+			continue;
+		}
+		$ownership = nkt_gpt_par_0728_connector_ownership_evidence( $candidate_id );
+		$class     = nkt_gpt_par_0728_classify_draft( $candidate_id );
+		$reasons   = (array) ( $class['preservation_reasons'] ?? array() );
+		$retained  = array_intersect( $reasons, nkt_gpt_par_0729_retained_successor_reasons() );
+		if ( ! empty( $ownership['proven'] )
+			&& absint( $ownership['bundle']['source_live_post_id'] ?? 0 ) === $source_id
+			&& empty( $class['safe_to_trash'] )
+			&& ! empty( $retained )
+		) {
+			$ids[] = $candidate_id;
+		}
+	}
+	return array_values( array_unique( $ids ) );
+}
+
+/** Build one complete read-only reconciliation row. */
+function nkt_gpt_par_0729_reconciliation_row( $draft_id ) {
+	$row = nkt_gpt_par_0729_legacy_signal_snapshot( $draft_id );
+	$row['eligible_superseding_draft_ids'] = nkt_gpt_par_0729_eligible_successor_ids( $row );
+	$row['reconciliation_evidence_hash'] = nkt_gpt_par_0723_hash( $row );
+	return $row;
+}
+
+/** Read-only paginated inventory of legacy connector-draft reconciliation evidence. */
+function nkt_gpt_par_0729_inventory_legacy_reconciliation( WP_REST_Request $request ) {
+	$guard = nkt_gpt_par_0723_version_guard( $request );
+	if ( is_wp_error( $guard ) ) {
+		return $guard;
+	}
+	$page     = max( 1, absint( $request->get_param( 'page' ) ) );
+	$per_page = min( 100, max( 1, absint( $request->get_param( 'per_page' ) ?: 20 ) ) );
+	$source_id= absint( $request->get_param( 'source_live_post_id' ) );
+	$meta_query = array( 'relation' => 'OR' );
+	foreach ( array( '_nkt_revision_source_post_id', NKT_GPT_PAR_0723_BASELINE_META, NKT_GPT_PAR_0723_LIFECYCLE_META, '_nkt_revision_workflow_type' ) as $key ) {
+		$meta_query[] = array( 'key' => $key, 'compare' => 'EXISTS' );
+	}
+	if ( $source_id ) {
+		$meta_query = array(
+			array(
+				'key'   => '_nkt_revision_source_post_id',
+				'value' => $source_id,
+			),
+		);
+	}
+	$query = new WP_Query( array(
+		'post_type'      => 'post',
+		'post_status'    => 'draft',
+		'posts_per_page' => $per_page,
+		'paged'          => $page,
+		'orderby'        => 'ID',
+		'order'          => 'ASC',
+		'fields'         => 'ids',
+		'no_found_rows'  => false,
+		'meta_query'     => $meta_query,
+	) );
+	$rows = array();
+	foreach ( (array) $query->posts as $draft_id ) {
+		$row = nkt_gpt_par_0729_reconciliation_row( $draft_id );
+		$row['title'] = get_the_title( $draft_id );
+		$rows[] = $row;
+	}
+	$response = new WP_REST_Response( array(
+		'connector_version' => NKT_GPT_PAR_0723_VERSION,
+		'read_only'         => true,
+		'writes_attempted'  => false,
+		'page'              => $page,
+		'per_page'          => $per_page,
+		'total_candidates'  => (int) $query->found_posts,
+		'total_pages'       => (int) $query->max_num_pages,
+		'rows'              => $rows,
+	), 200 );
+	$response->header( 'X-WP-Total', (string) $query->found_posts );
+	$response->header( 'X-WP-TotalPages', (string) $query->max_num_pages );
+	return nkt_gpt_connector_no_store( $response );
+}

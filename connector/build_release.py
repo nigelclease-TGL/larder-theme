@@ -12,13 +12,13 @@ generated_openapi = build_openapi()
 generated_updater = build_updater()
 OUT = ROOT / 'artifacts'
 OUT.mkdir(parents=True, exist_ok=True)
-zip_path = OUT / 'nkt-gpt-connector-0.7.28-managed-draft-ownership-guarded-trash-upgrader.zip'
-sha_path = OUT / 'nkt-gpt-connector-0.7.28-managed-draft-ownership-guarded-trash-upgrader.sha256.txt'
-prefix = 'nkt-gpt-connector-upgrader-0.7.28/'
+zip_path = OUT / 'nkt-gpt-connector-0.7.29-guarded-legacy-draft-reconciliation-upgrader.zip'
+sha_path = OUT / 'nkt-gpt-connector-0.7.29-guarded-legacy-draft-reconciliation-upgrader.sha256.txt'
+prefix = 'nkt-gpt-connector-upgrader-0.7.29/'
 files = [
-    ('artifacts/generated/nkt-gpt-connector-upgrader-0.7.28.php', 'nkt-gpt-connector-upgrader.php'),
-    ('artifacts/generated/protected-lifecycle-0.7.28.php', 'protected-lifecycle-0.7.28.php'),
-    ('artifacts/generated/openapi-0.7.28.json', 'openapi-0.7.28.json'),
+    ('artifacts/generated/nkt-gpt-connector-upgrader-0.7.29.php', 'nkt-gpt-connector-upgrader.php'),
+    ('artifacts/generated/protected-lifecycle-0.7.29.php', 'protected-lifecycle-0.7.29.php'),
+    ('artifacts/generated/openapi-0.7.29.json', 'openapi-0.7.29.json'),
     ('CHANGELOG.md', 'CHANGELOG.txt'),
     ('README.md', 'README.txt'),
     ('VALIDATION.md', 'VALIDATION.txt'),

@@ -19,9 +19,11 @@ FRAGMENTS = [
     ROOT / 'src' / 'parts' / '07b-repair.phpfrag',
     ROOT / 'src' / 'parts' / '08a-cleanup.phpfrag',
     ROOT / 'src' / 'parts' / '08c-managed-draft-trash.phpfrag',
+    ROOT / 'src' / 'parts' / '08d-legacy-draft-reconciliation-evidence.phpfrag',
+    ROOT / 'src' / 'parts' / '08e-legacy-draft-reconciliation-write.phpfrag',
     ROOT / 'src' / 'parts' / '08b-routes.phpfrag',
 ]
-OUTPUT = ROOT / 'artifacts' / 'generated' / 'protected-lifecycle-0.7.28.php'
+OUTPUT = ROOT / 'artifacts' / 'generated' / 'protected-lifecycle-0.7.29.php'
 
 OLD_NUTRIENT_BLOCK = """\t$nutrient_count = 0;
 \tforeach ( array( 'Calories', 'Total Fat', 'Carbohydrates', 'Carbs', 'Sugars', 'Protein', 'Sodium', 'Fiber', 'Fibre' ) as $label ) {
@@ -43,27 +45,25 @@ def assemble() -> str:
     if text.count(OLD_NUTRIENT_BLOCK) != 1:
         raise RuntimeError('Expected exactly one inherited colon-only nutrient-label counter block')
     text = text.replace(OLD_NUTRIENT_BLOCK, NEW_NUTRIENT_BLOCK, 1)
-    for old, new in [
-        (
-            "array( '0.7.23', '0.7.24', '0.7.25' )",
-            "array( '0.7.23', '0.7.24', '0.7.25', '0.7.26', '0.7.27', '0.7.28' )",
-        ),
-        (
-            "array( '0.7.23', '0.7.24', '0.7.25', '0.7.26' )",
-            "array( '0.7.23', '0.7.24', '0.7.25', '0.7.26', '0.7.27', '0.7.28' )",
-        ),
-        (
-            "array( '0.7.23', '0.7.24', '0.7.25', '0.7.26', '0.7.27' )",
-            "array( '0.7.23', '0.7.24', '0.7.25', '0.7.26', '0.7.27', '0.7.28' )",
-        ),
+    full_versions = "array( '0.7.23', '0.7.24', '0.7.25', '0.7.26', '0.7.27', '0.7.28', '0.7.29' )"
+    for old in [
+        "array( '0.7.23', '0.7.24', '0.7.25' )",
+        "array( '0.7.23', '0.7.24', '0.7.25', '0.7.26' )",
+        "array( '0.7.23', '0.7.24', '0.7.25', '0.7.26', '0.7.27' )",
+        "array( '0.7.23', '0.7.24', '0.7.25', '0.7.26', '0.7.27', '0.7.28' )",
     ]:
-        text = text.replace(old, new)
-    if "const NKT_GPT_PAR_0723_VERSION         = '0.7.28';" not in text:
-        raise RuntimeError('Generated lifecycle does not target 0.7.28')
-    if 'nkt_gpt_par_0728_inventory_connector_managed_drafts' not in text:
-        raise RuntimeError('Generated lifecycle is missing the connector-managed draft inventory')
-    if 'nkt_gpt_par_0728_trash_connector_managed_drafts' not in text:
-        raise RuntimeError('Generated lifecycle is missing guarded native Trash support')
+        text = text.replace(old, full_versions)
+    required = [
+        "const NKT_GPT_PAR_0723_VERSION         = '0.7.29';",
+        'nkt_gpt_par_0728_inventory_connector_managed_drafts',
+        'nkt_gpt_par_0728_trash_connector_managed_drafts',
+        'nkt_gpt_par_0729_inventory_legacy_reconciliation',
+        'nkt_gpt_par_0729_reconcile_legacy_supersessions',
+        "'0.7.28', '0.7.29'",
+    ]
+    missing = [value for value in required if value not in text]
+    if missing:
+        raise RuntimeError('Generated lifecycle is missing: ' + ', '.join(missing))
     return text
 
 
