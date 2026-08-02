@@ -20,15 +20,17 @@ The established `nutrition_section_only` path delegates unchanged to the existin
 
 ## Protected creation
 
-A name-only start must use the current live article and current sole live recipe, preserve all prior revision evidence, and create a fresh draft and fresh clone. A current live source that is itself a connector clone requires explicit `allow_current_live_connector_clone_source: true` and `skip_live_connector_clones: false`.
+A name-only start must use the current live article and current sole live recipe, preserve all prior revision evidence, and create exactly one fresh draft and one fresh clone. A current live source that is itself a connector clone requires explicit `allow_current_live_connector_clone_source: true` and `skip_live_connector_clones: false`.
 
-The extension captures the live article row and metadata, source recipe row and metadata, taxonomies, object and status-independent hashes, protected component hashes and WPRM Nutrition hash. It verifies that creation changed neither the live article nor source recipe and that the draft differs only through the exact recipe-ID substitution. On failure, source-side state is restored and any discovered new objects are retained and marked as failure evidence.
+The extension captures the complete protected live-article, source-recipe and historical-evidence states, including connector metadata and taxonomies. It verifies that creation changed neither the live article nor source recipe, that every earlier draft and recipe record remains unchanged, and that the draft differs only through exactly one recipe-ID substitution. On delegated error or failed verification, source-side state is restored and every discovered new object is retained and marked as failure evidence.
 
 ## Protected update, audit, review and apply
 
-For a stored `recipe_name_only` baseline, update accepts exactly one item containing only `draft_post_id`, `cloned_recipe_id` and `name`. The name must be non-empty and differ from the source. Every extra key is rejected before delegation. After delegation, every non-name recipe field, WPRM Nutrition, source recipe, live article and draft article is verified. Any error or drift restores all exact pre-write snapshots.
+For a stored `recipe_name_only` baseline, update accepts exactly one item containing only `draft_post_id`, `cloned_recipe_id` and `name`. The name must be non-empty and differ from both the source and current cloned recipe names. Every extra key is rejected before delegation. After delegation, every non-name recipe field, connector and WPRM metadata, taxonomy, WPRM Nutrition, source recipe, live article and draft article is verified. Any error or drift restores all exact pre-write snapshots.
 
-Audit returns explicit authorised- and unexpected-difference manifests. Approval requires a fresh passing current-state audit hash. Apply requires the same approved hash, may run once, preserves the source and draft, and verifies exact article recipe-ID substitution, recipe order/count, target name, protected article evidence, recipe fields and Nutrition. Delegated apply failure or failed post-write verification triggers exact restoration.
+Audit returns explicit authorised- and unexpected-difference manifests. It requires exactly one article recipe-ID substitution and verifies all retained historical evidence. Approval requires a fresh passing current-state audit hash. Apply requires the same approved hash, may run once, preserves the source and draft, and verifies exact article recipe-ID substitution, recipe order/count, target name, protected article evidence, recipe fields and Nutrition. Delegated apply failure or failed post-write verification triggers exact restoration.
+
+Every 0.7.31 wrapper performs the exact connector-version guard before delegation or metadata writes.
 
 ## Apricot Cinnamon Cake isolated fixture
 
@@ -47,23 +49,25 @@ The fixture is synthetic and proves preservation rules without connecting to Wor
 
 ## Automated checks
 
-The suite verifies:
+The suite includes 63 isolated recipe-name lifecycle fixtures and verifies:
 
 1. exact connector, updater and schema versions;
 2. both valid scopes and rejection of generic scopes;
 3. unchanged delegation for `nutrition_section_only`;
-4. fresh pair and explicit connector-clone-source guards;
-5. pre-write rejection of empty, unchanged and multi-field name updates;
-6. exact name-only substantive comparison;
-7. restoration paths for delegated errors, hook-induced drift and post-apply verification failure;
-8. strict audit manifests and article recipe-ID-only substitution;
-9. stale-audit approval/apply rejection and single-apply enforcement;
-10. retained source, draft and historical evidence requirements;
-11. absence of archive, Trash, permanent deletion, repair, migration and cleanup calls from the extension;
-12. retention of the 0.7.30 reusable-block evidence action and every protected lifecycle action;
-13. exactly 28 unique OpenAPI operations, descriptions no longer than 300 characters and no schema combinators;
-14. guarded 0.7.30-to-0.7.31 updater markers, backups, restoration, cache invalidation and self-deactivation;
-15. generated PHP syntax and deterministic release ZIP integrity.
+4. exact version rejection before delegation or lifecycle writes;
+5. exactly one fresh pair, explicit connector-clone-source guards and retained failure evidence for every unexpected new object;
+6. exact restoration after delegated creation errors and source/live metadata drift;
+7. pre-write rejection of empty, source-equal, clone-equal and multi-field name updates;
+8. exact name-only substantive comparison, including connector metadata and taxonomies;
+9. restoration paths for delegated errors, hook-induced drift and post-apply verification failure;
+10. strict audit manifests and exactly one article recipe-ID substitution;
+11. stale-audit approval/apply rejection and single-apply enforcement;
+12. retained source, prior draft and historical recipe evidence hashes;
+13. absence of archive, Trash, permanent deletion, repair, migration and cleanup calls from the extension;
+14. retention of the 0.7.30 reusable-block evidence action and every protected lifecycle action;
+15. exactly 28 unique OpenAPI operations, descriptions no longer than 300 characters and no schema combinators;
+16. guarded 0.7.30-to-0.7.31 updater markers, backups, restoration, cache invalidation and self-deactivation;
+17. generated PHP syntax and deterministic release ZIP integrity.
 
 ## Deployment boundary
 
