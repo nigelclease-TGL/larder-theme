@@ -1,0 +1,55 @@
+name: Apply Connector 0.7.31 Review Fixes
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [ opened, synchronize, reopened ]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.head_ref == 'connector-0.7.31-recipe-name-only-revision'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out development branch
+        uses: actions/checkout@v4
+        with:
+          ref: connector-0.7.31-recipe-name-only-revision
+          fetch-depth: 0
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          coverage: none
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify and apply reviewed patch
+        shell: bash
+        run: |
+          base64 -d .github/connector-0731-review-fixes.patch.gz.b64 > /tmp/connector-0731-review-fixes.patch.gz
+          test "$(sha256sum /tmp/connector-0731-review-fixes.patch.gz | awk '{print $1}')" = "656ceab819b9841426bcd8c7366c00d3e2c700f38490b2c6d5cb6396f177241c"
+          gzip -dc /tmp/connector-0731-review-fixes.patch.gz > /tmp/connector-0731-review-fixes.patch
+          git apply --check /tmp/connector-0731-review-fixes.patch
+          git apply /tmp/connector-0731-review-fixes.patch
+          rm -f .github/connector-0731-review-fixes.patch.gz.b64
+
+      - name: Validate connector 0.7.31
+        run: bash connector/build.sh
+
+      - name: Commit reviewed implementation
+        shell: bash
+        run: |
+          find connector -type d -name __pycache__ -prune -exec rm -rf {} +
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add connector/src/parts/08g-recipe-name-only-revision.phpfrag connector/tests/test_recipe_name_only_0731.py
+          git add -u .github/connector-0731-review-fixes.patch.gz.b64
+          git commit -m "Harden connector 0.7.31 protected recipe-name lifecycle"
+          git push origin HEAD:connector-0.7.31-recipe-name-only-revision
