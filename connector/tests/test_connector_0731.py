@@ -68,7 +68,7 @@ check('all five complete recipe actions retained', all(item in ops for item in [
     'startCompleteRecipeRevision', 'updateClonedRecipeRevisions', 'auditClonedRecipeRevision',
     'reviewRecipeRevision', 'applyCompleteRecipeRevision',
 ]))
-check('schema version is 0.7.31', schema['info']['version'].startswith('0.7.31'))
+check('schema revision is 0.7.31-schema.2', schema['info']['version'] == '0.7.31-schema.2')
 check('schema has no old public connector version', '0.7.30' not in schema_text)
 check('schema has no combinators', not any(token in schema_text for token in ['"allOf"', '"oneOf"', '"anyOf"']))
 check('all action descriptions at most 300 chars', all(
@@ -81,6 +81,22 @@ start = schema['paths']['/workflow/revisions/start']['post']
 start_props = start['requestBody']['content']['application/json']['schema']['properties']
 check('schema accepts exactly both protected scopes', start_props['correction_scope']['enum'] == ['nutrition_section_only', 'recipe_name_only'])
 check('schema exposes explicit live connector clone authorisation', 'allow_current_live_connector_clone_source' in start_props)
+body_version_paths = {
+    'startCompleteRecipeRevision': '/workflow/revisions/start',
+    'updateClonedRecipeRevisions': '/workflow/revisions/recipes/update',
+    'reviewRecipeRevision': '/workflow/revisions/review',
+    'applyCompleteRecipeRevision': '/workflow/revisions/apply',
+}
+for operation_id, path in body_version_paths.items():
+    body = schema['paths'][path]['post']['requestBody']['content']['application/json']['schema']
+    check(operation_id + ' exposes connector_version', body.get('properties', {}).get('connector_version', {}).get('enum') == ['0.7.31'])
+    check(operation_id + ' requires connector_version', 'connector_version' in body.get('required', []))
+audit_version = [
+    item for item in schema['paths']['/workflow/revisions/recipes/audit']['get'].get('parameters', [])
+    if item.get('name') == 'connector_version' and item.get('in') == 'query'
+]
+check('auditClonedRecipeRevision exposes one connector_version query guard', len(audit_version) == 1)
+check('auditClonedRecipeRevision requires exact connector_version', bool(audit_version) and audit_version[0].get('required') is True and audit_version[0].get('schema', {}).get('enum') == ['0.7.31'])
 check('schema does not expose generic recipe scope', 'generic_recipe_edit' not in schema_text)
 
 check('updater source version exact', "NKT_GPT_UPGRADER_0731_SOURCE_VERSION = '0.7.30'" in updater)

@@ -72,3 +72,7 @@ The suite includes 63 isolated recipe-name lifecycle fixtures and verifies:
 ## Deployment boundary
 
 Deployment acceptance is capability-only. It must confirm version 0.7.31, the five complete-recipe actions, both valid scopes and zero WordPress changes. The Apricot Cinnamon Cake correction remains a later separately authorised issue #68 execution.
+
+## OpenAPI schema revision 0.7.31-schema.2
+
+The five complete-recipe lifecycle actions now expose the exact `connector_version: 0.7.31` parameter required by the runtime guard. Start, update, review and apply require it in the JSON body; audit requires it as a query parameter. This is a schema-only correction and does not change the deployed PHP runtime or any WordPress object.

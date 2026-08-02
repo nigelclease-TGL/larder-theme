@@ -1,5 +1,6 @@
 # NKT GPT Connector 0.7.31 changelog
 
+- Schema revision `0.7.31-schema.2` now exposes and requires the exact `connector_version: 0.7.31` guard on all five complete-recipe lifecycle actions; runtime behaviour is unchanged.
 - Adds the exact protected complete-recipe correction scope `recipe_name_only` to the existing clone, audit, review and apply lifecycle.
 - Retains `nutrition_section_only` without behavioural changes and does not expose a generic recipe-edit scope.
 - Requires one fresh article revision draft and one fresh isolated recipe clone; earlier drafts and clones are retained as evidence and are never reused or overwritten.
