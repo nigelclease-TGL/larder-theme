@@ -1,1 +1,1 @@
-PENDING  nkt-gpt-connector-0.7.26-structured-nutrient-evidence-upgrader.zip
+da39e51312e91382de2d2ed4e2802dd7ddb2ca9ab57c2f1633cd19041e102bb5  nkt-gpt-connector-0.7.26-structured-nutrient-evidence-upgrader.zip
