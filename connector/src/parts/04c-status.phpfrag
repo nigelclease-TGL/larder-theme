@@ -1,0 +1,81 @@
+function nkt_gpt_par_0723_status( WP_REST_Request $request ) {
+	$guard = nkt_gpt_par_0723_version_guard( $request );
+	if ( is_wp_error( $guard ) ) {
+		return $guard;
+	}
+	$live_id  = absint( $request->get_param( 'live_post_id' ) );
+	$draft_id = absint( $request->get_param( 'draft_post_id' ) );
+	$live     = nkt_gpt_par_0723_capture_live_state( $live_id );
+	if ( is_wp_error( $live ) ) {
+		return $live;
+	}
+
+	$data = array(
+		'read_only'         => true,
+		'changes_made'      => false,
+		'connector_version' => NKT_GPT_PAR_0723_VERSION,
+		'live_state'        => $live,
+		'lifecycle_actions' => array(
+			'createProtectedArticleRevision'    => true,
+			'updateProtectedArticleRevision'    => true,
+			'auditProtectedArticleRevision'     => true,
+			'reviewProtectedArticleRevision'    => true,
+			'applyProtectedArticleRevision'     => true,
+			'rollbackProtectedArticleRevision'  => true,
+			'getProtectedArticleRevisionStatus' => true,
+			'repairProtectedRecipeStatusSideEffects' => true,
+			'cleanupRevisionObjects' => true,
+		),
+	);
+	if ( $draft_id ) {
+		$pair = nkt_gpt_par_0723_pair( $live_id, $draft_id );
+		if ( is_wp_error( $pair ) ) {
+			return $pair;
+		}
+		$data['draft_state'] = nkt_gpt_par_0723_capture_draft_state( $draft_id );
+		$data['baseline']    = get_post_meta( $draft_id, NKT_GPT_PAR_0723_BASELINE_META, true );
+		$data['legacy_baselines'] = nkt_gpt_par_0723_legacy_baselines( $draft_id );
+		$data['baseline_version'] = is_array( $data['baseline'] ) && ! empty( $data['baseline']['connector_version'] )
+			? (string) $data['baseline']['connector_version']
+			: ( $data['legacy_baselines'] ? (string) array_key_first( $data['legacy_baselines'] ) : null );
+		$data['baseline_migration_required'] = empty( $data['baseline'] ) && ! empty( $data['legacy_baselines'] );
+		$data['protected_baseline_valid'] = false;
+		$data['recipe_drift'] = array();
+		if ( is_array( $data['baseline'] ) && ! empty( $data['baseline']['live'] ) ) {
+			$stored_live = $data['baseline']['live'];
+			$data['protected_baseline_valid'] = isset( $data['baseline']['connector_version'] )
+				&& NKT_GPT_PAR_0723_VERSION === (string) $data['baseline']['connector_version']
+				&& nkt_gpt_par_0723_hash( nkt_gpt_par_0723_baseline_comparison_state( $stored_live ) ) === nkt_gpt_par_0723_hash( nkt_gpt_par_0723_baseline_comparison_state( $live ) );
+			foreach ( (array) $live['ordered_wprm_recipe_ids'] as $recipe_id ) {
+				$recipe_id = absint( $recipe_id );
+				$stored_status = isset( $stored_live['recipe_statuses'][ $recipe_id ] ) ? (string) $stored_live['recipe_statuses'][ $recipe_id ] : null;
+				$current_status = isset( $live['recipe_statuses'][ $recipe_id ] ) ? (string) $live['recipe_statuses'][ $recipe_id ] : null;
+				$stored_object = isset( $stored_live['recipe_object_hashes'][ $recipe_id ] ) ? (string) $stored_live['recipe_object_hashes'][ $recipe_id ] : null;
+				$current_object = isset( $live['recipe_object_hashes'][ $recipe_id ] ) ? (string) $live['recipe_object_hashes'][ $recipe_id ] : null;
+				$stored_independent = isset( $stored_live['recipe_status_independent_hashes'][ $recipe_id ] ) ? (string) $stored_live['recipe_status_independent_hashes'][ $recipe_id ] : null;
+				$current_independent = isset( $live['recipe_status_independent_hashes'][ $recipe_id ] ) ? (string) $live['recipe_status_independent_hashes'][ $recipe_id ] : null;
+				$stored_nutrition = isset( $stored_live['wprm_nutrition_hashes'][ $recipe_id ] ) ? (string) $stored_live['wprm_nutrition_hashes'][ $recipe_id ] : null;
+				$current_nutrition = isset( $live['wprm_nutrition_hashes'][ $recipe_id ] ) ? (string) $live['wprm_nutrition_hashes'][ $recipe_id ] : null;
+				$data['recipe_drift'][ $recipe_id ] = array(
+					'stored_status' => $stored_status,
+					'current_status' => $current_status,
+					'status_changed' => $stored_status !== $current_status,
+					'stored_object_hash' => $stored_object,
+					'current_object_hash' => $current_object,
+					'object_hash_changed' => $stored_object !== $current_object,
+					'stored_status_independent_hash' => $stored_independent,
+					'current_status_independent_hash' => $current_independent,
+					'status_independent_hash_changed' => $stored_independent !== $current_independent,
+					'stored_wprm_nutrition_hash' => $stored_nutrition,
+					'current_wprm_nutrition_hash' => $current_nutrition,
+					'wprm_nutrition_changed' => $stored_nutrition !== $current_nutrition,
+				);
+			}
+		}
+		$data['lifecycle']   = nkt_gpt_par_0723_lifecycle( $draft_id );
+		$data['draft_retained'] = (bool) get_post( $draft_id );
+	}
+	return nkt_gpt_connector_no_store( new WP_REST_Response( $data, 200 ) );
+}
+
+/** Create or safely initialise an isolated protected article-only draft. */

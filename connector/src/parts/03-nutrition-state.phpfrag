@@ -1,0 +1,307 @@
+function nkt_gpt_par_0723_block_text( $block ) {
+	$html = isset( $block['innerHTML'] ) ? (string) $block['innerHTML'] : '';
+	return trim( preg_replace( '/\s+/u', ' ', html_entity_decode( wp_strip_all_tags( $html ), ENT_QUOTES | ENT_HTML5, get_bloginfo( 'charset' ) ?: 'UTF-8' ) ) );
+}
+
+/** Find one H3 Serving heading inside a nested block list. */
+function nkt_gpt_par_0723_find_serving_heading_in_blocks( $blocks, $path_prefix = array() ) {
+	foreach ( (array) $blocks as $index => $block ) {
+		$path = array_merge( $path_prefix, array( (int) $index ) );
+		if ( 'core/heading' === (string) ( $block['blockName'] ?? '' ) ) {
+			$level = isset( $block['attrs']['level'] ) ? absint( $block['attrs']['level'] ) : 2;
+			$text  = nkt_gpt_par_0723_block_text( $block );
+			if ( 3 === $level && preg_match( '/^Serving\s*:\s*(.+)$/iu', $text, $match ) ) {
+				$label = trim( preg_replace( '/\s+/u', ' ', $match[1] ) );
+				return array(
+					'serving_label'      => $label,
+					'serving_label_hash' => hash( 'sha256', $label ),
+					'serving_label_source' => 'nutrition_heading',
+					'serving_label_block_path' => implode( '.', $path ),
+				);
+			}
+		}
+		$inner = isset( $block['innerBlocks'] ) ? (array) $block['innerBlocks'] : array();
+		if ( $inner ) {
+			$found = nkt_gpt_par_0723_find_serving_heading_in_blocks( $inner, $path );
+			if ( $found ) {
+				return $found;
+			}
+		}
+	}
+	return array();
+}
+
+/** Extract the literal serving label and hash from the same H3 inside the top-level NUTRITION section. */
+function nkt_gpt_par_0723_extract_nutrition_serving_heading( $content ) {
+	$empty = array(
+		'serving_label' => '',
+		'serving_label_hash' => hash( 'sha256', '' ),
+		'serving_label_source' => null,
+		'serving_label_block_path' => null,
+	);
+	if ( function_exists( 'parse_blocks' ) ) {
+		$blocks = parse_blocks( (string) $content );
+		$inside_nutrition = false;
+		foreach ( (array) $blocks as $index => $block ) {
+			if ( 'core/heading' === (string) ( $block['blockName'] ?? '' ) ) {
+				$level = isset( $block['attrs']['level'] ) ? absint( $block['attrs']['level'] ) : 2;
+				$text  = nkt_gpt_par_0723_block_text( $block );
+				if ( ! $inside_nutrition && 2 === $level && 'NUTRITION' === strtoupper( $text ) ) {
+					$inside_nutrition = true;
+					continue;
+				}
+				if ( $inside_nutrition && $level <= 2 ) {
+					break;
+				}
+			}
+			if ( $inside_nutrition ) {
+				$found = nkt_gpt_par_0723_find_serving_heading_in_blocks( array( $block ), array( (int) $index ) );
+				if ( $found ) {
+					return $found;
+				}
+			}
+		}
+	}
+
+	// Conservative fallback: restrict matching to markup between the NUTRITION H2 and the next H2.
+	if ( preg_match( '/<h2\b[^>]*>\s*NUTRITION\s*<\/h2>(.*?)(?=<h2\b|\z)/isu', (string) $content, $section )
+		&& preg_match( '/<h3\b[^>]*>\s*Serving\s*:\s*(.*?)\s*<\/h3>/isu', $section[1], $heading ) ) {
+		$label = trim( preg_replace( '/\s+/u', ' ', html_entity_decode( wp_strip_all_tags( $heading[1] ), ENT_QUOTES | ENT_HTML5, get_bloginfo( 'charset' ) ?: 'UTF-8' ) ) );
+		return array(
+			'serving_label' => $label,
+			'serving_label_hash' => hash( 'sha256', $label ),
+			'serving_label_source' => 'nutrition_heading_fallback',
+			'serving_label_block_path' => null,
+		);
+	}
+	return $empty;
+}
+
+/** Extract a position-independent Nutrition manifest using the connector's parser. */
+function nkt_gpt_par_0723_nutrition_manifest( $content ) {
+	$parsed = function_exists( 'nkt_gpt_connector_legacy_nutrition_article_sections' )
+		? nkt_gpt_connector_legacy_nutrition_article_sections( (string) $content, true )
+		: array();
+
+	$sections = array();
+	foreach ( (array) ( isset( $parsed['nutrition_sections'] ) ? $parsed['nutrition_sections'] : array() ) as $section ) {
+		$blocks = array();
+		foreach ( (array) ( isset( $section['blocks'] ) ? $section['blocks'] : array() ) as $block ) {
+			$blocks[] = array(
+				'block_name'     => isset( $block['block_name'] ) ? $block['block_name'] : null,
+				'text_sha256'    => isset( $block['text_sha256'] ) ? $block['text_sha256'] : null,
+				'raw_sha256'     => isset( $block['raw_sha256'] ) ? $block['raw_sha256'] : null,
+				'recipe_id'      => isset( $block['recipe_id'] ) ? $block['recipe_id'] : null,
+				'attachment_ids' => isset( $block['attachment_ids'] ) ? array_values( (array) $block['attachment_ids'] ) : array(),
+			);
+		}
+		$sections[] = array(
+			'heading'                     => isset( $section['heading'] ) ? $section['heading'] : '',
+			'heading_level'               => isset( $section['heading_level'] ) ? $section['heading_level'] : null,
+			'section_text_sha256'         => isset( $section['section_text_sha256'] ) ? $section['section_text_sha256'] : '',
+			'recipe_ids_inside_section'   => array_values( (array) ( isset( $section['recipe_ids_inside_section'] ) ? $section['recipe_ids_inside_section'] : array() ) ),
+			'nearest_preceding_recipe_id' => isset( $section['nearest_preceding_recipe_id'] ) ? $section['nearest_preceding_recipe_id'] : null,
+			'nearest_following_recipe_id' => isset( $section['nearest_following_recipe_id'] ) ? $section['nearest_following_recipe_id'] : null,
+			'serving_phrases'             => array_values( (array) ( isset( $section['serving_phrases'] ) ? $section['serving_phrases'] : array() ) ),
+			'daily_value_phrases'         => array_values( (array) ( isset( $section['daily_value_phrases'] ) ? $section['daily_value_phrases'] : array() ) ),
+			'disclaimer_phrases'          => array_values( (array) ( isset( $section['disclaimer_phrases'] ) ? $section['disclaimer_phrases'] : array() ) ),
+			'nutrient_label_hits'         => array_values( (array) ( isset( $section['nutrient_label_hits'] ) ? $section['nutrient_label_hits'] : array() ) ),
+			'attachments'                 => array_values( (array) ( isset( $section['attachments'] ) ? $section['attachments'] : array() ) ),
+			'blocks'                      => $blocks,
+		);
+	}
+
+	$outside = array();
+	foreach ( (array) ( isset( $parsed['nutrition_like_blocks_outside_sections'] ) ? $parsed['nutrition_like_blocks_outside_sections'] : array() ) as $block ) {
+		$outside[] = array(
+			'block_name'     => isset( $block['block_name'] ) ? $block['block_name'] : null,
+			'text_sha256'    => isset( $block['text_sha256'] ) ? $block['text_sha256'] : null,
+			'raw_sha256'     => isset( $block['raw_sha256'] ) ? $block['raw_sha256'] : null,
+			'recipe_id'      => isset( $block['recipe_id'] ) ? $block['recipe_id'] : null,
+			'attachment_ids' => isset( $block['attachment_ids'] ) ? array_values( (array) $block['attachment_ids'] ) : array(),
+		);
+	}
+
+	$serving = nkt_gpt_par_0723_extract_nutrition_serving_heading( $content );
+
+	$manifest = array(
+		'nutrition_sections'                     => $sections,
+		'nutrition_like_blocks_outside_sections' => $outside,
+	);
+	return array(
+		'sections'      => $manifest,
+		'section_hash'  => nkt_gpt_par_0723_hash( $manifest ),
+		'serving_label' => $serving['serving_label'],
+		'serving_hash'  => $serving['serving_label_hash'],
+		'serving_label_source' => $serving['serving_label_source'],
+		'serving_label_block_path' => $serving['serving_label_block_path'],
+	);
+}
+
+/** Hash SEO-related metadata. */
+function nkt_gpt_par_0723_seo_hash( $post_id ) {
+	return nkt_gpt_par_0723_hash(
+		nkt_gpt_par_0723_selected_post_meta( $post_id, '/(?:^_yoast_wpseo_|^rank_math_|^_aioseo_|seo)/i' )
+	);
+}
+
+/** Hash schema and JSON-LD metadata. */
+function nkt_gpt_par_0723_schema_hash( $post_id ) {
+	return nkt_gpt_par_0723_hash(
+		nkt_gpt_par_0723_selected_post_meta( $post_id, '/(?:schema|json.?ld|structured.?data|rank_math_schema)/i' )
+	);
+}
+
+/** Hash ratings and review evidence without returning comment bodies. */
+function nkt_gpt_par_0723_ratings_reviews_state( $post_id ) {
+	$comments = get_comments(
+		array(
+			'post_id' => absint( $post_id ),
+			'status'  => 'all',
+			'orderby' => 'comment_ID',
+			'order'   => 'ASC',
+		)
+	);
+	$rows = array();
+	foreach ( $comments as $comment ) {
+		$rating_meta = array();
+		foreach ( get_comment_meta( $comment->comment_ID ) as $key => $values ) {
+			if ( preg_match( '/rating|review/i', (string) $key ) ) {
+				$rating_meta[ $key ] = array_map( 'maybe_unserialize', (array) $values );
+			}
+		}
+		$rows[] = array(
+			'id'           => (int) $comment->comment_ID,
+			'approved'     => (string) $comment->comment_approved,
+			'type'         => (string) $comment->comment_type,
+			'parent'       => (int) $comment->comment_parent,
+			'date_gmt'     => (string) $comment->comment_date_gmt,
+			'content_hash' => hash( 'sha256', (string) $comment->comment_content ),
+			'meta'         => $rating_meta,
+		);
+	}
+	return array(
+		'count' => count( $rows ),
+		'hash'  => nkt_gpt_par_0723_hash( $rows ),
+	);
+}
+
+/** Capture all protected fields for one live article. */
+function nkt_gpt_par_0723_capture_live_state( $post_id ) {
+	$post = get_post( $post_id );
+	if ( ! $post || 'post' !== $post->post_type ) {
+		return new WP_Error( 'nkt_gpt_par_live_not_found', __( 'The live post was not found.', 'nkt-gpt-connector' ), array( 'status' => 404 ) );
+	}
+
+	$recipe_ids    = function_exists( 'nkt_gpt_connector_get_wprm_recipe_ids' ) ? nkt_gpt_connector_get_wprm_recipe_ids( $post->post_content ) : array();
+	$recipe_hashes = nkt_gpt_par_0723_recipe_hashes( $recipe_ids );
+	$nutrition     = nkt_gpt_par_0723_nutrition_manifest( $post->post_content );
+	$media         = nkt_gpt_par_0723_media_manifest( $post->post_content );
+	$amazon        = nkt_gpt_par_0723_amazon_manifest( $post->post_content );
+	$expanded_links = nkt_gpt_par_0723_expand_reusable_blocks( $post->post_content );
+	$links         = nkt_gpt_par_0723_link_manifest( $expanded_links['expanded_content'], $post_id );
+	$ratings       = nkt_gpt_par_0723_ratings_reviews_state( $post_id );
+	$protected_meta= nkt_gpt_par_0723_post_meta_snapshot( $post_id );
+	$exception     = function_exists( 'nkt_gpt_connector_intentional_multi_recipe_state' )
+		? nkt_gpt_connector_intentional_multi_recipe_state( $post_id, $recipe_ids )
+		: array( 'active' => false, 'valid' => true, 'stale' => false, 'exact_recipe_ids_match' => true );
+
+	return array(
+		'live_post_id'              => (int) $post->ID,
+		'status'                    => $post->post_status,
+		'slug'                      => $post->post_name,
+		'permalink'                 => get_permalink( $post ),
+		'publication_date'          => get_post_time( DATE_ATOM, true, $post ),
+		'featured_media_id'         => (int) get_post_thumbnail_id( $post_id ),
+		'comment_status'            => $post->comment_status,
+		'ping_status'               => $post->ping_status,
+		'title_hash'                => hash( 'sha256', (string) $post->post_title ),
+		'content_hash'              => hash( 'sha256', (string) $post->post_content ),
+		'excerpt_hash'              => hash( 'sha256', (string) $post->post_excerpt ),
+		'ordered_wprm_recipe_ids'   => array_values( array_map( 'absint', $recipe_ids ) ),
+		'wprm_reference_count'      => count( $recipe_ids ),
+		'recipe_object_hash_version' => $recipe_hashes['object_hash_version'],
+		'recipe_component_hash_version' => $recipe_hashes['component_hash_version'],
+		'recipe_object_hashes'      => $recipe_hashes['object_hashes'],
+		'recipe_statuses'           => $recipe_hashes['statuses'],
+		'recipe_identities'         => $recipe_hashes['identities'],
+		'recipe_component_hashes'   => $recipe_hashes['component_hashes'],
+		'recipe_status_independent_hashes' => $recipe_hashes['status_independent_hashes'],
+		'wprm_nutrition_hashes'     => $recipe_hashes['nutrition_hashes'],
+		'nutrition_section_hash'    => $nutrition['section_hash'],
+		'serving_label'             => $nutrition['serving_label'],
+		'serving_label_hash'        => $nutrition['serving_hash'],
+		'serving_label_source'      => $nutrition['serving_label_source'],
+		'serving_label_block_path'  => $nutrition['serving_label_block_path'],
+		'seo_hash'                  => nkt_gpt_par_0723_seo_hash( $post_id ),
+		'schema_hash'               => nkt_gpt_par_0723_schema_hash( $post_id ),
+		'ratings_reviews_hash'      => $ratings['hash'],
+		'ratings_reviews_count'     => $ratings['count'],
+		'protected_post_meta_hash'  => nkt_gpt_par_0723_hash( $protected_meta ),
+		'media_reference_hash'      => $media['reference_hash'],
+		'media_alt_text_hash'       => $media['alt_text_hash'],
+		'media_non_alt_hash'        => $media['non_alt_hash'],
+		'media_manifest'            => $media,
+		'amazon_destinations'       => $amazon['destinations'],
+		'amazon_link_count'         => $amazon['count'],
+		'affiliate_identifiers'     => $amazon['affiliate_identifiers'],
+		'amazon_manifest_hash'      => $amazon['hash'],
+		'amazon_unique_destination_count' => $amazon['unique_destination_count'],
+		'amazon_raw_link_count'      => $amazon['raw_link_count'],
+		'reusable_block_ids'         => $amazon['reusable_block_ids'],
+		'reusable_block_hashes'      => $amazon['reusable_block_hashes'],
+		'reusable_block_occurrences' => $amazon['reusable_block_occurrences'],
+		'unresolved_reusable_blocks' => $amazon['unresolved_reusable_blocks'],
+		'expanded_article_source_hash'=> $amazon['expanded_source_hash'],
+		'link_manifest'              => $links,
+		'intentional_multi_recipe_exception' => $exception,
+		'category_ids'              => nkt_gpt_par_0723_sorted_ids( wp_get_post_categories( $post_id ) ),
+		'tag_ids'                   => nkt_gpt_par_0723_sorted_ids( wp_get_post_tags( $post_id, array( 'fields' => 'ids' ) ) ),
+	);
+}
+
+/** Capture draft article evidence and protected content-derived state. */
+function nkt_gpt_par_0723_capture_draft_state( $draft_id ) {
+	$draft = get_post( $draft_id );
+	if ( ! $draft || 'post' !== $draft->post_type || ! in_array( $draft->post_status, array( 'draft', 'pending', 'private' ), true ) ) {
+		return new WP_Error( 'nkt_gpt_par_draft_not_found', __( 'The protected article revision draft was not found.', 'nkt-gpt-connector' ), array( 'status' => 404 ) );
+	}
+	$recipe_ids = function_exists( 'nkt_gpt_connector_get_wprm_recipe_ids' ) ? nkt_gpt_connector_get_wprm_recipe_ids( $draft->post_content ) : array();
+	$nutrition  = nkt_gpt_par_0723_nutrition_manifest( $draft->post_content );
+	$media      = nkt_gpt_par_0723_media_manifest( $draft->post_content );
+	$amazon     = nkt_gpt_par_0723_amazon_manifest( $draft->post_content );
+	$expanded_links = nkt_gpt_par_0723_expand_reusable_blocks( $draft->post_content );
+	$links      = nkt_gpt_par_0723_link_manifest( $expanded_links['expanded_content'] );
+
+	return array(
+		'draft_post_id'            => (int) $draft->ID,
+		'draft_status'             => $draft->post_status,
+		'content_hash'             => hash( 'sha256', (string) $draft->post_content ),
+		'excerpt_hash'             => hash( 'sha256', (string) $draft->post_excerpt ),
+		'ordered_wprm_recipe_ids'  => array_values( array_map( 'absint', $recipe_ids ) ),
+		'wprm_reference_count'     => count( $recipe_ids ),
+		'nutrition_section_hash'   => $nutrition['section_hash'],
+		'serving_label'            => $nutrition['serving_label'],
+		'serving_label_hash'       => $nutrition['serving_hash'],
+		'serving_label_source'      => $nutrition['serving_label_source'],
+		'serving_label_block_path'  => $nutrition['serving_label_block_path'],
+		'media_reference_hash'     => $media['reference_hash'],
+		'media_alt_text_hash'      => $media['alt_text_hash'],
+		'media_non_alt_hash'       => $media['non_alt_hash'],
+		'media_manifest'           => $media,
+		'amazon_destinations'      => $amazon['destinations'],
+		'amazon_link_count'        => $amazon['count'],
+		'affiliate_identifiers'    => $amazon['affiliate_identifiers'],
+		'amazon_manifest_hash'     => $amazon['hash'],
+		'amazon_unique_destination_count' => $amazon['unique_destination_count'],
+		'amazon_raw_link_count'     => $amazon['raw_link_count'],
+		'reusable_block_ids'        => $amazon['reusable_block_ids'],
+		'reusable_block_hashes'     => $amazon['reusable_block_hashes'],
+		'reusable_block_occurrences'=> $amazon['reusable_block_occurrences'],
+		'unresolved_reusable_blocks'=> $amazon['unresolved_reusable_blocks'],
+		'expanded_article_source_hash'=> $amazon['expanded_source_hash'],
+		'link_manifest'             => $links,
+	);
+}
+
+/** Return valid literal WordPress post statuses for protected recipe guards. */

@@ -1,0 +1,125 @@
+function nkt_gpt_par_0723_review( WP_REST_Request $request ) {
+	$guard = nkt_gpt_par_0723_version_guard( $request );
+	if ( is_wp_error( $guard ) ) {
+		return $guard;
+	}
+	$live_id  = absint( $request->get_param( 'live_post_id' ) );
+	$draft_id = absint( $request->get_param( 'draft_post_id' ) );
+	$decision = sanitize_key( (string) $request->get_param( 'decision' ) );
+	if ( ! in_array( $decision, array( 'approved', 'rejected' ), true ) ) {
+		return new WP_Error( 'nkt_gpt_par_review_decision_invalid', __( 'Review decision must be approved or rejected.', 'nkt-gpt-connector' ), array( 'status' => 400 ) );
+	}
+	$pair = nkt_gpt_par_0723_pair( $live_id, $draft_id );
+	if ( is_wp_error( $pair ) ) {
+		return $pair;
+	}
+	$baseline      = get_post_meta( $draft_id, NKT_GPT_PAR_0723_BASELINE_META, true );
+	$current_live  = nkt_gpt_par_0723_capture_live_state( $live_id );
+	$current_draft = nkt_gpt_par_0723_capture_draft_state( $draft_id );
+	$operation_guards = nkt_gpt_par_0723_validate_operation_guards( $request, $baseline, $current_live, $current_draft );
+	if ( $operation_guards['failed'] ) {
+		return new WP_Error(
+			'nkt_gpt_par_review_preflight_failed',
+			__( 'The protected review request did not match the stored and current baseline.', 'nkt-gpt-connector' ),
+			array( 'status' => 409, 'failed_checks' => $operation_guards['failed'], 'checks' => $operation_guards['checks'] )
+		);
+	}
+	$audit = nkt_gpt_par_0723_build_audit( $live_id, $draft_id );
+	if ( is_wp_error( $audit ) ) {
+		return $audit;
+	}
+	if ( 'approved' === $decision && ! $audit['all_protected_conditions_passed'] ) {
+		return new WP_Error( 'nkt_gpt_par_review_blocked', __( 'Approval was blocked because the protected audit did not pass.', 'nkt-gpt-connector' ), array( 'status' => 409, 'failed_checks' => $audit['failed_checks'] ) );
+	}
+	$lifecycle = nkt_gpt_par_0723_lifecycle( $draft_id );
+	$lifecycle['audit_status']        = $audit['all_protected_conditions_passed'] ? 'passed' : 'failed';
+	$lifecycle['audit_hash']          = nkt_gpt_par_0723_hash( $audit );
+	$lifecycle['audit_timestamp']     = gmdate( DATE_ATOM );
+	$lifecycle['audit_failures']      = $audit['failed_checks'];
+	$lifecycle['review_status']       = $decision;
+	$lifecycle['reviewer_user_id']    = get_current_user_id();
+	$lifecycle['review_timestamp']    = gmdate( DATE_ATOM );
+	$lifecycle['reviewed_draft_hash'] = $audit['current_draft_state']['content_hash'];
+	$lifecycle['reviewed_excerpt_hash']= $audit['current_draft_state']['excerpt_hash'];
+	$lifecycle['review_note']         = sanitize_textarea_field( (string) $request->get_param( 'note' ) );
+	nkt_gpt_par_0723_save_lifecycle( $draft_id, $lifecycle );
+	update_post_meta( $draft_id, '_nkt_revision_review_status', $decision );
+
+	return nkt_gpt_connector_no_store( new WP_REST_Response( array(
+		'message'            => __( 'The protected article-only review decision was recorded. No live content was changed.', 'nkt-gpt-connector' ),
+		'connector_version'  => NKT_GPT_PAR_0723_VERSION,
+		'live_post_id'       => $live_id,
+		'draft_post_id'      => $draft_id,
+		'decision'           => $decision,
+		'audit_hash'         => $lifecycle['audit_hash'],
+		'draft_content_hash' => $lifecycle['reviewed_draft_hash'],
+		'draft_excerpt_hash' => $lifecycle['reviewed_excerpt_hash'],
+		'live_post_changed'  => false,
+		'all_protected_conditions_passed' => $audit['all_protected_conditions_passed'],
+	), 200 ) );
+}
+
+/** Capture exact restorable live article state before application. */
+function nkt_gpt_par_0723_live_backup( $live_id ) {
+	$post = get_post( $live_id );
+	return array(
+		'created_at'      => gmdate( DATE_ATOM ),
+		'post'            => array(
+			'ID'              => (int) $post->ID,
+			'post_title'      => $post->post_title,
+			'post_name'       => $post->post_name,
+			'post_content'    => $post->post_content,
+			'post_excerpt'    => $post->post_excerpt,
+			'post_status'     => $post->post_status,
+			'post_date'       => $post->post_date,
+			'post_date_gmt'   => $post->post_date_gmt,
+			'post_modified'   => $post->post_modified,
+			'post_modified_gmt' => $post->post_modified_gmt,
+			'comment_status'  => $post->comment_status,
+			'ping_status'     => $post->ping_status,
+		),
+		'featured_media_id'=> (int) get_post_thumbnail_id( $live_id ),
+		'category_ids'     => nkt_gpt_par_0723_sorted_ids( wp_get_post_categories( $live_id ) ),
+		'tag_ids'          => nkt_gpt_par_0723_sorted_ids( wp_get_post_tags( $live_id, array( 'fields' => 'ids' ) ) ),
+		'post_meta'        => nkt_gpt_par_0723_post_meta_snapshot( $live_id ),
+		'protected_state'  => nkt_gpt_par_0723_capture_live_state( $live_id ),
+	);
+}
+
+/** Restore one saved live snapshot and verify it. */
+function nkt_gpt_par_0723_restore_backup( $live_id, $backup ) {
+	$result = nkt_gpt_par_0723_direct_post_row_write( $live_id, array(
+		'post_title'     => $backup['post']['post_title'],
+		'post_name'      => $backup['post']['post_name'],
+		'post_content'   => $backup['post']['post_content'],
+		'post_excerpt'   => $backup['post']['post_excerpt'],
+		'post_status'    => $backup['post']['post_status'],
+		'post_date'      => $backup['post']['post_date'],
+		'post_date_gmt'  => $backup['post']['post_date_gmt'],
+		'post_modified'  => $backup['post']['post_modified'],
+		'post_modified_gmt' => $backup['post']['post_modified_gmt'],
+		'comment_status' => $backup['post']['comment_status'],
+		'ping_status'    => $backup['post']['ping_status'],
+	), false );
+	if ( is_wp_error( $result ) ) {
+		return $result;
+	}
+	wp_set_post_categories( $live_id, $backup['category_ids'], false );
+	wp_set_post_tags( $live_id, $backup['tag_ids'], false );
+	if ( $backup['featured_media_id'] ) {
+		set_post_thumbnail( $live_id, $backup['featured_media_id'] );
+	} else {
+		delete_post_thumbnail( $live_id );
+	}
+	if ( isset( $backup['post_meta'] ) && is_array( $backup['post_meta'] ) ) {
+		nkt_gpt_par_0723_restore_post_meta_snapshot( $live_id, $backup['post_meta'] );
+	}
+	$current = nkt_gpt_par_0723_capture_live_state( $live_id );
+	return array(
+		'current_state'       => $current,
+		'rollback_verified'   => ! is_wp_error( $current ) && nkt_gpt_par_0723_hash( $current ) === nkt_gpt_par_0723_hash( $backup['protected_state'] ),
+		'live_state_restored' => ! is_wp_error( $current ) && $current['content_hash'] === $backup['protected_state']['content_hash'],
+	);
+}
+
+/** Apply approved article fields with automatic rollback. */

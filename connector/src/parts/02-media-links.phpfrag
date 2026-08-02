@@ -1,0 +1,406 @@
+function nkt_gpt_par_0723_media_manifest( $content ) {
+	$ids    = array();
+	$urls   = array();
+	$images = array();
+
+	if ( preg_match_all( '/\bwp-image-(\d+)\b/i', (string) $content, $matches ) ) {
+		$ids = array_merge( $ids, array_map( 'absint', $matches[1] ) );
+	}
+	if ( preg_match_all( '/(?:"id"|"mediaId"|"attachmentId"|data-id|data-attachment-id)\s*[:=]\s*["\']?(\d+)/i', (string) $content, $matches ) ) {
+		$ids = array_merge( $ids, array_map( 'absint', $matches[1] ) );
+	}
+	if ( preg_match_all( '/https?:\/\/[^\s"\'<>]+\/wp-content\/uploads\/[^\s"\'<>]+/i', (string) $content, $matches ) ) {
+		$urls = array_merge( $urls, array_map( 'html_entity_decode', $matches[0] ) );
+	}
+	if ( preg_match_all( '/<img\b[^>]*>/is', (string) $content, $image_tags ) ) {
+		foreach ( $image_tags[0] as $index => $tag ) {
+			$src = '';
+			$alt = '';
+			$id  = 0;
+			if ( preg_match( '/\bsrc\s*=\s*(["\'])(.*?)\1/is', $tag, $match ) ) {
+				$src = esc_url_raw( html_entity_decode( trim( $match[2] ), ENT_QUOTES | ENT_HTML5, get_bloginfo( 'charset' ) ?: 'UTF-8' ) );
+			}
+			if ( preg_match( '/\balt\s*=\s*(["\'])(.*?)\1/is', $tag, $match ) ) {
+				$alt = html_entity_decode( trim( $match[2] ), ENT_QUOTES | ENT_HTML5, get_bloginfo( 'charset' ) ?: 'UTF-8' );
+			}
+			if ( preg_match( '/\bwp-image-(\d+)\b/i', $tag, $match ) || preg_match( '/\bdata-(?:id|attachment-id)\s*=\s*["\']?(\d+)/i', $tag, $match ) ) {
+				$id = absint( $match[1] );
+			}
+			if ( $id ) {
+				$ids[] = $id;
+			}
+			if ( $src && false !== strpos( $src, '/wp-content/uploads/' ) ) {
+				$urls[] = $src;
+			}
+			$non_alt_tag = preg_replace( '/\s+alt\s*=\s*(["\'])(.*?)\1/is', '', $tag );
+			$non_alt_tag = trim( preg_replace( '/\s+/u', ' ', (string) $non_alt_tag ) );
+			$images[] = array(
+				'index'         => $index,
+				'attachment_id' => $id,
+				'src'           => $src,
+				'alt'           => $alt,
+				'non_alt_hash'  => hash( 'sha256', $non_alt_tag ),
+			);
+		}
+	}
+
+	$ids  = array_values( array_unique( array_filter( $ids ) ) );
+	$urls = array_values( array_unique( array_filter( array_map( 'esc_url_raw', $urls ) ) ) );
+	sort( $ids, SORT_NUMERIC );
+	sort( $urls, SORT_STRING );
+	$reference_hash = nkt_gpt_par_0723_hash( array( $ids, $urls ) );
+	$alt_hash       = nkt_gpt_par_0723_hash( array_map( static function ( $image ) {
+		return array(
+			'attachment_id' => $image['attachment_id'],
+			'src'           => $image['src'],
+			'alt'           => $image['alt'],
+		);
+	}, $images ) );
+	$non_alt_hash   = nkt_gpt_par_0723_hash( array_map( static function ( $image ) {
+		return $image['non_alt_hash'];
+	}, $images ) );
+
+	return array(
+		'attachment_ids' => $ids,
+		'upload_urls'    => $urls,
+		'images'         => $images,
+		'reference_hash' => $reference_hash,
+		'alt_text_hash'  => $alt_hash,
+		'non_alt_hash'   => $non_alt_hash,
+		'hash'           => $reference_hash,
+	);
+}
+
+
+
+/** Normalise explicit article-change authorisation supplied for update/audit/apply. */
+function nkt_gpt_par_0723_change_policy( WP_REST_Request $request ) {
+	$normalise_ids = static function ( $values ) {
+		$values = array_values( array_unique( array_filter( array_map( 'absint', (array) $values ) ) ) );
+		sort( $values, SORT_NUMERIC );
+		return $values;
+	};
+	$normalise_urls = static function ( $values ) {
+		$values = array_values( array_unique( array_filter( array_map( static function ( $value ) {
+			return esc_url_raw( (string) $value );
+		}, (array) $values ) ) ) );
+		sort( $values, SORT_STRING );
+		return $values;
+	};
+	return array(
+		'allow_article_nutrition_change' => rest_sanitize_boolean( $request->get_param( 'allow_article_nutrition_change' ) ),
+		'expected_serving_label_after'   => trim( preg_replace( '/\s+/u', ' ', (string) $request->get_param( 'expected_serving_label_after' ) ) ),
+		'allowed_removed_media_ids'      => $normalise_ids( $request->get_param( 'allowed_removed_media_ids' ) ),
+		'allowed_added_media_ids'        => $normalise_ids( $request->get_param( 'allowed_added_media_ids' ) ),
+		'allowed_removed_media_urls'     => $normalise_urls( $request->get_param( 'allowed_removed_media_urls' ) ),
+		'allowed_added_media_urls'       => $normalise_urls( $request->get_param( 'allowed_added_media_urls' ) ),
+		'allow_media_alt_text_change'    => rest_sanitize_boolean( $request->get_param( 'allow_media_alt_text_change' ) ),
+		'allow_media_non_alt_markup_change' => rest_sanitize_boolean( $request->get_param( 'allow_media_non_alt_markup_change' ) ),
+	);
+}
+
+/** Return exact attachment and upload-URL differences between two media manifests. */
+function nkt_gpt_par_0723_media_diff( $before, $after ) {
+	$before_ids  = array_values( array_map( 'absint', (array) ( $before['attachment_ids'] ?? array() ) ) );
+	$after_ids   = array_values( array_map( 'absint', (array) ( $after['attachment_ids'] ?? array() ) ) );
+	$before_urls = array_values( array_map( 'strval', (array) ( $before['upload_urls'] ?? array() ) ) );
+	$after_urls  = array_values( array_map( 'strval', (array) ( $after['upload_urls'] ?? array() ) ) );
+	$removed_ids = array_values( array_diff( $before_ids, $after_ids ) );
+	$added_ids   = array_values( array_diff( $after_ids, $before_ids ) );
+	$removed_urls= array_values( array_diff( $before_urls, $after_urls ) );
+	$added_urls  = array_values( array_diff( $after_urls, $before_urls ) );
+	sort( $removed_ids, SORT_NUMERIC );
+	sort( $added_ids, SORT_NUMERIC );
+	sort( $removed_urls, SORT_STRING );
+	sort( $added_urls, SORT_STRING );
+	return array(
+		'removed_media_ids'  => $removed_ids,
+		'added_media_ids'    => $added_ids,
+		'removed_media_urls' => $removed_urls,
+		'added_media_urls'   => $added_urls,
+		'alt_text_changed'   => (string) ( $before['alt_text_hash'] ?? '' ) !== (string) ( $after['alt_text_hash'] ?? '' ),
+		'non_alt_markup_changed' => (string) ( $before['non_alt_hash'] ?? '' ) !== (string) ( $after['non_alt_hash'] ?? '' ),
+		'reference_set_changed'  => (string) ( $before['reference_hash'] ?? '' ) !== (string) ( $after['reference_hash'] ?? '' ),
+	);
+}
+
+/** Evaluate whether an article Nutrition/media change matches its explicit allow-list. */
+function nkt_gpt_par_0723_change_policy_checks( $policy, $before_state, $after_state ) {
+	$media_diff = nkt_gpt_par_0723_media_diff( $before_state['media_manifest'], $after_state['media_manifest'] );
+	$allow_nutrition = ! empty( $policy['allow_article_nutrition_change'] );
+	$checks = array(
+		'article_nutrition_policy_satisfied' => $allow_nutrition
+			? ( $after_state['nutrition_section_hash'] !== $before_state['nutrition_section_hash'] )
+			: ( $after_state['nutrition_section_hash'] === $before_state['nutrition_section_hash'] ),
+		'expected_serving_label_after' => (string) $after_state['serving_label'] === (string) $policy['expected_serving_label_after'],
+		'allowed_removed_media_ids'  => $media_diff['removed_media_ids'] === $policy['allowed_removed_media_ids'],
+		'allowed_added_media_ids'    => $media_diff['added_media_ids'] === $policy['allowed_added_media_ids'],
+		'allowed_removed_media_urls' => $media_diff['removed_media_urls'] === $policy['allowed_removed_media_urls'],
+		'allowed_added_media_urls'   => $media_diff['added_media_urls'] === $policy['allowed_added_media_urls'],
+		'media_alt_text_change_authorised' => ! $media_diff['alt_text_changed'] || ! empty( $policy['allow_media_alt_text_change'] ),
+		'media_non_alt_markup_change_authorised' => ! $media_diff['non_alt_markup_changed'] || ! empty( $policy['allow_media_non_alt_markup_change'] ),
+	);
+	$failed = array_keys( array_filter( $checks, static function ( $passed ) { return ! $passed; } ) );
+	return array(
+		'policy' => $policy,
+		'checks' => $checks,
+		'failed' => $failed,
+		'media_diff' => $media_diff,
+	);
+}
+
+/** Inventory all article links and malformed anchor evidence. */
+function nkt_gpt_par_0723_link_manifest( $content, $live_post_id = 0 ) {
+	$internal  = array();
+	$external  = array();
+	$email     = array();
+	$malformed = array();
+	$home_host = strtolower( (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST ) );
+
+	if ( preg_match_all( '/<a\b([^>]*)>(.*?)<\/a>/is', (string) $content, $anchors, PREG_SET_ORDER ) ) {
+		foreach ( $anchors as $index => $anchor ) {
+			$attrs = $anchor[1];
+			$text  = trim( wp_strip_all_tags( $anchor[2] ) );
+			if ( ! preg_match( '/\bhref\s*=\s*(["\'])(.*?)\1/is', $attrs, $href_match ) ) {
+				$malformed[] = array( 'index' => $index, 'issue' => 'missing_href', 'anchor_text' => $text );
+				continue;
+			}
+			$href = html_entity_decode( trim( $href_match[2] ), ENT_QUOTES | ENT_HTML5, get_bloginfo( 'charset' ) ?: 'UTF-8' );
+			if ( '' === $href || '#' === $href ) {
+				$malformed[] = array( 'index' => $index, 'issue' => 'empty_or_placeholder_href', 'href' => $href, 'anchor_text' => $text );
+				continue;
+			}
+			if ( '' === $text && ! preg_match( '/<img\b/i', $anchor[2] ) ) {
+				$malformed[] = array( 'index' => $index, 'issue' => 'empty_anchor_text', 'href' => $href );
+			}
+			$row = array( 'href' => $href, 'anchor_text' => $text );
+			if ( 0 === stripos( $href, 'mailto:' ) ) {
+				$email[] = $row;
+				continue;
+			}
+			$host = strtolower( (string) wp_parse_url( $href, PHP_URL_HOST ) );
+			if ( '' === $host || $host === $home_host ) {
+				$internal[] = $row;
+			} else {
+				$external[] = $row;
+			}
+		}
+	}
+	if ( preg_match( '/<a\b[^>]*>[^<]*<a\b/is', (string) $content ) ) {
+		$malformed[] = array( 'issue' => 'nested_anchor_detected' );
+	}
+	return array(
+		'internal'        => $internal,
+		'external'        => $external,
+		'email'           => $email,
+		'malformed'       => $malformed,
+		'internal_count'  => count( $internal ),
+		'external_count'  => count( $external ),
+		'email_count'     => count( $email ),
+		'malformed_count' => count( $malformed ),
+		'hash'            => nkt_gpt_par_0723_hash( array( $internal, $external, $email, $malformed ) ),
+	);
+}
+
+/** Compare link destination multisets so same-count URL replacements are still reported. */
+function nkt_gpt_par_0723_link_href_diff( $before_rows, $after_rows ) {
+	$build_counts = static function ( $rows ) {
+		$counts = array();
+		foreach ( (array) $rows as $row ) {
+			$href = isset( $row['href'] ) ? trim( (string) $row['href'] ) : '';
+			if ( '' === $href ) {
+				continue;
+			}
+			$key = html_entity_decode( $href, ENT_QUOTES | ENT_HTML5, get_bloginfo( 'charset' ) ?: 'UTF-8' );
+			if ( ! isset( $counts[ $key ] ) ) {
+				$counts[ $key ] = 0;
+			}
+			$counts[ $key ]++;
+		}
+		ksort( $counts, SORT_STRING );
+		return $counts;
+	};
+
+	$before  = $build_counts( $before_rows );
+	$after   = $build_counts( $after_rows );
+	$removed = array();
+	$added   = array();
+	foreach ( array_unique( array_merge( array_keys( $before ), array_keys( $after ) ) ) as $href ) {
+		$before_count = isset( $before[ $href ] ) ? (int) $before[ $href ] : 0;
+		$after_count  = isset( $after[ $href ] ) ? (int) $after[ $href ] : 0;
+		if ( $before_count > $after_count ) {
+			$removed[ $href ] = $before_count - $after_count;
+		} elseif ( $after_count > $before_count ) {
+			$added[ $href ] = $after_count - $before_count;
+		}
+	}
+	$removed_count = array_sum( $removed );
+	$added_count   = array_sum( $added );
+	return array(
+		'added'             => $added,
+		'removed'           => $removed,
+		'added_count'       => $added_count,
+		'removed_count'     => $removed_count,
+		'replacement_count' => max( $added_count, $removed_count ),
+		'unchanged'         => 0 === $added_count && 0 === $removed_count,
+	);
+}
+
+/**
+ * Expand classic reusable/synced block references without running dynamic
+ * render callbacks. This exposes links stored in wp_block posts while keeping
+ * the source article and the shared blocks read-only.
+ */
+function nkt_gpt_par_0723_expand_reusable_blocks( $content, $stack = array(), $depth = 0 ) {
+	$dependencies = array();
+	$occurrences  = array();
+	$unresolved   = array();
+	$content      = (string) $content;
+
+	if ( $depth > 12 ) {
+		return array(
+			'expanded_content'        => $content,
+			'dependencies'            => $dependencies,
+			'dependency_ids'          => array(),
+			'dependency_hashes'       => array(),
+			'occurrence_ids'          => $occurrences,
+			'unresolved_dependencies' => array( array( 'issue' => 'maximum_depth_exceeded' ) ),
+		);
+	}
+
+	$pattern = '/<!--\s+wp:(?:core\/)?block\s+(\{.*?\})\s*\/-->/s';
+	$expanded = preg_replace_callback(
+		$pattern,
+		static function ( $match ) use ( &$dependencies, &$occurrences, &$unresolved, $stack, $depth ) {
+			$attrs = json_decode( html_entity_decode( trim( $match[1] ), ENT_QUOTES | ENT_HTML5, 'UTF-8' ), true );
+			$ref   = is_array( $attrs ) && isset( $attrs['ref'] ) ? absint( $attrs['ref'] ) : 0;
+			if ( ! $ref ) {
+				$unresolved[] = array( 'issue' => 'missing_or_invalid_ref', 'markup_hash' => hash( 'sha256', $match[0] ) );
+				return $match[0];
+			}
+			$occurrences[] = $ref;
+			if ( in_array( $ref, $stack, true ) ) {
+				$unresolved[] = array( 'ref' => $ref, 'issue' => 'cyclic_reference' );
+				return $match[0];
+			}
+			$block = get_post( $ref );
+			if ( ! $block || 'wp_block' !== $block->post_type || 'trash' === $block->post_status ) {
+				$unresolved[] = array( 'ref' => $ref, 'issue' => 'reusable_block_not_available' );
+				return $match[0];
+			}
+
+			$dependencies[ $ref ] = array(
+				'post_id'      => $ref,
+				'post_status'  => (string) $block->post_status,
+				'content_hash' => hash( 'sha256', (string) $block->post_content ),
+			);
+			$child = nkt_gpt_par_0723_expand_reusable_blocks(
+				$block->post_content,
+				array_merge( $stack, array( $ref ) ),
+				$depth + 1
+			);
+			foreach ( (array) $child['dependencies'] as $child_id => $child_state ) {
+				$dependencies[ absint( $child_id ) ] = $child_state;
+			}
+			$occurrences = array_merge( $occurrences, (array) $child['occurrence_ids'] );
+			$unresolved  = array_merge( $unresolved, (array) $child['unresolved_dependencies'] );
+
+			return "\n<!-- nkt:expanded-reusable-block ref=\"{$ref}\" -->\n"
+				. (string) $child['expanded_content']
+				. "\n<!-- /nkt:expanded-reusable-block -->\n";
+		},
+		$content
+	);
+
+	if ( null === $expanded ) {
+		$expanded = $content;
+		$unresolved[] = array( 'issue' => 'preg_replace_failed' );
+	}
+	ksort( $dependencies, SORT_NUMERIC );
+	$hashes = array();
+	foreach ( $dependencies as $id => $state ) {
+		$hashes[ (int) $id ] = (string) $state['content_hash'];
+	}
+	return array(
+		'expanded_content'        => $expanded,
+		'dependencies'            => $dependencies,
+		'dependency_ids'          => array_values( array_map( 'intval', array_keys( $dependencies ) ) ),
+		'dependency_hashes'       => $hashes,
+		'occurrence_ids'          => array_values( array_map( 'absint', $occurrences ) ),
+		'unresolved_dependencies' => array_values( $unresolved ),
+	);
+}
+
+/** Extract Amazon destinations and affiliate identifiers, including reusable blocks. */
+function nkt_gpt_par_0723_amazon_manifest( $content ) {
+	$expanded     = nkt_gpt_par_0723_expand_reusable_blocks( $content );
+	$destinations = array();
+	$links        = array();
+	$identifiers  = array();
+	$raw_links    = array();
+
+	$extract = static function ( $source, $scope ) use ( &$destinations, &$links, &$identifiers, &$raw_links ) {
+		if ( ! preg_match_all( '/<a\b([^>]*)href\s*=\s*(["\'])(.*?)\2([^>]*)>(.*?)<\/a>/is', (string) $source, $matches, PREG_SET_ORDER ) ) {
+			return;
+		}
+		foreach ( $matches as $match ) {
+			$url  = html_entity_decode( trim( $match[3] ), ENT_QUOTES | ENT_HTML5, get_bloginfo( 'charset' ) ?: 'UTF-8' );
+			$host = strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) );
+			if ( ! preg_match( '/(^|\.)amzn\.to$|(^|\.)amazon\.[a-z.]+$/i', $host ) ) {
+				continue;
+			}
+			$row = array(
+				'href'        => $url,
+				'anchor_text' => trim( wp_strip_all_tags( $match[5] ) ),
+				'rel'         => preg_match( '/\brel\s*=\s*(["\'])(.*?)\1/is', $match[1] . ' ' . $match[4], $rel ) ? trim( $rel[2] ) : '',
+				'source_scope'=> $scope,
+			);
+			if ( 'raw_article' === $scope ) {
+				$raw_links[] = $row;
+			} else {
+				$links[] = $row;
+				if ( ! in_array( $url, $destinations, true ) ) {
+					$destinations[] = $url;
+				}
+				$query = (string) wp_parse_url( $url, PHP_URL_QUERY );
+				parse_str( $query, $params );
+				foreach ( array( 'tag', 'ascsubtag', 'linkCode', 'camp', 'creative', 'creativeASIN' ) as $key ) {
+					if ( isset( $params[ $key ] ) && '' !== (string) $params[ $key ] ) {
+						$identifiers[ $key ][] = (string) $params[ $key ];
+					}
+				}
+			}
+		}
+	};
+
+	$extract( (string) $content, 'raw_article' );
+	$extract( (string) $expanded['expanded_content'], 'expanded_article' );
+
+	foreach ( $identifiers as $key => $values ) {
+		$identifiers[ $key ] = array_values( array_unique( $values ) );
+		sort( $identifiers[ $key ], SORT_STRING );
+	}
+	$manifest_hash = nkt_gpt_par_0723_hash( array(
+		'destinations'          => $destinations,
+		'link_count'            => count( $links ),
+		'affiliate_identifiers' => $identifiers,
+	) );
+
+	return array(
+		'destinations'             => $destinations,
+		'count'                    => count( $links ),
+		'unique_destination_count' => count( $destinations ),
+		'affiliate_identifiers'    => $identifiers,
+		'links'                    => $links,
+		'raw_links'                => $raw_links,
+		'raw_link_count'           => count( $raw_links ),
+		'reusable_block_ids'       => $expanded['dependency_ids'],
+		'reusable_block_hashes'    => $expanded['dependency_hashes'],
+		'reusable_block_occurrences'=> $expanded['occurrence_ids'],
+		'unresolved_reusable_blocks'=> $expanded['unresolved_dependencies'],
+		'expanded_source_hash'     => hash( 'sha256', (string) $expanded['expanded_content'] ),
+		'hash'                     => $manifest_hash,
+	);
+}
+
+/** Return normalized visible text from a parsed Gutenberg block. */

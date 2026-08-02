@@ -1,0 +1,225 @@
+function nkt_gpt_par_0723_apply( WP_REST_Request $request ) {
+	$guard = nkt_gpt_par_0723_version_guard( $request );
+	if ( is_wp_error( $guard ) ) {
+		return $guard;
+	}
+	$live_id  = absint( $request->get_param( 'live_post_id' ) );
+	$draft_id = absint( $request->get_param( 'draft_post_id' ) );
+	$pair     = nkt_gpt_par_0723_pair( $live_id, $draft_id );
+	if ( is_wp_error( $pair ) ) {
+		return $pair;
+	}
+	$baseline  = get_post_meta( $draft_id, NKT_GPT_PAR_0723_BASELINE_META, true );
+	$lifecycle = nkt_gpt_par_0723_lifecycle( $draft_id );
+	$current_live  = nkt_gpt_par_0723_capture_live_state( $live_id );
+	$current_draft = nkt_gpt_par_0723_capture_draft_state( $draft_id );
+	$operation_guards = nkt_gpt_par_0723_validate_operation_guards( $request, $baseline, $current_live, $current_draft );
+	if ( $operation_guards['failed'] ) {
+		return new WP_Error( 'nkt_gpt_par_apply_request_guard_failed', __( 'The protected application request did not match the stored and current baseline.', 'nkt-gpt-connector' ), array( 'status' => 409, 'failed_checks' => $operation_guards['failed'], 'checks' => $operation_guards['checks'] ) );
+	}
+	$audit     = nkt_gpt_par_0723_build_audit( $live_id, $draft_id );
+	if ( is_wp_error( $audit ) ) {
+		return $audit;
+	}
+	$failures = array();
+	if ( 'approved' !== ( isset( $lifecycle['review_status'] ) ? $lifecycle['review_status'] : '' ) ) {
+		$failures[] = 'revision_not_approved';
+	}
+	if ( ! $audit['all_protected_conditions_passed'] ) {
+		$failures = array_merge( $failures, $audit['failed_checks'] );
+	}
+	if ( empty( $lifecycle['reviewed_draft_hash'] ) || $lifecycle['reviewed_draft_hash'] !== $audit['current_draft_state']['content_hash']
+		|| empty( $lifecycle['reviewed_excerpt_hash'] ) || $lifecycle['reviewed_excerpt_hash'] !== $audit['current_draft_state']['excerpt_hash'] ) {
+		$failures[] = 'draft_changed_after_review';
+	}
+	if ( empty( $baseline['retain_draft_after_apply'] ) ) {
+		$failures[] = 'draft_retention_not_enabled';
+	}
+	if ( empty( $baseline['atomic_rollback_on_failure'] ) ) {
+		$failures[] = 'atomic_rollback_not_enabled';
+	}
+	if ( $failures ) {
+		return new WP_Error( 'nkt_gpt_par_apply_preflight_failed', __( 'Protected article application was blocked before publication.', 'nkt-gpt-connector' ), array( 'status' => 409, 'failed_checks' => array_values( array_unique( $failures ) ) ) );
+	}
+
+	$recipe_snapshots = nkt_gpt_par_0723_recipe_snapshots( $current_live['ordered_wprm_recipe_ids'] );
+	$backup = nkt_gpt_par_0723_live_backup( $live_id );
+	update_post_meta( $draft_id, NKT_GPT_PAR_0723_BACKUP_META, $backup );
+	$draft       = $pair['draft'];
+	$article_fields = array();
+	$allowed     = (array) $baseline['allowed_article_scope'];
+	if ( in_array( 'post_content', $allowed, true ) ) {
+		$article_fields['post_content'] = (string) $draft->post_content;
+	}
+	if ( in_array( 'post_excerpt', $allowed, true ) ) {
+		$article_fields['post_excerpt'] = (string) $draft->post_excerpt;
+	}
+	$started_at = gmdate( DATE_ATOM );
+	$result     = nkt_gpt_par_0723_direct_article_write( $live_id, $article_fields );
+	$rollback   = null;
+	if ( is_wp_error( $result ) ) {
+		$rollback = nkt_gpt_par_0723_restore_backup( $live_id, $backup );
+		return new WP_Error( 'nkt_gpt_par_apply_write_failed', __( 'The article application failed and the live snapshot restoration was attempted.', 'nkt-gpt-connector' ), array( 'status' => 500, 'application_rolled_back' => true, 'rollback_result' => $rollback ) );
+	}
+
+	$after = nkt_gpt_par_0723_capture_live_state( $live_id );
+	$recipe_side_effects = is_wp_error( $after )
+		|| $after['recipe_object_hashes'] !== $current_live['recipe_object_hashes']
+		|| $after['recipe_statuses'] !== $current_live['recipe_statuses']
+		|| $after['wprm_nutrition_hashes'] !== $current_live['wprm_nutrition_hashes'];
+	if ( $recipe_side_effects ) {
+		$recipe_restore = nkt_gpt_par_0723_restore_recipe_snapshots( $recipe_snapshots );
+		$rollback = nkt_gpt_par_0723_restore_backup( $live_id, $backup );
+		return new WP_Error(
+			'nkt_gpt_par_recipe_side_effect_on_apply',
+			__( 'The protected article application triggered a WPRM recipe side effect. Recipe and live article snapshots were restored.', 'nkt-gpt-connector' ),
+			array( 'status' => 500, 'application_rolled_back' => true, 'recipe_restore' => $recipe_restore, 'rollback_result' => $rollback )
+		);
+	}
+	$expected_content_hash = in_array( 'post_content', $allowed, true ) ? $audit['current_draft_state']['content_hash'] : $baseline['live']['content_hash'];
+	$expected_excerpt_hash = in_array( 'post_excerpt', $allowed, true ) ? $audit['current_draft_state']['excerpt_hash'] : $baseline['live']['excerpt_hash'];
+	$authorised_after = isset( $lifecycle['authorised_after_state'] ) && is_array( $lifecycle['authorised_after_state'] )
+		? $lifecycle['authorised_after_state']
+		: $baseline['initial_draft'];
+	$checks = array(
+		'content_applied'             => ! is_wp_error( $after ) && $after['content_hash'] === $expected_content_hash,
+		'excerpt_applied'             => ! is_wp_error( $after ) && $after['excerpt_hash'] === $expected_excerpt_hash,
+		'live_status_preserved'       => ! is_wp_error( $after ) && $after['status'] === $baseline['live']['status'],
+		'slug_preserved'              => ! is_wp_error( $after ) && $after['slug'] === $baseline['live']['slug'],
+		'permalink_preserved'         => ! is_wp_error( $after ) && $after['permalink'] === $baseline['live']['permalink'],
+		'publication_date_preserved'  => ! is_wp_error( $after ) && $after['publication_date'] === $baseline['live']['publication_date'],
+		'featured_media_preserved'    => ! is_wp_error( $after ) && $after['featured_media_id'] === $baseline['live']['featured_media_id'],
+		'title_preserved'             => ! is_wp_error( $after ) && $after['title_hash'] === $baseline['live']['title_hash'],
+		'comments_preserved'          => ! is_wp_error( $after ) && $after['comment_status'] === $baseline['live']['comment_status'],
+		'ping_status_preserved'       => ! is_wp_error( $after ) && $after['ping_status'] === $baseline['live']['ping_status'],
+		'categories_preserved'        => ! is_wp_error( $after ) && $after['category_ids'] === $baseline['live']['category_ids'],
+		'tags_preserved'              => ! is_wp_error( $after ) && $after['tag_ids'] === $baseline['live']['tag_ids'],
+		'seo_preserved'               => ! is_wp_error( $after ) && $after['seo_hash'] === $baseline['live']['seo_hash'],
+		'schema_preserved'            => ! is_wp_error( $after ) && $after['schema_hash'] === $baseline['live']['schema_hash'],
+		'ratings_reviews_preserved'   => ! is_wp_error( $after ) && $after['ratings_reviews_hash'] === $baseline['live']['ratings_reviews_hash'],
+		'protected_post_meta_preserved'=> ! is_wp_error( $after ) && $after['protected_post_meta_hash'] === $baseline['live']['protected_post_meta_hash'],
+		'ordered_wprm_ids_preserved'  => ! is_wp_error( $after ) && $after['ordered_wprm_recipe_ids'] === $baseline['live']['ordered_wprm_recipe_ids'],
+		'recipe_objects_preserved'    => ! is_wp_error( $after ) && $after['recipe_object_hashes'] === $baseline['live']['recipe_object_hashes'],
+		'wprm_nutrition_preserved'    => ! is_wp_error( $after ) && $after['wprm_nutrition_hashes'] === $baseline['live']['wprm_nutrition_hashes'],
+		'authorised_nutrition_section_applied' => ! is_wp_error( $after ) && $after['nutrition_section_hash'] === (string) $authorised_after['nutrition_section_hash'],
+		'authorised_serving_label_applied' => ! is_wp_error( $after ) && $after['serving_label'] === (string) $authorised_after['serving_label'],
+		'authorised_media_references_applied' => ! is_wp_error( $after ) && $after['media_reference_hash'] === (string) $authorised_after['media_reference_hash'],
+		'authorised_media_non_alt_markup_applied'=> ! is_wp_error( $after ) && $after['media_non_alt_hash'] === (string) $authorised_after['media_non_alt_hash'],
+		'authorised_media_alt_text_applied'=> ! is_wp_error( $after ) && $after['media_alt_text_hash'] === (string) $authorised_after['media_alt_text_hash'],
+		'reusable_block_ids_preserved' => ! is_wp_error( $after ) && $after['reusable_block_ids'] === $baseline['live']['reusable_block_ids'],
+		'reusable_block_hashes_preserved' => ! is_wp_error( $after ) && $after['reusable_block_hashes'] === $baseline['live']['reusable_block_hashes'],
+		'amazon_destinations_preserved'=> ! is_wp_error( $after ) && $after['amazon_destinations'] === $baseline['live']['amazon_destinations'],
+		'amazon_link_count_preserved' => ! is_wp_error( $after ) && $after['amazon_link_count'] === $baseline['live']['amazon_link_count'],
+		'affiliate_identifiers_preserved'=> ! is_wp_error( $after ) && $after['affiliate_identifiers'] === $baseline['live']['affiliate_identifiers'],
+		'draft_retained'              => (bool) get_post( $draft_id ),
+	);
+	$failed = array_keys( array_filter( $checks, static function ( $passed ) { return ! $passed; } ) );
+	if ( $failed ) {
+		$rollback = nkt_gpt_par_0723_restore_backup( $live_id, $backup );
+		$lifecycle['application_status'] = 'rolled_back';
+		$lifecycle['application_timestamp'] = gmdate( DATE_ATOM );
+		$lifecycle['application_rolled_back'] = true;
+		$lifecycle['rollback_status'] = is_wp_error( $rollback ) ? 'failed' : ( $rollback['rollback_verified'] ? 'verified' : 'unverified' );
+		$lifecycle['rollback_reason'] = implode( ',', $failed );
+		$lifecycle['rollback_result'] = $rollback;
+		nkt_gpt_par_0723_save_lifecycle( $draft_id, $lifecycle );
+		return new WP_Error( 'nkt_gpt_par_apply_verification_failed', __( 'The protected article application failed verification and was rolled back.', 'nkt-gpt-connector' ), array( 'status' => 500, 'failed_checks' => $failed, 'application_rolled_back' => true, 'rollback_result' => $rollback ) );
+	}
+
+	$lifecycle['application_status']       = 'applied';
+	$lifecycle['application_started_at']   = $started_at;
+	$lifecycle['application_timestamp']    = gmdate( DATE_ATOM );
+	$lifecycle['application_rolled_back']  = false;
+	$lifecycle['rollback_status']          = 'not_required';
+	$lifecycle['draft_retained']           = true;
+	$lifecycle['live_content_hash_after']  = $after['content_hash'];
+	nkt_gpt_par_0723_save_lifecycle( $draft_id, $lifecycle );
+	update_post_meta( $draft_id, '_nkt_revision_applied_live_post_id', $live_id );
+	update_post_meta( $draft_id, '_nkt_revision_applied_at', current_time( 'mysql', true ) );
+
+	return nkt_gpt_connector_no_store( new WP_REST_Response( array(
+		'message'                     => __( 'The approved protected article revision was applied and independently verified.', 'nkt-gpt-connector' ),
+		'connector_version'           => NKT_GPT_PAR_0723_VERSION,
+		'application_status'          => 'applied',
+		'application_timestamp'       => $lifecycle['application_timestamp'],
+		'all_protected_conditions_passed' => true,
+		'content_changed'             => $after['content_hash'] !== $backup['protected_state']['content_hash'] || $after['excerpt_hash'] !== $backup['protected_state']['excerpt_hash'],
+		'recipe_content_changed'      => false,
+		'article_nutrition_changed'   => $after['nutrition_section_hash'] !== $backup['protected_state']['nutrition_section_hash'],
+		'wprm_nutrition_changed'      => false,
+		'nutrition_changed'           => $after['nutrition_section_hash'] !== $backup['protected_state']['nutrition_section_hash'],
+		'media_references_changed'    => $after['media_reference_hash'] !== $backup['protected_state']['media_reference_hash'],
+		'wordpress_status_changed'    => false,
+		'protected_metadata_changed'  => false,
+		'amazon_destinations_changed' => false,
+		'affiliate_identifiers_changed'=> false,
+		'draft_retained'              => true,
+		'application_rolled_back'     => false,
+		'rollback_reason'             => null,
+		'rollback_verified'           => null,
+		'verification_checks'         => $checks,
+		'live_state_after'            => $after,
+	), 200 ) );
+}
+
+/** Explicit idempotent rollback of a protected article application. */
+function nkt_gpt_par_0723_rollback( WP_REST_Request $request ) {
+	$guard = nkt_gpt_par_0723_version_guard( $request );
+	if ( is_wp_error( $guard ) ) {
+		return $guard;
+	}
+	$live_id  = absint( $request->get_param( 'live_post_id' ) );
+	$draft_id = absint( $request->get_param( 'draft_post_id' ) );
+	$pair     = nkt_gpt_par_0723_pair( $live_id, $draft_id );
+	if ( is_wp_error( $pair ) ) {
+		return $pair;
+	}
+	$backup = get_post_meta( $draft_id, NKT_GPT_PAR_0723_BACKUP_META, true );
+	if ( ! is_array( $backup ) || empty( $backup['protected_state'] ) ) {
+		return new WP_Error( 'nkt_gpt_par_rollback_backup_missing', __( 'No protected pre-application backup is available for this revision.', 'nkt-gpt-connector' ), array( 'status' => 409 ) );
+	}
+	$started = gmdate( DATE_ATOM );
+	$current = nkt_gpt_par_0723_capture_live_state( $live_id );
+	if ( ! is_wp_error( $current ) && nkt_gpt_par_0723_hash( $current ) === nkt_gpt_par_0723_hash( $backup['protected_state'] ) ) {
+		$result = array( 'current_state' => $current, 'rollback_verified' => true, 'live_state_restored' => true, 'idempotent_noop' => true );
+	} else {
+		$result = nkt_gpt_par_0723_restore_backup( $live_id, $backup );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+	}
+	$lifecycle = nkt_gpt_par_0723_lifecycle( $draft_id );
+	$lifecycle['application_status']     = 'rolled_back';
+	$lifecycle['application_rolled_back']= true;
+	$lifecycle['rollback_status']        = $result['rollback_verified'] ? 'verified' : 'unverified';
+	$lifecycle['rollback_started_at']    = $started;
+	$lifecycle['rollback_completed_at']  = gmdate( DATE_ATOM );
+	$lifecycle['rollback_reason']        = sanitize_textarea_field( (string) $request->get_param( 'rollback_reason' ) );
+	$lifecycle['rollback_verified']      = (bool) $result['rollback_verified'];
+	$lifecycle['live_state_restored']    = (bool) $result['live_state_restored'];
+	$lifecycle['draft_retained']         = (bool) get_post( $draft_id );
+	nkt_gpt_par_0723_save_lifecycle( $draft_id, $lifecycle );
+
+	return nkt_gpt_connector_no_store( new WP_REST_Response( array(
+		'message'                       => __( 'The protected article application rollback was completed and checked.', 'nkt-gpt-connector' ),
+		'connector_version'             => NKT_GPT_PAR_0723_VERSION,
+		'rollback_requested'            => true,
+		'rollback_started_at'           => $started,
+		'rollback_completed_at'         => $lifecycle['rollback_completed_at'],
+		'rollback_reason'               => $lifecycle['rollback_reason'],
+		'rollback_verified'             => (bool) $result['rollback_verified'],
+		'live_state_restored'           => (bool) $result['live_state_restored'],
+		'article_content_restored'      => (bool) $result['live_state_restored'],
+		'ordered_wprm_ids_restored'     => (bool) $result['rollback_verified'],
+		'recipe_objects_unchanged'      => (bool) $result['rollback_verified'],
+		'nutrition_unchanged'           => (bool) $result['rollback_verified'],
+		'protected_metadata_restored'   => (bool) $result['rollback_verified'],
+		'amazon_destinations_restored'  => (bool) $result['rollback_verified'],
+		'affiliate_identifiers_restored'=> (bool) $result['rollback_verified'],
+		'draft_retained'                => (bool) get_post( $draft_id ),
+		'rollback_failures'             => $result['rollback_verified'] ? array() : array( 'restored_state_hash_mismatch' ),
+		'idempotent_noop'               => ! empty( $result['idempotent_noop'] ),
+	), 200 ) );
+}
+
+/** Convert a recipe status map into an integer-keyed string map. */

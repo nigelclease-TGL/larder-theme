@@ -1,0 +1,52 @@
+name: Connector Check
+
+on:
+  pull_request:
+    paths:
+      - 'connector/**'
+      - '.github/workflows/connector-check.yml'
+  push:
+    branches: [ main ]
+    paths:
+      - 'connector/**'
+      - '.github/workflows/connector-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          coverage: none
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run isolated connector tests
+        run: python connector/tests/test_connector_0723.py
+
+      - name: Build deterministic updater package
+        run: bash connector/build.sh
+
+      - name: Upload connector release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nkt-gpt-connector-0.7.23
+          path: |
+            connector/artifacts/nkt-gpt-connector-0.7.23-update-runtime-guards-upgrader.zip
+            connector/artifacts/nkt-gpt-connector-0.7.23-update-runtime-guards-upgrader.sha256.txt
+            connector/artifacts/generated/openapi-0.7.23.json
+            connector/VALIDATION.md
+          if-no-files-found: error
+          retention-days: 30
