@@ -34,7 +34,7 @@ jobs:
           python-version: '3.12'
 
       - name: Run isolated connector tests
-        run: python connector/tests/test_connector_0724.py
+        run: python connector/tests/test_connector_0725.py
 
       - name: Build deterministic updater package
         run: bash connector/build.sh
@@ -42,11 +42,11 @@ jobs:
       - name: Upload connector release artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: nkt-gpt-connector-0.7.24
+          name: nkt-gpt-connector-0.7.25
           path: |
-            connector/artifacts/nkt-gpt-connector-0.7.24-serving-heading-extraction-upgrader.zip
-            connector/artifacts/nkt-gpt-connector-0.7.24-serving-heading-extraction-upgrader.sha256.txt
-            connector/artifacts/generated/openapi-0.7.24.json
+            connector/artifacts/nkt-gpt-connector-0.7.25-zero-section-serving-evidence-upgrader.zip
+            connector/artifacts/nkt-gpt-connector-0.7.25-zero-section-serving-evidence-upgrader.sha256.txt
+            connector/artifacts/generated/openapi-0.7.25.json
             connector/VALIDATION.md
           if-no-files-found: error
           retention-days: 30

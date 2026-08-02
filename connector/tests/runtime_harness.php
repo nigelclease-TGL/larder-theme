@@ -1,7 +1,7 @@
 <?php
 error_reporting( E_ALL );
 define( 'ABSPATH', __DIR__ . '/' );
-define( 'NKT_GPT_CONNECTOR_VERSION', '0.7.24' );
+define( 'NKT_GPT_CONNECTOR_VERSION', '0.7.25' );
 define( 'ARRAY_A', 'ARRAY_A' );
 
 class WP_Error {
@@ -48,33 +48,59 @@ function untrailingslashit( $v ) { return rtrim((string)$v,'/'); }
 function get_post_meta() { return array(); }
 function update_post_meta() { $GLOBALS['write_count']++; return true; }
 
-require dirname(__DIR__) . '/artifacts/generated/protected-lifecycle-0.7.24.php';
+require dirname(__DIR__) . '/artifacts/generated/protected-lifecycle-0.7.25.php';
 
 $checks=array();
 function t( $name, $condition ) { global $checks; $checks[$name]=(bool)$condition; if(!$condition){fwrite(STDERR,"FAIL: $name\n");} }
 function heading_block( $html, $level=3, $inner=array() ) { return array('blockName'=>'core/heading','attrs'=>array('level'=>$level),'innerHTML'=>$html,'innerBlocks'=>$inner); }
 
-// Fixture 1: confirmed production structure with no usable top-level NUTRITION H2.
-$GLOBALS['legacy_nutrition_sections']=array(array('heading'=>'NUTRITION','blocks'=>array()));
+// Fixture 1: confirmed production structure. The legacy parser reports zero
+// sections, but one raw Serving H3 is immediately followed by a unique and
+// strongly corroborated Nutrition presentation.
+$GLOBALS['legacy_nutrition_sections']=array();
 $GLOBALS['block_fixture']=array(
 	array('blockName'=>'core/group','attrs'=>array(),'innerHTML'=>'','innerBlocks'=>array(
 		heading_block('<h3 id="serving-one-brownie" class="wp-block-heading">Serving: one pumpkin chocolate chip cookie</h3>')
 	)),
 );
-$r=nkt_gpt_par_0723_extract_nutrition_serving_heading('<h3 id="serving-one-brownie" class="wp-block-heading">Serving: one pumpkin chocolate chip cookie</h3>',1);
-t('production fallback label', $r['serving_label']==='one pumpkin chocolate chip cookie');
-t('production fallback source', $r['serving_label_source']==='unique_article_serving_h3_with_single_nutrition_section');
-t('production matching count', $r['matching_visible_serving_h3_count']===1);
-t('production fallback accepted', $r['serving_fallback_accepted']===true);
-t('production block path', $r['serving_label_block_path']==='0.0');
+$production = '<h3 id="serving-one-brownie" class="wp-block-heading">Serving: one pumpkin chocolate chip cookie</h3>'
+	. '<p>Nutrition per serving</p>'
+	. '<p>Calories: 249.5 kcal (12%)</p>'
+	. '<p>Total Fat: 11.5 g (16%)</p>'
+	. '<p>Carbs: 34.9 g (13%)</p>'
+	. '<p>Sugars: 20.7 g (23%)</p>'
+	. '<p>Protein: 2.3 g (5%)</p>'
+	. '<p>% Daily Values based on a 2,000 calorie diet</p>';
+$r=nkt_gpt_par_0723_extract_nutrition_serving_heading($production,0);
+t('zero-section production label', $r['serving_label']==='one pumpkin chocolate chip cookie');
+t('zero-section production source', $r['serving_label_source']==='unique_article_serving_h3_with_unique_nutrition_presentation');
+t('zero-section matching count', $r['matching_visible_serving_h3_count']===1);
+t('zero-section fallback accepted', $r['serving_fallback_accepted']===true);
+t('zero-section gate', $r['serving_fallback_gate']==='legacy_parser_zero_unique_nutrition_presentation');
+t('zero-section raw H3 count', $r['serving_fallback_raw_serving_h3_count']===1);
+t('zero-section segment marker', $r['serving_fallback_segment_nutrition_marker_count']===1);
+t('zero-section article marker', $r['serving_fallback_article_nutrition_marker_count']===1);
+t('zero-section nutrient labels', $r['serving_fallback_nutrient_label_count']===5);
+t('zero-section daily marker', $r['serving_fallback_daily_value_marker_count']===1);
+t('zero-section calorie basis', $r['serving_fallback_calorie_basis_count']===1);
+t('zero-section signature accepted', $r['serving_fallback_signature_accepted']===true);
+t('zero-section block path', $r['serving_label_block_path']==='0.0');
 
-// Fixture 2: nested inline markup through raw fallback.
+// Fixture 2: nested inline markup remains supported when one parser section exists.
 $GLOBALS['block_fixture']=array();
 $r=nkt_gpt_par_0723_extract_nutrition_serving_heading('<h3 class="wp-block-heading"><strong>Serving:</strong> one cookie</h3>',1);
 t('nested markup label', $r['serving_label']==='one cookie');
 t('nested markup accepted', $r['serving_fallback_accepted']===true);
 
-// Fixture 3: ambiguous headings.
+// Fixture 3: zero sections plus a unique Serving H3 is insufficient without
+// the corroborating Nutrition presentation signature.
+$GLOBALS['block_fixture']=array(heading_block('<h3>Serving: one cookie</h3>'));
+$r=nkt_gpt_par_0723_extract_nutrition_serving_heading('<h3>Serving: one cookie</h3><p>Serve warm.</p>',0);
+t('uncorroborated zero-section empty', $r['serving_label']==='');
+t('uncorroborated zero-section rejected', $r['serving_fallback_accepted']===false);
+t('uncorroborated zero-section reason', $r['serving_fallback_rejection_reason']==='nutrition_per_serving_marker_not_unique');
+
+// Fixture 4: ambiguous headings.
 $GLOBALS['block_fixture']=array(
 	heading_block('<h3>Serving: one cookie</h3>'),
 	heading_block('<h3>Serving: two cookies</h3>'),
@@ -84,14 +110,14 @@ t('ambiguous empty label', $r['serving_label']==='');
 t('ambiguous count', $r['matching_visible_serving_h3_count']===2);
 t('ambiguous reason', $r['serving_fallback_rejection_reason']==='multiple_visible_serving_h3_candidates');
 
-// Fixture 4: no Serving heading.
+// Fixture 5: no Serving heading.
 $GLOBALS['block_fixture']=array(heading_block('<h3>NOTES</h3>'));
 $r=nkt_gpt_par_0723_extract_nutrition_serving_heading('',1);
 t('no heading empty', $r['serving_label']==='');
 t('no heading count', $r['matching_visible_serving_h3_count']===0);
 t('no heading reason', $r['serving_fallback_rejection_reason']==='no_visible_serving_h3_candidate');
 
-// Fixture 5: multiple Nutrition sections reject the article-wide fallback.
+// Fixture 6: multiple Nutrition sections reject the article-wide fallback.
 $GLOBALS['block_fixture']=array(heading_block('<h3>Serving: one cookie</h3>'));
 $r=nkt_gpt_par_0723_extract_nutrition_serving_heading('',2);
 t('multiple sections rejected', $r['serving_label']==='');
@@ -108,7 +134,8 @@ t('primary label', $r['serving_label']==='one primary cookie');
 t('primary source', $r['serving_label_source']==='nutrition_heading');
 t('primary fallback not used', $r['serving_fallback_accepted']===false);
 
-// Fixture 6: corrected parser evidence does not invalidate an unchanged 0.7.23 baseline.
+// Baseline compatibility: corrected parser evidence and new diagnostics do not
+// invalidate an unchanged protected baseline.
 $old=array(
 	'content_hash'=>str_repeat('a',64),'nutrition_section_hash'=>str_repeat('b',64),
 	'serving_label'=>'','serving_label_hash'=>hash('sha256',''),'serving_label_source'=>null,'serving_label_block_path'=>null,
@@ -116,17 +143,26 @@ $old=array(
 $new=$old;
 $new['serving_label']='one pumpkin chocolate chip cookie';
 $new['serving_label_hash']=hash('sha256',$new['serving_label']);
-$new['serving_label_source']='unique_article_serving_h3_with_single_nutrition_section';
+$new['serving_label_source']='unique_article_serving_h3_with_unique_nutrition_presentation';
 $new['serving_label_block_path']='0.0';
-$new['parsed_nutrition_section_count']=1;
+$new['parsed_nutrition_section_count']=0;
 $new['matching_visible_serving_h3_count']=1;
 $new['serving_fallback_accepted']=true;
 $new['serving_fallback_rejection_reason']=null;
+$new['serving_fallback_gate']='legacy_parser_zero_unique_nutrition_presentation';
+$new['serving_fallback_raw_serving_h3_count']=1;
+$new['serving_fallback_segment_nutrition_marker_count']=1;
+$new['serving_fallback_article_nutrition_marker_count']=1;
+$new['serving_fallback_nutrient_label_count']=5;
+$new['serving_fallback_daily_value_marker_count']=1;
+$new['serving_fallback_calorie_basis_count']=1;
+$new['serving_fallback_signature_accepted']=true;
+$new['serving_fallback_signature_rejection_reason']=null;
 t('baseline compatibility ignores parser evidence', nkt_gpt_par_0723_hash(nkt_gpt_par_0723_baseline_comparison_state($old))===nkt_gpt_par_0723_hash(nkt_gpt_par_0723_baseline_comparison_state($new)));
 $new['content_hash']=str_repeat('c',64);
 t('baseline compatibility keeps content protection', nkt_gpt_par_0723_hash(nkt_gpt_par_0723_baseline_comparison_state($old))!==nkt_gpt_par_0723_hash(nkt_gpt_par_0723_baseline_comparison_state($new)));
 
-// Fixture 7: serving mismatch remains a protected policy failure.
+// Serving mismatch remains a protected policy failure.
 $policy=array(
 	'allow_article_nutrition_change'=>true,
 	'expected_serving_label_after'=>'one cookie',
