@@ -1,5 +1,20 @@
 # Changelog
 
+## NKT GPT Connector 0.7.28
+
+- Adds stable explicit connector ownership metadata for newly initialised protected article drafts.
+- Accepts legacy connector ownership only from mutually consistent source-live-post, workflow, protected-baseline and protected-lifecycle evidence; title or duplicate-looking content is never sufficient.
+- Adds the read-only paginated `inventoryConnectorManagedDraftCleanup` action with deterministic ownership and `safe_to_trash` classification hashes.
+- Reads the existing Nutrition programme ledger through its read-only route and fails closed when ledger coverage cannot be proven complete.
+- Preserves active, initialised, audited, approved, not-applied, applied, rejected/failure, clone-linked, ledger-linked, intentional multi-recipe and manual-or-unknown drafts.
+- Hard-preserves all specified Pumpkin Chocolate Chip Cookies, Giant Flat Chocolate Chunk Cookies and Spiced Ginger & Chocolate Loaf Cake workflow objects.
+- Adds `trashConnectorManagedArticleDrafts`, requiring an exact ID allowlist and complete expected ownership, WordPress-status, lifecycle, ledger, active-protection, clone/evidence and classification-hash guards.
+- Rejects the whole batch before writing when any supplied draft fails a guard or is not currently `safe_to_trash: true`.
+- Uses native `wp_trash_post` only and contains no archive substitution, permanent deletion or empty-Trash capability.
+- Adds best-effort `wp_untrash_post` restoration if a later native Trash write fails after earlier IDs were processed.
+- Retains the 0.7.27 structured nutrient-label fix and all existing protected article, recipe, WPRM Nutrition, media, reusable-block, metadata, Amazon, affiliate, audit and rollback guards.
+- Adds a guarded 0.7.27-to-0.7.28 updater and expands the compact OpenAPI schema from 23 to 25 actions.
+
 ## NKT GPT Connector 0.7.27
 
 - Accepts either an exact recognised nutrient label or the same label followed by exactly one terminal ASCII colon in structured table and adjacent-record evidence.
