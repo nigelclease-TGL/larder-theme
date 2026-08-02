@@ -1,0 +1,24 @@
+name: Export Connector 0.7.31 Development Source
+
+on:
+  push:
+    branches:
+      - connector-0.7.31-recipe-name-only-revision
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Upload connector source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: connector-0.7.31-development-source
+          path: connector
+          if-no-files-found: error
+          retention-days: 1
