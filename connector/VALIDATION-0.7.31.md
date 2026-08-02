@@ -4,6 +4,8 @@
 
 Repository-only implementation, generation, OpenAPI validation, updater packaging, PHP syntax and isolated protected-lifecycle fixtures. Development and CI make no live WordPress request and change no WordPress object.
 
+Temporary development payloads and installer/export workflows were removed before final review. The review diff contains only the connector implementation, tests, documentation and permanent Connector Check workflow.
+
 ## Exact capability
 
 Connector 0.7.31 adds only `recipe_name_only` to the five existing complete-recipe lifecycle actions:
