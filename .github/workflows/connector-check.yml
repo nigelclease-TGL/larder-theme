@@ -33,11 +33,15 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Generate connector 0.7.30 artifacts
-        run: python connector/build_0730.py
+      - name: Generate connector 0.7.31 artifacts
+        run: python connector/build_0731.py
 
       - name: Run isolated connector tests
-        run: python connector/tests/test_connector_0730.py
+        run: |
+          python connector/tests/test_connector_0731.py
+          python connector/tests/test_recipe_name_only_0731.py
+          python connector/tests/test_reusable_block_evidence_0730.py
+          python connector/tests/test_openapi_description_limits.py
 
       - name: Build deterministic updater package
         run: bash connector/build.sh
@@ -45,11 +49,11 @@ jobs:
       - name: Upload connector release artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: nkt-gpt-connector-0.7.30
+          name: nkt-gpt-connector-0.7.31
           path: |
-            connector/artifacts/nkt-gpt-connector-0.7.30-reusable-block-object-evidence-upgrader.zip
-            connector/artifacts/nkt-gpt-connector-0.7.30-reusable-block-object-evidence-upgrader.sha256.txt
-            connector/artifacts/generated/openapi-0.7.30.json
-            connector/VALIDATION-0.7.30.md
+            connector/artifacts/nkt-gpt-connector-0.7.31-protected-recipe-name-only-revision-upgrader.zip
+            connector/artifacts/nkt-gpt-connector-0.7.31-protected-recipe-name-only-revision-upgrader.sha256.txt
+            connector/artifacts/generated/openapi-0.7.31.json
+            connector/VALIDATION-0.7.31.md
           if-no-files-found: error
           retention-days: 30
