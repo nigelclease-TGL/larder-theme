@@ -1,5 +1,17 @@
 # Changelog
 
+## NKT GPT Connector 0.7.27
+
+- Accepts either an exact recognised nutrient label or the same label followed by exactly one terminal ASCII colon in structured table and adjacent-record evidence.
+- Fixes the post-change serving-label rollback triggered when the standardised Nutrition table changed `Calories`, `Total Fat`, `Carbs`, `Sugars` and `Protein` to colon-terminated labels.
+- Keeps canonical labels punctuation-free internally, so `Calories:` maps to `Calories` while `Calories::`, descriptive labels and unrelated punctuation remain rejected.
+- Adds a production-shaped before-state fixture and the exact proposed after-state fixture with colon-terminated first-cell labels, em-dash percentages and the standard Daily Values disclaimer.
+- Proves that the complete zero-section Serving fallback succeeds before and after the guarded article Nutrition replacement.
+- Proves that the explicit `expected_serving_label_after` guard passes for the exact proposed after-state and still rejects an actual serving-label mismatch.
+- Retains all content, Nutrition, recipe, WPRM Nutrition, media, reusable-block, metadata, Amazon, affiliate, replacement-count, audit and rollback protections.
+- Keeps protected baselines from 0.7.23 through 0.7.26 compatible and adds a guarded 0.7.26-to-0.7.27 updater.
+- Retains the compact 23-action OpenAPI schema.
+
 ## NKT GPT Connector 0.7.26
 
 - Replaces the zero-section fallback’s colon-only nutrient counter with structured, value-backed nutrient evidence.
