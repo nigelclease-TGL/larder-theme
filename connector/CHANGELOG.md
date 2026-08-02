@@ -1,5 +1,17 @@
 # Changelog
 
+## NKT GPT Connector 0.7.26
+
+- Replaces the zero-section fallback’s colon-only nutrient counter with structured, value-backed nutrient evidence.
+- Recognises exact nutrient labels in Gutenberg table cells when a following cell contains a numeric value, including production markup with no literal colon between label and value.
+- Preserves conventional `Label: value` text and adds boundary-aware list, paragraph, column and adjacent-record support.
+- Counts distinct recognised labels only and rejects label mentions that are not paired with numeric values.
+- Adds a production-shaped fixture matching the raw two-cell Nutrition table used by post 34505, including nested `<strong>` labels and `&nbsp;` values.
+- Adds negative fixtures for prose-only labels, nonnumeric table values, duplicate presentations, ambiguous Serving headings, weak nutrient evidence and multiple parser sections.
+- Keeps all earlier section-scoped, single-parser-section and corroborated zero-section Serving extraction paths.
+- Keeps existing 0.7.23, 0.7.24 and 0.7.25 protected drafts compatible while preserving content, Nutrition, recipe, WPRM Nutrition, media, reusable-block, metadata, Amazon, affiliate, exact-replacement and serving-label guards.
+- Adds a guarded 0.7.25-to-0.7.26 updater and retains the compact 23-action OpenAPI schema.
+
 ## NKT GPT Connector 0.7.25
 
 - Retains the 0.7.24 section-scoped and single-parser-section Serving-H3 extraction paths.
