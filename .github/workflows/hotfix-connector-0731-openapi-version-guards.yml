@@ -1,0 +1,107 @@
+name: Hotfix Connector 0.7.31 OpenAPI Version Guards
+
+on:
+  push:
+    branches:
+      - hotfix/connector-0.7.31-openapi-version-guards
+
+permissions:
+  contents: write
+
+jobs:
+  hotfix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out hotfix branch
+        uses: actions/checkout@v4
+        with:
+          ref: hotfix/connector-0.7.31-openapi-version-guards
+          fetch-depth: 0
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          coverage: none
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Patch schema builder and regression tests
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(text: str, old: str, new: str, label: str) -> str:
+              count = text.count(old)
+              if count == 0 and new in text:
+                  return text
+              if count != 1:
+                  raise SystemExit(f'{label}: expected one match, found {count}')
+              return text.replace(old, new, 1)
+
+          build_path = Path('connector/build_0731.py')
+          build = build_path.read_text(encoding='utf-8')
+          build = build.replace("'version': '0.7.31-schema.1'", "'version': '0.7.31-schema.2'")
+
+          helper_marker = """    except KeyError as exc:\n        raise RuntimeError(f'Missing OpenAPI operation {method.upper()} {path}') from exc\n\n\ndef build_openapi() -> Path:\n"""
+          helper_block = """    except KeyError as exc:\n        raise RuntimeError(f'Missing OpenAPI operation {method.upper()} {path}') from exc\n\n\ndef _require_body_connector_version(operation: dict) -> None:\n    body = operation['requestBody']['content']['application/json']['schema']\n    body.setdefault('properties', {})['connector_version'] = {\n        'type': 'string',\n        'enum': [VERSION],\n        'description': 'Exact active connector version required by the protected runtime guard.',\n    }\n    required = body.setdefault('required', [])\n    if 'connector_version' not in required:\n        required.insert(0, 'connector_version')\n\n\ndef _require_query_connector_version(operation: dict) -> None:\n    parameters = operation.setdefault('parameters', [])\n    existing = [item for item in parameters if item.get('name') == 'connector_version']\n    if existing:\n        existing[0].update({\n            'in': 'query',\n            'required': True,\n            'schema': {'type': 'string', 'enum': [VERSION]},\n        })\n        return\n    parameters.insert(0, {\n        'name': 'connector_version',\n        'in': 'query',\n        'required': True,\n        'schema': {'type': 'string', 'enum': [VERSION]},\n        'description': 'Exact active connector version required by the protected runtime guard.',\n    })\n\n\ndef build_openapi() -> Path:\n"""
+          build = replace_once(build, helper_marker, helper_block, 'insert OpenAPI version helpers')
+
+          replacements = [
+              ("    start = _operation(schema, '/workflow/revisions/start', 'post')\n    start_schema =", "    start = _operation(schema, '/workflow/revisions/start', 'post')\n    _require_body_connector_version(start)\n    start_schema =", 'start version guard'),
+              ("    update = _operation(schema, '/workflow/revisions/recipes/update', 'post')\n    update['summary']", "    update = _operation(schema, '/workflow/revisions/recipes/update', 'post')\n    _require_body_connector_version(update)\n    update['summary']", 'update version guard'),
+              ("    audit = _operation(schema, '/workflow/revisions/recipes/audit', 'get')\n    audit['description']", "    audit = _operation(schema, '/workflow/revisions/recipes/audit', 'get')\n    _require_query_connector_version(audit)\n    audit['description']", 'audit version guard'),
+              ("    review = _operation(schema, '/workflow/revisions/review', 'post')\n    review['description']", "    review = _operation(schema, '/workflow/revisions/review', 'post')\n    _require_body_connector_version(review)\n    review['description']", 'review version guard'),
+              ("    apply = _operation(schema, '/workflow/revisions/apply', 'post')\n    apply['description']", "    apply = _operation(schema, '/workflow/revisions/apply', 'post')\n    _require_body_connector_version(apply)\n    apply['description']", 'apply version guard'),
+          ]
+          for old, new, label in replacements:
+              build = replace_once(build, old, new, label)
+
+          validation_marker = """    operations = []\n    violations = []\n"""
+          validation_block = """    body_guard_operations = {\n        'startCompleteRecipeRevision': start,\n        'updateClonedRecipeRevisions': update,\n        'reviewRecipeRevision': review,\n        'applyCompleteRecipeRevision': apply,\n    }\n    for operation_id, operation in body_guard_operations.items():\n        body = operation['requestBody']['content']['application/json']['schema']\n        version_property = body.get('properties', {}).get('connector_version', {})\n        if 'connector_version' not in body.get('required', []) or version_property.get('enum') != [VERSION]:\n            raise RuntimeError(f'{operation_id} must require connector_version {VERSION}')\n    audit_version_parameters = [\n        item for item in audit.get('parameters', [])\n        if item.get('name') == 'connector_version' and item.get('in') == 'query'\n    ]\n    if len(audit_version_parameters) != 1 or not audit_version_parameters[0].get('required') or audit_version_parameters[0].get('schema', {}).get('enum') != [VERSION]:\n        raise RuntimeError(f'auditClonedRecipeRevision must require connector_version {VERSION}')\n\n    operations = []\n    violations = []\n"""
+          build = replace_once(build, validation_marker, validation_block, 'insert generator regression guard')
+          build_path.write_text(build, encoding='utf-8')
+
+          test_path = Path('connector/tests/test_connector_0731.py')
+          test = test_path.read_text(encoding='utf-8')
+          test = test.replace("check('schema version is 0.7.31', schema['info']['version'].startswith('0.7.31'))", "check('schema revision is 0.7.31-schema.2', schema['info']['version'] == '0.7.31-schema.2')")
+          test_marker = """check('schema exposes explicit live connector clone authorisation', 'allow_current_live_connector_clone_source' in start_props)\ncheck('schema does not expose generic recipe scope', 'generic_recipe_edit' not in schema_text)\n"""
+          test_block = """check('schema exposes explicit live connector clone authorisation', 'allow_current_live_connector_clone_source' in start_props)\nbody_version_paths = {\n    'startCompleteRecipeRevision': '/workflow/revisions/start',\n    'updateClonedRecipeRevisions': '/workflow/revisions/recipes/update',\n    'reviewRecipeRevision': '/workflow/revisions/review',\n    'applyCompleteRecipeRevision': '/workflow/revisions/apply',\n}\nfor operation_id, path in body_version_paths.items():\n    body = schema['paths'][path]['post']['requestBody']['content']['application/json']['schema']\n    check(operation_id + ' exposes connector_version', body.get('properties', {}).get('connector_version', {}).get('enum') == ['0.7.31'])\n    check(operation_id + ' requires connector_version', 'connector_version' in body.get('required', []))\naudit_version = [\n    item for item in schema['paths']['/workflow/revisions/recipes/audit']['get'].get('parameters', [])\n    if item.get('name') == 'connector_version' and item.get('in') == 'query'\n]\ncheck('auditClonedRecipeRevision exposes one connector_version query guard', len(audit_version) == 1)\ncheck('auditClonedRecipeRevision requires exact connector_version', bool(audit_version) and audit_version[0].get('required') is True and audit_version[0].get('schema', {}).get('enum') == ['0.7.31'])\ncheck('schema does not expose generic recipe scope', 'generic_recipe_edit' not in schema_text)\n"""
+          test = replace_once(test, test_marker, test_block, 'insert schema version regression tests')
+          test_path.write_text(test, encoding='utf-8')
+
+          changelog_path = Path('connector/CHANGELOG-0.7.31.md')
+          changelog = changelog_path.read_text(encoding='utf-8')
+          hotfix_bullet = '- Schema revision `0.7.31-schema.2` now exposes and requires the exact `connector_version: 0.7.31` guard on all five complete-recipe lifecycle actions; runtime behaviour is unchanged.\n'
+          if hotfix_bullet not in changelog:
+              changelog = changelog.replace('# NKT GPT Connector 0.7.31 changelog\n\n', '# NKT GPT Connector 0.7.31 changelog\n\n' + hotfix_bullet, 1)
+          changelog_path.write_text(changelog, encoding='utf-8')
+
+          validation_path = Path('connector/VALIDATION-0.7.31.md')
+          validation = validation_path.read_text(encoding='utf-8')
+          hotfix_section = """\n## OpenAPI schema revision 0.7.31-schema.2\n\nThe five complete-recipe lifecycle actions now expose the exact `connector_version: 0.7.31` parameter required by the runtime guard. Start, update, review and apply require it in the JSON body; audit requires it as a query parameter. This is a schema-only correction and does not change the deployed PHP runtime or any WordPress object.\n"""
+          if '## OpenAPI schema revision 0.7.31-schema.2' not in validation:
+              validation += hotfix_section
+          validation_path.write_text(validation, encoding='utf-8')
+          PY
+
+      - name: Run complete connector validation
+        run: bash connector/build.sh
+
+      - name: Commit schema hotfix
+        shell: bash
+        run: |
+          find connector -type d -name __pycache__ -prune -exec rm -rf {} +
+          if git diff --quiet -- connector/build_0731.py connector/tests/test_connector_0731.py connector/CHANGELOG-0.7.31.md connector/VALIDATION-0.7.31.md; then
+            echo 'Schema hotfix already applied.'
+            exit 0
+          fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add connector/build_0731.py connector/tests/test_connector_0731.py connector/CHANGELOG-0.7.31.md connector/VALIDATION-0.7.31.md
+          git commit -m 'Expose exact 0.7.31 lifecycle version guards in OpenAPI'
+          git push origin HEAD:hotfix/connector-0.7.31-openapi-version-guards
