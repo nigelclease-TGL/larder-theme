@@ -1,0 +1,367 @@
+/** Snapshot exact reconciliation metadata for rollback. */
+function nkt_gpt_par_0729_meta_snapshot( $post_id ) {
+	$keys = array(
+		'_nkt_connector_ownership',
+		'_nkt_connector_managed',
+		'_nkt_connector_name',
+		'_nkt_connector_version_created',
+		'_nkt_connector_workflow_type',
+		'_nkt_connector_cleanup_disposition',
+		'_nkt_connector_cleanup_reason',
+		'_nkt_connector_superseded_by_draft_id',
+		'_nkt_connector_reconciliation_record',
+	);
+	$snapshot = array();
+	foreach ( $keys as $key ) {
+		$snapshot[ $key ] = array(
+			'exists' => metadata_exists( 'post', $post_id, $key ),
+			'value'  => get_post_meta( $post_id, $key, true ),
+		);
+	}
+	return $snapshot;
+}
+
+/** Restore exact reconciliation metadata after any failed batch write. */
+function nkt_gpt_par_0729_restore_meta_snapshot( $post_id, $snapshot ) {
+	$restored = true;
+	foreach ( (array) $snapshot as $key => $record ) {
+		if ( ! empty( $record['exists'] ) ) {
+			update_post_meta( $post_id, $key, $record['value'] );
+			$restored = $restored && metadata_exists( 'post', $post_id, $key ) && get_post_meta( $post_id, $key, true ) === $record['value'];
+		} else {
+			delete_post_meta( $post_id, $key );
+			$restored = $restored && ! metadata_exists( 'post', $post_id, $key );
+		}
+	}
+	return $restored;
+}
+
+/** Compare an expected scalar or list exactly after deterministic normalization. */
+function nkt_gpt_par_0729_expected_equals( $expected, $actual, $list = false ) {
+	if ( $list ) {
+		return nkt_gpt_par_0728_id_list( $expected ) === nkt_gpt_par_0728_id_list( $actual );
+	}
+	return (string) $expected === (string) $actual;
+}
+
+/** Return all guard failures for one proposed exact reconciliation pair. */
+function nkt_gpt_par_0729_reconciliation_failures( $item ) {
+	$obsolete_id  = absint( $item['obsolete_draft_id'] ?? 0 );
+	$successor_id = absint( $item['superseding_draft_id'] ?? 0 );
+	$failures = array();
+	if ( ! $obsolete_id || ! $successor_id || $obsolete_id === $successor_id ) {
+		return array( 'invalid_exact_draft_pair' );
+	}
+	$row = nkt_gpt_par_0729_reconciliation_row( $obsolete_id );
+	$successor = nkt_gpt_par_0728_classify_draft( $successor_id );
+	$successor_ownership = nkt_gpt_par_0728_connector_ownership_evidence( $successor_id );
+	$expected = array(
+		'expected_reconciliation_evidence_hash' => (string) ( $row['reconciliation_evidence_hash'] ?? '' ),
+		'expected_source_live_post_id'           => absint( $row['source_live_post_id'] ?? 0 ),
+		'expected_obsolete_classification_hash'  => (string) ( $row['current_classification_hash'] ?? '' ),
+		'expected_obsolete_ownership_hash'       => (string) ( $row['current_ownership_hash'] ?? '' ),
+		'expected_obsolete_wordpress_status'     => (string) ( $row['wordpress_status'] ?? '' ),
+		'expected_obsolete_review_status'        => (string) ( $row['review_status'] ?? '' ),
+		'expected_obsolete_application_status'   => (string) ( $row['application_status'] ?? '' ),
+		'expected_obsolete_programme_ledger_state'=> (string) ( $row['programme_ledger_reference_state'] ?? '' ),
+		'expected_superseding_classification_hash'=> (string) ( $successor['safe_to_trash_classification_hash'] ?? '' ),
+		'expected_superseding_ownership_hash'    => (string) ( $successor['connector_ownership_hash'] ?? '' ),
+		'expected_superseding_wordpress_status'  => (string) ( $successor['wordpress_status'] ?? '' ),
+		'expected_superseding_review_status'     => (string) ( $successor['review_status'] ?? '' ),
+		'expected_superseding_application_status'=> (string) ( $successor['application_status'] ?? '' ),
+		'expected_superseding_programme_ledger_state'=> (string) ( $successor['programme_ledger_reference_state'] ?? '' ),
+	);
+	foreach ( $expected as $field => $actual ) {
+		if ( ! array_key_exists( $field, $item ) || ! nkt_gpt_par_0729_expected_equals( $item[ $field ], $actual ) ) {
+			$failures[] = $field . '_mismatch';
+		}
+	}
+	foreach ( array(
+		'expected_obsolete_linked_recipe_clone_ids' => $row['linked_recipe_clone_ids'] ?? array(),
+		'expected_obsolete_linked_failure_evidence_ids' => $row['linked_failure_evidence_ids'] ?? array(),
+		'expected_superseding_linked_recipe_clone_ids' => $successor['linked_recipe_clone_ids'] ?? array(),
+		'expected_superseding_linked_failure_evidence_ids' => $successor['linked_failure_evidence_ids'] ?? array(),
+	) as $field => $actual ) {
+		if ( ! array_key_exists( $field, $item ) || ! nkt_gpt_par_0729_expected_equals( $item[ $field ], $actual, true ) ) {
+			$failures[] = $field . '_mismatch';
+		}
+	}
+	if ( empty( $row['eligible_for_supersession_recording'] ) ) {
+		$failures[] = 'obsolete_draft_not_reconcilable';
+	}
+	if ( ! in_array( $successor_id, (array) ( $row['eligible_superseding_draft_ids'] ?? array() ), true ) ) {
+		$failures[] = 'superseding_draft_not_in_exact_eligible_set';
+	}
+	if ( empty( $successor_ownership['proven'] ) ) {
+		$failures[] = 'superseding_draft_ownership_not_proven';
+	}
+	if ( absint( $successor_ownership['bundle']['source_live_post_id'] ?? 0 ) !== absint( $row['source_live_post_id'] ?? 0 ) ) {
+		$failures[] = 'superseding_draft_source_mismatch';
+	}
+	if ( $obsolete_id >= $successor_id ) {
+		$failures[] = 'superseding_draft_id_not_newer';
+	}
+	$obsolete_post = get_post( $obsolete_id );
+	$successor_post = get_post( $successor_id );
+	if ( ! $obsolete_post || ! $successor_post || (string) $obsolete_post->post_date_gmt > (string) $successor_post->post_date_gmt ) {
+		$failures[] = 'superseding_draft_timestamp_not_newer';
+	}
+	if ( '' === trim( (string) ( $item['supersession_reason'] ?? '' ) ) ) {
+		$failures[] = 'supersession_reason_missing';
+	}
+	return array_values( array_unique( $failures ) );
+}
+
+/** Build explicit connector ownership from exact, reconciled legacy evidence. */
+function nkt_gpt_par_0729_reconciled_ownership_bundle( $draft_id, $successor_id, $row ) {
+	$current = nkt_gpt_par_0728_connector_ownership_evidence( $draft_id );
+	$bundle  = ! empty( $current['proven'] ) ? (array) ( $current['bundle'] ?? array() ) : array();
+	$baseline = get_post_meta( $draft_id, NKT_GPT_PAR_0723_BASELINE_META, true );
+	$post     = get_post( $draft_id );
+	$created  = (string) get_post_meta( $draft_id, '_nkt_revision_created_at', true );
+	if ( '' === $created && is_array( $baseline ) ) {
+		$created = (string) ( $baseline['created_at'] ?? '' );
+	}
+	if ( '' === $created && $post ) {
+		$created = (string) $post->post_date_gmt;
+	}
+	return array_merge( $bundle, array(
+		'connector_managed'              => true,
+		'connector_name'                 => 'nigels_kitchen_table',
+		'connector_version_created'      => (string) ( $bundle['connector_version_created'] ?? ( is_array( $baseline ) ? ( $baseline['connector_version'] ?? 'legacy' ) : 'legacy' ) ),
+		'connector_version_last_seen'    => NKT_GPT_PAR_0723_VERSION,
+		'connector_workflow_type'        => (string) ( $row['workflow_type'] ?? '' ),
+		'protected_revision_id'          => absint( $draft_id ),
+		'source_live_post_id'            => absint( $row['source_live_post_id'] ?? 0 ),
+		'created_timestamp'              => $created,
+		'lifecycle_status'               => sanitize_key( (string) ( $bundle['lifecycle_status'] ?? '' ) ),
+		'review_status'                  => sanitize_key( (string) ( $row['review_status'] ?? '' ) ),
+		'application_status'             => sanitize_key( (string) ( $row['application_status'] ?? '' ) ),
+		'superseded_by_draft_id'         => absint( $successor_id ),
+		'supersedes_draft_id'            => absint( $bundle['supersedes_draft_id'] ?? 0 ),
+		'linked_recipe_clone_ids'         => nkt_gpt_par_0728_id_list( $row['linked_recipe_clone_ids'] ?? array() ),
+		'linked_failure_evidence_ids'     => nkt_gpt_par_0728_id_list( $row['linked_failure_evidence_ids'] ?? array() ),
+		'programme_ledger_reference_status' => (string) ( $row['programme_ledger_reference_state'] ?? 'unknown' ),
+		'protected_draft_active'          => ! empty( $row['protected_draft_active'] ),
+		'reconciliation_mode'            => 'guarded_legacy_reconciliation_0_7_29',
+		'reconciliation_evidence'        => array_values( (array) ( $row['connector_signals'] ?? array() ) ),
+		'reconciliation_evidence_hash_before' => (string) ( $row['reconciliation_evidence_hash'] ?? '' ),
+	) );
+}
+
+/** Record exact legacy ownership and supersession metadata; never Trash anything. */
+function nkt_gpt_par_0729_reconcile_legacy_supersessions( WP_REST_Request $request ) {
+	$guard = nkt_gpt_par_0723_version_guard( $request );
+	if ( is_wp_error( $guard ) ) {
+		return $guard;
+	}
+	$dry_run = rest_sanitize_boolean( $request->get_param( 'dry_run' ) );
+	if ( ! rest_sanitize_boolean( $request->get_param( 'confirm_connector_ownership_reconciliation' ) )
+		|| ! rest_sanitize_boolean( $request->get_param( 'confirm_supersession_and_obsolescence' ) )
+	) {
+		return new WP_Error( 'nkt_gpt_par_0729_confirmation_required', __( 'Both exact reconciliation confirmations are required.', 'nkt-gpt-connector' ), array( 'status' => 409 ) );
+	}
+	$items = (array) $request->get_param( 'reconciliations' );
+	if ( ! $items || count( $items ) > 100 ) {
+		return new WP_Error( 'nkt_gpt_par_0729_exact_pairs_required', __( 'Provide between one and 100 exact reconciliation pairs.', 'nkt-gpt-connector' ), array( 'status' => 409 ) );
+	}
+	$seen = array();
+	$all_obsolete_ids = array_values( array_filter( array_map( static function ( $item ) { $item = (array) $item; return absint( $item['obsolete_draft_id'] ?? 0 ); }, $items ) ) );
+	$all_successor_ids = array_values( array_filter( array_map( static function ( $item ) { $item = (array) $item; return absint( $item['superseding_draft_id'] ?? 0 ); }, $items ) ) );
+	if ( array_intersect( $all_obsolete_ids, $all_successor_ids ) ) {
+		return new WP_Error(
+			'nkt_gpt_par_0729_cross_pair_chain_refused',
+			__( 'A draft cannot be both obsolete and superseding within the same reconciliation batch.', 'nkt-gpt-connector' ),
+			array( 'status' => 409, 'writes_attempted' => false )
+		);
+	}
+	$preflight = array();
+	$failed = false;
+	foreach ( $items as $item ) {
+		$item = (array) $item;
+		$obsolete_id = absint( $item['obsolete_draft_id'] ?? 0 );
+		if ( ! $obsolete_id || isset( $seen[ $obsolete_id ] ) ) {
+			$failures = array( 'duplicate_or_invalid_obsolete_draft_id' );
+		} else {
+			$seen[ $obsolete_id ] = true;
+			$failures = nkt_gpt_par_0729_reconciliation_failures( $item );
+		}
+		$preflight[] = array(
+			'obsolete_draft_id'  => $obsolete_id,
+			'superseding_draft_id'=> absint( $item['superseding_draft_id'] ?? 0 ),
+			'passed'             => empty( $failures ),
+			'failures'           => $failures,
+		);
+		$failed = $failed || ! empty( $failures );
+	}
+	if ( $failed ) {
+		return new WP_Error(
+			'nkt_gpt_par_0729_reconciliation_preflight_failed',
+			__( 'The entire reconciliation batch was refused before writing because at least one exact pair failed a guard.', 'nkt-gpt-connector' ),
+			array(
+				'status'           => 409,
+				'dry_run'          => $dry_run,
+				'preflight'        => $preflight,
+				'writes_attempted' => false,
+				'trash_actions'    => array(),
+				'archive_actions'  => array(),
+				'permanent_deletions' => array(),
+			)
+		);
+	}
+	if ( $dry_run ) {
+		return nkt_gpt_connector_no_store( new WP_REST_Response( array(
+			'connector_version' => NKT_GPT_PAR_0723_VERSION,
+			'dry_run'           => true,
+			'preflight'         => $preflight,
+			'writes_attempted'  => false,
+			'writes_completed'  => false,
+			'trash_actions'     => array(),
+			'archive_actions'   => array(),
+			'permanent_deletions' => array(),
+		), 200 ) );
+	}
+
+	$backups = array();
+	$completed = array();
+	foreach ( $items as $item ) {
+		$item = (array) $item;
+		$obsolete_id  = absint( $item['obsolete_draft_id'] );
+		$successor_id = absint( $item['superseding_draft_id'] );
+		$row          = nkt_gpt_par_0729_reconciliation_row( $obsolete_id );
+		$backups[ $obsolete_id ] = nkt_gpt_par_0729_meta_snapshot( $obsolete_id );
+		$bundle = nkt_gpt_par_0729_reconciled_ownership_bundle( $obsolete_id, $successor_id, $row );
+		$reason = sanitize_text_field( (string) $item['supersession_reason'] );
+		$record = array(
+			'connector_version'       => NKT_GPT_PAR_0723_VERSION,
+			'reconciled_at'           => gmdate( DATE_ATOM ),
+			'reconciled_by_user_id'   => get_current_user_id(),
+			'obsolete_draft_id'       => $obsolete_id,
+			'superseding_draft_id'    => $successor_id,
+			'source_live_post_id'     => absint( $row['source_live_post_id'] ),
+			'supersession_reason'     => $reason,
+			'evidence_hash_before'    => (string) $row['reconciliation_evidence_hash'],
+			'classification_hash_before' => (string) $row['current_classification_hash'],
+			'ownership_hash_before'   => (string) $row['current_ownership_hash'],
+		);
+		update_post_meta( $obsolete_id, '_nkt_connector_ownership', $bundle );
+		update_post_meta( $obsolete_id, '_nkt_connector_managed', 1 );
+		update_post_meta( $obsolete_id, '_nkt_connector_name', 'nigels_kitchen_table' );
+		update_post_meta( $obsolete_id, '_nkt_connector_version_created', $bundle['connector_version_created'] );
+		update_post_meta( $obsolete_id, '_nkt_connector_workflow_type', $bundle['connector_workflow_type'] );
+		update_post_meta( $obsolete_id, '_nkt_connector_cleanup_disposition', 'obsolete' );
+		update_post_meta( $obsolete_id, '_nkt_connector_cleanup_reason', $reason );
+		update_post_meta( $obsolete_id, '_nkt_connector_superseded_by_draft_id', $successor_id );
+		update_post_meta( $obsolete_id, '_nkt_connector_reconciliation_record', $record );
+
+		$after = nkt_gpt_par_0728_classify_draft( $obsolete_id );
+		$verified = ! empty( $after['safe_to_trash'] )
+			&& 'eligible_obsolete_connector_draft' === (string) ( $after['classification'] ?? '' )
+			&& 'obsolete' === (string) get_post_meta( $obsolete_id, '_nkt_connector_cleanup_disposition', true )
+			&& $reason === (string) get_post_meta( $obsolete_id, '_nkt_connector_cleanup_reason', true )
+			&& $successor_id === absint( get_post_meta( $obsolete_id, '_nkt_connector_superseded_by_draft_id', true ) )
+			&& ! empty( nkt_gpt_par_0728_connector_ownership_evidence( $obsolete_id )['proven'] );
+		if ( ! $verified ) {
+			$restored = array();
+			foreach ( $backups as $restore_id => $snapshot ) {
+				$restored[ $restore_id ] = nkt_gpt_par_0729_restore_meta_snapshot( $restore_id, $snapshot );
+			}
+			return new WP_Error(
+				'nkt_gpt_par_0729_post_write_verification_failed',
+				__( 'Reconciliation verification failed; exact metadata snapshots were restored where possible.', 'nkt-gpt-connector' ),
+				array(
+					'status' => 500,
+					'failed_obsolete_draft_id' => $obsolete_id,
+					'restored' => $restored,
+					'writes_attempted' => true,
+					'trash_actions' => array(),
+					'archive_actions' => array(),
+					'permanent_deletions' => array(),
+				)
+			);
+		}
+		$record['classification_after'] = (string) $after['classification'];
+		$record['classification_hash_after'] = (string) $after['safe_to_trash_classification_hash'];
+		$record['ownership_hash_after'] = (string) $after['connector_ownership_hash'];
+		update_post_meta( $obsolete_id, '_nkt_connector_reconciliation_record', $record );
+		$completed[] = $record;
+	}
+
+	return nkt_gpt_connector_no_store( new WP_REST_Response( array(
+		'connector_version' => NKT_GPT_PAR_0723_VERSION,
+		'dry_run'           => false,
+		'preflight'         => $preflight,
+		'reconciled'        => $completed,
+		'writes_attempted'  => true,
+		'writes_completed'  => true,
+		'article_content_changed' => false,
+		'live_posts_changed'=> false,
+		'recipe_objects_changed' => false,
+		'wprm_nutrition_changed' => false,
+		'trash_actions'     => array(),
+		'archive_actions'   => array(),
+		'permanent_deletions' => array(),
+	), 200 ) );
+}
+
+/** Register guarded reconciliation routes. */
+function nkt_gpt_par_0729_register_reconciliation_routes() {
+	$permission = function_exists( 'nkt_gpt_connector_permission_check' ) ? 'nkt_gpt_connector_permission_check' : '__return_false';
+	$namespace  = 'nkt-gpt/v1';
+	register_rest_route( $namespace, '/protected-article-revisions/legacy-reconciliation', array(
+		'methods'             => WP_REST_Server::READABLE,
+		'callback'            => 'nkt_gpt_par_0729_inventory_legacy_reconciliation',
+		'permission_callback' => $permission,
+		'args'                => array(
+			'connector_version'   => array( 'type' => 'string', 'required' => true ),
+			'page'                => array( 'type' => 'integer', 'required' => false, 'minimum' => 1, 'default' => 1 ),
+			'per_page'            => array( 'type' => 'integer', 'required' => false, 'minimum' => 1, 'maximum' => 100, 'default' => 20 ),
+			'source_live_post_id' => array( 'type' => 'integer', 'required' => false, 'minimum' => 1 ),
+		),
+	), true );
+	register_rest_route( $namespace, '/protected-article-revisions/legacy-reconciliation/record', array(
+		'methods'             => WP_REST_Server::CREATABLE,
+		'callback'            => 'nkt_gpt_par_0729_reconcile_legacy_supersessions',
+		'permission_callback' => $permission,
+		'args'                => array(
+			'connector_version' => array( 'type' => 'string', 'required' => true ),
+			'dry_run' => array( 'type' => 'boolean', 'required' => true ),
+			'confirm_connector_ownership_reconciliation' => array( 'type' => 'boolean', 'required' => true ),
+			'confirm_supersession_and_obsolescence' => array( 'type' => 'boolean', 'required' => true ),
+			'reconciliations' => array( 'type' => 'array', 'required' => true, 'minItems' => 1, 'maxItems' => 100, 'items' => array( 'type' => 'object' ) ),
+		),
+	), true );
+}
+add_action( 'rest_api_init', 'nkt_gpt_par_0729_register_reconciliation_routes', 101 );
+
+/** Advertise guarded legacy reconciliation capability through status. */
+function nkt_gpt_par_0729_augment_status_response( $response, $server, $request ) {
+	unset( $server );
+	if ( ! $response instanceof WP_REST_Response || '/nkt-gpt/v1/status' !== $request->get_route() ) {
+		return $response;
+	}
+	$data = $response->get_data();
+	if ( ! is_array( $data ) ) {
+		return $response;
+	}
+	$data['connector_version'] = NKT_GPT_PAR_0723_VERSION;
+	$data['legacy_connector_draft_reconciliation'] = array(
+		'inventoryLegacyConnectorDraftReconciliation' => true,
+		'reconcileLegacyConnectorDraftSupersession'   => true,
+		'exact_draft_pairs_required'                   => true,
+		'current_evidence_hashes_required'             => true,
+		'dry_run_supported'                            => true,
+		'whole_batch_preflight_required'               => true,
+		'rollback_on_verification_failure'             => true,
+		'title_author_slug_content_similarity_used'    => false,
+		'article_content_write_allowed'                => false,
+		'live_post_write_allowed'                      => false,
+		'recipe_write_allowed'                         => false,
+		'trash_allowed_in_reconciliation_action'       => false,
+		'archive_allowed_in_reconciliation_action'     => false,
+		'permanent_delete_allowed'                     => false,
+	);
+	$response->set_data( $data );
+	return $response;
+}
+add_filter( 'rest_post_dispatch', 'nkt_gpt_par_0729_augment_status_response', 21, 3 );
