@@ -108,6 +108,8 @@ jobs:
             404.php
             theme.json
             inc/product-platform.php
+            inc/recipe-products.php
+            inc/shop-title.php
             inc/setup-wizard.php
             inc/site-health.php
             inc/discovery.php
@@ -125,10 +127,12 @@ jobs:
             assets/css/admin-content-audit.css
             assets/css/admin-product-platform.css
             assets/css/shop-my-kitchen.css
+            assets/css/recommended-products.css
             assets/js/navigation.js
             assets/js/recipe-tools.js
             assets/js/growth-events.js
             assets/js/product-admin.js
+            assets/js/recommended-products-block.js
           )
           for file in "${required[@]}"; do
             test -f "$file" || { echo "Missing required file: $file"; exit 1; }
@@ -147,6 +151,20 @@ jobs:
           grep -q "Amazon UK" inc/product-platform.php
           grep -q "nofollow sponsored noopener noreferrer" single-nkt_product.php
           grep -q "inc/product-platform.php" functions.php
+
+      - name: Verify recipe product integration contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "const NKT_RECIPE_PRODUCT_META = '_nkt_recipe_product_ids';" inc/recipe-products.php
+          grep -q "register_post_meta" inc/recipe-products.php
+          grep -q "nkt/recommended-products" inc/recipe-products.php
+          grep -q "nkt_recommended_products" inc/recipe-products.php
+          grep -q "Recipes using this product" inc/recipe-products.php
+          grep -q "nofollow sponsored noopener noreferrer" inc/recipe-products.php
+          grep -q "inc/recipe-products.php" inc/shop-title.php
+          grep -q "registerBlockType( 'nkt/recommended-products'" assets/js/recommended-products-block.js
+          grep -q ".nkt-recommended-products" assets/css/recommended-products.css
 
       - name: Verify release version alignment
         shell: bash
