@@ -100,9 +100,14 @@ jobs:
             page-my-story.php
             page-contact-me.php
             single.php
+            single-nkt_product.php
+            archive-nkt_product.php
+            taxonomy-nkt_product_category.php
+            taxonomy-nkt_product_brand.php
             search.php
             404.php
             theme.json
+            inc/product-platform.php
             inc/setup-wizard.php
             inc/site-health.php
             inc/discovery.php
@@ -110,6 +115,7 @@ jobs:
             inc/content-audit.php
             inc/content-audit-screen.php
             inc/content-audit-integrations.php
+            template-parts/content-product-card.php
             assets/css/nkt-brand.css
             assets/css/recipe-experience.css
             assets/css/discovery-phase-4.css
@@ -117,13 +123,30 @@ jobs:
             assets/css/launch-phase-5.css
             assets/css/growth-phase-6.css
             assets/css/admin-content-audit.css
+            assets/css/admin-product-platform.css
+            assets/css/shop-my-kitchen.css
             assets/js/navigation.js
             assets/js/recipe-tools.js
             assets/js/growth-events.js
+            assets/js/product-admin.js
           )
           for file in "${required[@]}"; do
             test -f "$file" || { echo "Missing required file: $file"; exit 1; }
           done
+
+      - name: Verify product platform contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "const NKT_PRODUCT_PLATFORM_VERSION = '2.1.0-alpha.1';" inc/product-platform.php
+          grep -q "const NKT_PRODUCT_POST_TYPE        = 'nkt_product';" inc/product-platform.php
+          grep -q "const NKT_PRODUCT_CATEGORY_TAX     = 'nkt_product_category';" inc/product-platform.php
+          grep -q "const NKT_PRODUCT_BRAND_TAX        = 'nkt_product_brand';" inc/product-platform.php
+          grep -q "'_nkt_product_retailers'" inc/product-platform.php
+          grep -q "'_nkt_product_gallery_ids'" inc/product-platform.php
+          grep -q "Amazon UK" inc/product-platform.php
+          grep -q "nofollow sponsored noopener noreferrer" single-nkt_product.php
+          grep -q "inc/product-platform.php" functions.php
 
       - name: Verify release version alignment
         shell: bash

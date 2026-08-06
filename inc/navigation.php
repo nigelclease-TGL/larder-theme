@@ -32,11 +32,12 @@ function nkt_page_url( $slugs, $fallback ) {
  */
 function nkt_primary_menu_fallback() {
 	$items = array(
-		__( 'Recipes', 'larder' )       => nkt_page_url( array( 'recipes' ), '/recipes/' ),
-		__( 'Collections', 'larder' )   => nkt_page_url( array( 'recipe-collections', 'collections', 'seasons' ), '/recipe-collections/' ),
-		__( 'Kitchen Notes', 'larder' ) => nkt_page_url( array( 'kitchen-notes', 'baking-guides' ), '/kitchen-notes/' ),
-		__( 'About Nigel', 'larder' )   => nkt_page_url( array( 'about-nigel', 'my-story', 'about' ), '/my-story/' ),
-		__( 'Contact', 'larder' )       => nkt_page_url( array( 'contact', 'contact-me' ), '/contact/' ),
+		__( 'Recipes', 'larder' )         => nkt_page_url( array( 'recipes' ), '/recipes/' ),
+		__( 'Collections', 'larder' )     => nkt_page_url( array( 'recipe-collections', 'collections', 'seasons' ), '/recipe-collections/' ),
+		__( 'Kitchen Notes', 'larder' )   => nkt_page_url( array( 'kitchen-notes', 'baking-guides' ), '/kitchen-notes/' ),
+		__( 'Shop My Kitchen', 'larder' ) => function_exists( 'nkt_get_product_archive_url' ) ? nkt_get_product_archive_url() : home_url( '/shop-my-kitchen/' ),
+		__( 'About Nigel', 'larder' )     => nkt_page_url( array( 'about-nigel', 'my-story', 'about' ), '/my-story/' ),
+		__( 'Contact', 'larder' )         => nkt_page_url( array( 'contact', 'contact-me' ), '/contact/' ),
 	);
 
 	echo '<ul class="primary-menu primary-menu--fallback">';
@@ -51,10 +52,11 @@ function nkt_primary_menu_fallback() {
  */
 function nkt_footer_menu_fallback() {
 	$items = array(
-		__( 'Recipes', 'larder' )     => nkt_page_url( array( 'recipes' ), '/recipes/' ),
-		__( 'Collections', 'larder' ) => nkt_page_url( array( 'recipe-collections', 'collections', 'seasons' ), '/recipe-collections/' ),
-		__( 'About Nigel', 'larder' ) => nkt_page_url( array( 'about-nigel', 'my-story', 'about' ), '/my-story/' ),
-		__( 'Contact', 'larder' )     => nkt_page_url( array( 'contact', 'contact-me' ), '/contact/' ),
+		__( 'Recipes', 'larder' )         => nkt_page_url( array( 'recipes' ), '/recipes/' ),
+		__( 'Collections', 'larder' )     => nkt_page_url( array( 'recipe-collections', 'collections', 'seasons' ), '/recipe-collections/' ),
+		__( 'Shop My Kitchen', 'larder' ) => function_exists( 'nkt_get_product_archive_url' ) ? nkt_get_product_archive_url() : home_url( '/shop-my-kitchen/' ),
+		__( 'About Nigel', 'larder' )     => nkt_page_url( array( 'about-nigel', 'my-story', 'about' ), '/my-story/' ),
+		__( 'Contact', 'larder' )         => nkt_page_url( array( 'contact', 'contact-me' ), '/contact/' ),
 	);
 
 	$newsletter_page = nkt_setup_find_page( array( 'newsletter' ) );
