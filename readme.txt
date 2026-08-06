@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 2.1.0-alpha.1
+Stable tag: 2.1.0-alpha.2
 License: Proprietary project theme
 
 A premium editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -30,9 +30,14 @@ Key features include:
 3. Upload the installable theme ZIP without unzipping it.
 4. Choose Replace current with uploaded.
 5. Clear WP Super Cache and the browser cache.
-6. Confirm the active theme shows version 2.1.0-alpha.1.
+6. Confirm the active theme shows version 2.1.0-alpha.2.
 
 == Changelog ==
+
+= 2.1.0-alpha.2 =
+* Corrects the Shop My Kitchen browser and SEO title so the product archive no longer appears as Kitchen Products Archive.
+* Applies matching titles to Product Category and Product Brand archives.
+* Preserves the Kitchen Products wording inside the WordPress administration area.
 
 = 2.1.0-alpha.1 =
 * Adds the Kitchen Products custom post type with a public Shop My Kitchen archive and individual product pages.
@@ -103,5 +108,5 @@ Earlier release history remains available in the Git repository.
 
 == Upgrade Notice ==
 
-= 2.1.0-alpha.1 =
-Install this alpha release to test the first Shop My Kitchen product-platform milestone before production approval.
+= 2.1.0-alpha.2 =
+Install this alpha update to correct the public Shop My Kitchen archive and taxonomy browser titles.

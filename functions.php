@@ -16,6 +16,7 @@ require_once get_template_directory() . '/inc/seo.php';
 require_once get_template_directory() . '/inc/branding.php';
 require_once get_template_directory() . '/inc/monetization.php';
 require_once get_template_directory() . '/inc/product-platform.php';
+require_once get_template_directory() . '/inc/shop-title.php';
 require_once get_template_directory() . '/inc/growth.php';
 require_once get_template_directory() . '/inc/collections.php';
 require_once get_template_directory() . '/inc/navigation.php';
