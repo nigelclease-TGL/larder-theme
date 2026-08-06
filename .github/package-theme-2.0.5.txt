@@ -1,0 +1,1 @@
+Build installable WordPress theme package for version 2.0.5.
