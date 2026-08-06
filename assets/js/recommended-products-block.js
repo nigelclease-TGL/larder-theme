@@ -59,6 +59,10 @@
 					status: [ 'publish', 'draft', 'pending', 'private' ],
 				} );
 			}, [] );
+			const currentPostId = useSelect( function ( select ) {
+				const editorStore = select( 'core/editor' );
+				return editorStore && editorStore.getCurrentPostId ? editorStore.getCurrentPostId() : 0;
+			}, [] );
 
 			const productOptions = ( products || [] ).map( function ( product ) {
 				const rawTitle = product.title && product.title.raw ? product.title.raw : __( 'Untitled product', 'larder' );
@@ -160,6 +164,7 @@
 					block: 'nkt/recommended-products',
 					attributes: attributes,
 					httpMethod: 'POST',
+					urlQueryArgs: currentPostId ? { post_id: currentPostId } : {},
 				} )
 			);
 		},
