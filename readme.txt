@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 2.0.45
+Stable tag: 2.1.0-alpha.1
 License: Proprietary project theme
 
 A premium editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -18,6 +18,7 @@ Key features include:
 * Olive, copper, ivory, linen and charcoal brand palette
 * Cormorant Garamond, Source Sans 3 and Instrument Serif typography
 * Editorial homepage, recipe collections and Kitchen Notes
+* Retailer-independent Shop My Kitchen product platform
 * WP Recipe Maker and Yoast SEO compatibility
 * Mailchimp, Contact and commercial-transparency integrations
 * Public identity, staging-indexing and content-readiness safeguards
@@ -29,9 +30,17 @@ Key features include:
 3. Upload the installable theme ZIP without unzipping it.
 4. Choose Replace current with uploaded.
 5. Clear WP Super Cache and the browser cache.
-6. Confirm the active theme shows version 2.0.45.
+6. Confirm the active theme shows version 2.1.0-alpha.1.
 
 == Changelog ==
+
+= 2.1.0-alpha.1 =
+* Adds the Kitchen Products custom post type with a public Shop My Kitchen archive and individual product pages.
+* Adds hierarchical Product Categories and flexible Product Brands taxonomies.
+* Adds primary product images, optional product galleries and a media-library product editor.
+* Adds retailer-independent repeatable retailer links, with Amazon UK as the first suggested retailer and support for future retailers or Nigel's own products.
+* Adds branded product cards, product archive filters, retailer buttons and commercial-transparency notices.
+* Adds product data to the WordPress REST API for future integrations while preserving the existing recipe, Pinterest, Ad Inserter, WP Recipe Maker and NKT GPT connector functionality.
 
 = 2.0.45 =
 * Displays recipe H2 section headings in title case so labels such as Recipe Tips use an initial capital on each word.
@@ -94,5 +103,5 @@ Earlier release history remains available in the Git repository.
 
 == Upgrade Notice ==
 
-= 2.0.45 =
-Install this release to present recipe section headings and their automatic Contents links in title case.
+= 2.1.0-alpha.1 =
+Install this alpha release to test the first Shop My Kitchen product-platform milestone before production approval.
