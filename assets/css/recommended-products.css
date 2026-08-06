@@ -1,0 +1,240 @@
+.nkt-recommended-products {
+	margin-block: clamp(2.5rem, 6vw, 5rem);
+	padding: clamp(1.5rem, 4vw, 3rem);
+	border: 1px solid #e4ded4;
+	border-radius: 10px;
+	background: linear-gradient(135deg, #f4eee4 0%, #eef2eb 100%);
+	color: #2e2e2b;
+}
+
+.nkt-recommended-products__header {
+	max-width: 760px;
+	margin-bottom: 1.75rem;
+}
+
+.nkt-recommended-products__header h2,
+.nkt-product-recipes__header h2 {
+	margin: .15em 0 .3em;
+	font-family: "Cormorant Garamond", Georgia, serif;
+	font-size: clamp(2.2rem, 5vw, 3.8rem);
+	line-height: 1;
+	text-wrap: balance;
+}
+
+.nkt-recommended-products__header > p:last-child {
+	max-width: 680px;
+	margin-bottom: 0;
+	font-size: 1.08rem;
+	line-height: 1.65;
+}
+
+.nkt-recommended-products__grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: clamp(1rem, 2.5vw, 1.75rem);
+}
+
+.nkt-recommended-product-card {
+	display: flex;
+	min-width: 0;
+	flex-direction: column;
+	overflow: hidden;
+	border: 1px solid #ded7cc;
+	border-radius: 8px;
+	background: #fffdfa;
+	box-shadow: 0 12px 30px rgba(46, 46, 43, .06);
+}
+
+.nkt-recommended-product-card__media {
+	position: relative;
+	display: block;
+	aspect-ratio: 4 / 3;
+	overflow: hidden;
+	background: #ece9e2;
+}
+
+.nkt-recommended-product-card__media img,
+.nkt-recommended-product-card__placeholder {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	transition: transform .25s ease;
+}
+
+.nkt-recommended-product-card__media:hover img,
+.nkt-recommended-product-card__media:focus img {
+	transform: scale(1.025);
+}
+
+.nkt-recommended-product-card__placeholder {
+	background: linear-gradient(135deg, #e9e4da, #f7f4ee);
+}
+
+.nkt-recommended-product-card__category {
+	position: absolute;
+	top: .75rem;
+	left: .75rem;
+	padding: .35rem .65rem;
+	border-radius: 999px;
+	background: rgba(255, 253, 250, .94);
+	color: #394236;
+	font-size: .75rem;
+	font-weight: 700;
+	letter-spacing: .05em;
+	text-transform: uppercase;
+}
+
+.nkt-recommended-product-card__body {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	padding: 1.25rem;
+}
+
+.nkt-recommended-product-card__brand {
+	margin: 0 0 .35rem;
+	color: #a35d37;
+	font-size: .78rem;
+	font-weight: 700;
+	letter-spacing: .11em;
+	text-transform: uppercase;
+}
+
+.nkt-recommended-product-card__title {
+	margin: 0 0 .65rem;
+	font-family: "Cormorant Garamond", Georgia, serif;
+	font-size: clamp(1.55rem, 2.5vw, 2rem);
+	line-height: 1.08;
+	text-transform: none !important;
+}
+
+.nkt-recommended-product-card__title a {
+	color: #2e2e2b;
+	text-decoration: none;
+}
+
+.nkt-recommended-product-card__title a:hover,
+.nkt-recommended-product-card__title a:focus {
+	color: #66785f;
+}
+
+.nkt-recommended-product-card__excerpt {
+	margin: 0 0 1rem;
+	color: #575751;
+	line-height: 1.55;
+}
+
+.nkt-recommended-product-card__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .75rem;
+	align-items: center;
+	margin-top: auto;
+}
+
+.nkt-recommended-product-card__details {
+	color: #394236;
+	font-weight: 700;
+	text-decoration: none;
+}
+
+.nkt-recommended-product-card__details:hover,
+.nkt-recommended-product-card__details:focus {
+	text-decoration: underline;
+	text-underline-offset: .2em;
+}
+
+.nkt-recommended-product-card__retailer {
+	margin: 0;
+	padding: .55rem .8rem;
+	font-size: .9rem;
+}
+
+.nkt-recommended-products__disclosure {
+	margin: 1.25rem 0 0;
+	color: #67665f;
+	font-size: .88rem;
+	line-height: 1.5;
+}
+
+.nkt-product-recipes {
+	margin-top: clamp(3rem, 7vw, 6rem);
+	padding-top: clamp(2rem, 5vw, 4rem);
+	border-top: 1px solid #e4ded4;
+}
+
+.nkt-product-recipes__header {
+	max-width: 760px;
+	margin-bottom: 1.5rem;
+}
+
+.nkt-product-recipes__grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: clamp(1rem, 2.5vw, 1.75rem);
+}
+
+.nkt-product-recipe-card {
+	min-width: 0;
+}
+
+.nkt-product-recipe-card__media {
+	display: block;
+	aspect-ratio: 4 / 3;
+	overflow: hidden;
+	border-radius: 8px;
+	background: #ece9e2;
+}
+
+.nkt-product-recipe-card__media img,
+.nkt-product-recipe-card__placeholder {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.nkt-product-recipe-card__placeholder {
+	background: linear-gradient(135deg, #e9e4da, #f7f4ee);
+}
+
+.nkt-product-recipe-card h3 {
+	margin: .75rem 0 0;
+	font-family: "Cormorant Garamond", Georgia, serif;
+	font-size: clamp(1.45rem, 2.5vw, 1.9rem);
+	line-height: 1.12;
+	text-transform: none !important;
+}
+
+.nkt-product-recipe-card h3 a {
+	color: #2e2e2b;
+	text-decoration: none;
+}
+
+.nkt-product-recipe-card h3 a:hover,
+.nkt-product-recipe-card h3 a:focus {
+	color: #66785f;
+}
+
+.nkt-recommended-products-editor .components-notice {
+	margin: 0 0 1rem;
+}
+
+@media (max-width: 900px) {
+	.nkt-recommended-products__grid,
+	.nkt-product-recipes__grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 620px) {
+	.nkt-recommended-products {
+		padding: 1.25rem;
+	}
+
+	.nkt-recommended-products__grid,
+	.nkt-product-recipes__grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}

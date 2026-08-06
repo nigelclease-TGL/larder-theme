@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 2.1.0-alpha.2
+Stable tag: 2.1.0-alpha.3
 License: Proprietary project theme
 
 A premium editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -19,6 +19,7 @@ Key features include:
 * Cormorant Garamond, Source Sans 3 and Instrument Serif typography
 * Editorial homepage, recipe collections and Kitchen Notes
 * Retailer-independent Shop My Kitchen product platform
+* Recipe-to-product relationships and reusable Recommended Products blocks
 * WP Recipe Maker and Yoast SEO compatibility
 * Mailchimp, Contact and commercial-transparency integrations
 * Public identity, staging-indexing and content-readiness safeguards
@@ -30,9 +31,18 @@ Key features include:
 3. Upload the installable theme ZIP without unzipping it.
 4. Choose Replace current with uploaded.
 5. Clear WP Super Cache and the browser cache.
-6. Confirm the active theme shows version 2.1.0-alpha.2.
+6. Confirm the active theme shows version 2.1.0-alpha.3.
 
 == Changelog ==
+
+= 2.1.0-alpha.3 =
+* Adds structured recipe-to-product relationships through the recipe editor.
+* Adds a dynamic Recommended Products Gutenberg block with linked-product and manual-product modes.
+* Adds a reusable shortcode for legacy and reusable content areas.
+* Adds responsive recommendation cards with editorial product links and optional primary-retailer buttons.
+* Adds reverse Recipes using this product discovery on published product pages.
+* Adds linked-recipe counts to Kitchen Products administration.
+* Keeps draft products private and leaves all existing recipes unchanged until an editor inserts the block or shortcode.
 
 = 2.1.0-alpha.2 =
 * Corrects the Shop My Kitchen browser and SEO title so the product archive no longer appears as Kitchen Products Archive.
@@ -108,5 +118,5 @@ Earlier release history remains available in the Git repository.
 
 == Upgrade Notice ==
 
-= 2.1.0-alpha.2 =
-Install this alpha update to correct the public Shop My Kitchen archive and taxonomy browser titles.
+= 2.1.0-alpha.3 =
+Install this cumulative alpha release to add recipe-to-product relationships and reusable Recommended Products blocks while preserving the existing Shop My Kitchen platform and recipe functionality.
