@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 2.1.0-alpha.3
+Stable tag: 2.1.0-alpha.5
 License: Proprietary project theme
 
 A premium editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -19,7 +19,7 @@ Key features include:
 * Cormorant Garamond, Source Sans 3 and Instrument Serif typography
 * Editorial homepage, recipe collections and Kitchen Notes
 * Retailer-independent Shop My Kitchen product platform
-* Recipe-to-product relationships and reusable Recommended Products blocks
+* Recipe-to-product relationships and reusable Recommended Products output
 * WP Recipe Maker and Yoast SEO compatibility
 * Mailchimp, Contact and commercial-transparency integrations
 * Public identity, staging-indexing and content-readiness safeguards
@@ -31,9 +31,17 @@ Key features include:
 3. Upload the installable theme ZIP without unzipping it.
 4. Choose Replace current with uploaded.
 5. Clear WP Super Cache and the browser cache.
-6. Confirm the active theme shows version 2.1.0-alpha.3.
+6. Confirm the active theme shows version 2.1.0-alpha.5.
 
 == Changelog ==
+
+= 2.1.0-alpha.5 =
+* Makes recipe recommendation sections substantially more compact, with reduced section padding, heading size, card width, image height and internal spacing.
+* Keeps recommendation cards responsive while limiting their desktop width so one or two products do not dominate the article.
+* Changes editorial product links from "Why I recommend it" to "View in Shop My Kitchen".
+* Changes standard retailer calls to action from "View at …" to "Shop at …", including Amazon UK.
+* Migrates existing generated retailer-button text while preserving genuinely custom button wording.
+* Preserves recipe content, WPRM cards, retailer URLs, product relationships, affiliate attributes, Pinterest, Ad Inserter and the NKT GPT connector.
 
 = 2.1.0-alpha.3 =
 * Adds structured recipe-to-product relationships through the recipe editor.
@@ -118,5 +126,5 @@ Earlier release history remains available in the Git repository.
 
 == Upgrade Notice ==
 
-= 2.1.0-alpha.3 =
-Install this cumulative alpha release to add recipe-to-product relationships and reusable Recommended Products blocks while preserving the existing Shop My Kitchen platform and recipe functionality.
+= 2.1.0-alpha.5 =
+Install this cumulative alpha release to compact recipe recommendation cards and clarify Shop My Kitchen and retailer calls to action while preserving the existing product platform and recipe functionality.
