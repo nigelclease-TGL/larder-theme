@@ -3,7 +3,7 @@ Contributors: nigelclease-TGL
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 2.1.0-alpha.3
+Stable tag: 2.1.0-alpha.4
 License: Proprietary project theme
 
 A premium editorial WordPress recipe theme for Nigel's Kitchen Table at thegourmetlarder.com.
@@ -31,9 +31,14 @@ Key features include:
 3. Upload the installable theme ZIP without unzipping it.
 4. Choose Replace current with uploaded.
 5. Clear WP Super Cache and the browser cache.
-6. Confirm the active theme shows version 2.1.0-alpha.3.
+6. Confirm the active theme shows version 2.1.0-alpha.4.
 
 == Changelog ==
+
+= 2.1.0-alpha.4 =
+* Fixes the Recommended Products Gutenberg block editor wrapper for current WordPress block-editor behaviour.
+* Uses the required Block API v2 useBlockProps wrapper so Gutenberg can safely identify, select and anchor controls to the block element.
+* Keeps all Phase 2 recipe-product relationships, retailer buttons, product cards and public rendering unchanged.
 
 = 2.1.0-alpha.3 =
 * Adds structured recipe-to-product relationships through the recipe editor.
@@ -118,5 +123,5 @@ Earlier release history remains available in the Git repository.
 
 == Upgrade Notice ==
 
-= 2.1.0-alpha.3 =
-Install this cumulative alpha release to add recipe-to-product relationships and reusable Recommended Products blocks while preserving the existing Shop My Kitchen platform and recipe functionality.
+= 2.1.0-alpha.4 =
+Install this cumulative alpha release to fix the Recommended Products block editor wrapper while preserving the existing Shop My Kitchen platform, recipe-product relationships and recipe functionality.

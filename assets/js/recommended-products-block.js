@@ -1,15 +1,14 @@
-( function ( blocks, blockEditor, components, data, element, i18n, serverSideRender ) {
+( function ( blocks, blockEditor, data, element, i18n ) {
 	'use strict';
 
 	const el = element.createElement;
 	const { registerBlockType } = blocks;
-	const { InspectorControls } = blockEditor;
-	const { Notice, PanelBody, SelectControl, Spinner, TextControl, TextareaControl, ToggleControl } = components;
+	const { useBlockProps } = blockEditor;
 	const { useSelect } = data;
 	const { __ } = i18n;
-	const ServerSideRender = serverSideRender;
 
 	registerBlockType( 'nkt/recommended-products', {
+		apiVersion: 2,
 		title: __( 'Recommended Products', 'larder' ),
 		description: __( 'Display Kitchen Products linked to this recipe or choose a specific set of products.', 'larder' ),
 		category: 'widgets',
@@ -59,113 +58,126 @@
 					status: [ 'publish', 'draft', 'pending', 'private' ],
 				} );
 			}, [] );
-			const currentPostId = useSelect( function ( select ) {
-				const editorStore = select( 'core/editor' );
-				return editorStore && editorStore.getCurrentPostId ? editorStore.getCurrentPostId() : 0;
-			}, [] );
-
+			const blockProps = useBlockProps( {
+				className: 'nkt-recommended-products-editor',
+			} );
+			const fieldStyle = {
+				display: 'block',
+				marginTop: '12px',
+			};
+			const inputStyle = {
+				boxSizing: 'border-box',
+				display: 'block',
+				marginTop: '5px',
+				maxWidth: '100%',
+				width: '100%',
+			};
 			const productOptions = ( products || [] ).map( function ( product ) {
 				const rawTitle = product.title && product.title.raw ? product.title.raw : __( 'Untitled product', 'larder' );
 				const statusLabel = product.status && 'publish' !== product.status ? ' — ' + product.status : '';
 
-				return {
-					label: rawTitle + statusLabel,
-					value: String( product.id ),
-				};
+				return el(
+					'option',
+					{
+						key: product.id,
+						value: String( product.id ),
+					},
+					rawTitle + statusLabel
+				);
 			} );
 
-			const inspector = el(
-				InspectorControls,
-				null,
+			return el(
+				'div',
+				blockProps,
+				el( 'strong', null, __( 'Recommended Products', 'larder' ) ),
 				el(
-					PanelBody,
-					{
-						title: __( 'Products', 'larder' ),
-						initialOpen: true,
-					},
-					el( ToggleControl, {
-						label: __( 'Use products linked to this recipe', 'larder' ),
-						help: attributes.useLinkedProducts
-							? __( 'Selections come from the Recommended Products panel in the post editor.', 'larder' )
-							: __( 'Choose a separate product set for this block.', 'larder' ),
-						checked: attributes.useLinkedProducts,
-						onChange: function ( value ) {
-							setAttributes( { useLinkedProducts: value } );
+					'p',
+					{ style: { marginBottom: '10px' } },
+					attributes.useLinkedProducts
+						? __( 'This block will display the Kitchen Products selected in the post’s Recommended Products panel.', 'larder' )
+						: __( 'This block will display the Kitchen Products selected below.', 'larder' )
+				),
+				el(
+					'label',
+					{ style: fieldStyle },
+					el( 'input', {
+						type: 'checkbox',
+						checked: !! attributes.useLinkedProducts,
+						onChange: function ( event ) {
+							setAttributes( { useLinkedProducts: event.target.checked } );
 						},
 					} ),
-					! attributes.useLinkedProducts && null === products
-						? el( Spinner )
-						: null,
-					! attributes.useLinkedProducts && null !== products
-						? el( SelectControl, {
-							label: __( 'Kitchen Products', 'larder' ),
-							multiple: true,
-							value: ( attributes.productIds || [] ).map( String ),
-							options: productOptions,
-							help: __( 'Hold Ctrl on Windows or Command on Mac to select more than one product.', 'larder' ),
-							onChange: function ( values ) {
-								const selectedValues = Array.isArray( values ) ? values : [ values ];
-								setAttributes( {
-									productIds: selectedValues.filter( Boolean ).map( function ( value ) {
-										return Number( value );
-									} ),
-								} );
+					' ',
+					__( 'Use products linked to this recipe', 'larder' )
+				),
+				! attributes.useLinkedProducts
+					? el(
+						'label',
+						{ style: fieldStyle },
+						__( 'Kitchen Products', 'larder' ),
+						el(
+							'select',
+							{
+								multiple: true,
+								size: 6,
+								style: inputStyle,
+								value: ( attributes.productIds || [] ).map( String ),
+								onChange: function ( event ) {
+									const values = Array.from( event.target.selectedOptions ).map( function ( option ) {
+										return Number( option.value );
+									} );
+									setAttributes( { productIds: values } );
+								},
 							},
-						} )
-						: null,
-					el( ToggleControl, {
-						label: __( 'Show primary retailer button', 'larder' ),
-						checked: attributes.showRetailerButton,
-						onChange: function ( value ) {
-							setAttributes( { showRetailerButton: value } );
+							productOptions
+						),
+						el( 'small', null, __( 'Hold Ctrl on Windows or Command on Mac to select more than one product.', 'larder' ) )
+					)
+					: null,
+				el(
+					'label',
+					{ style: fieldStyle },
+					__( 'Heading', 'larder' ),
+					el( 'input', {
+						type: 'text',
+						style: inputStyle,
+						value: attributes.heading || '',
+						onChange: function ( event ) {
+							setAttributes( { heading: event.target.value } );
 						},
 					} )
 				),
 				el(
-					PanelBody,
-					{
-						title: __( 'Section wording', 'larder' ),
-						initialOpen: false,
-					},
-					el( TextControl, {
-						label: __( 'Heading', 'larder' ),
-						value: attributes.heading,
-						onChange: function ( value ) {
-							setAttributes( { heading: value } );
-						},
-					} ),
-					el( TextareaControl, {
-						label: __( 'Optional introduction', 'larder' ),
-						value: attributes.intro,
-						onChange: function ( value ) {
-							setAttributes( { intro: value } );
+					'label',
+					{ style: fieldStyle },
+					__( 'Optional introduction', 'larder' ),
+					el( 'textarea', {
+						rows: 4,
+						style: inputStyle,
+						value: attributes.intro || '',
+						onChange: function ( event ) {
+							setAttributes( { intro: event.target.value } );
 						},
 					} )
+				),
+				el(
+					'label',
+					{ style: fieldStyle },
+					el( 'input', {
+						type: 'checkbox',
+						checked: !! attributes.showRetailerButton,
+						onChange: function ( event ) {
+							setAttributes( { showRetailerButton: event.target.checked } );
+						},
+					} ),
+					' ',
+					__( 'Show primary retailer button', 'larder' )
+				),
+				el(
+					'p',
+					{ style: { marginTop: '12px' } },
+					__( 'The full product card is rendered on the public recipe page and in Preview.', 'larder' )
 				)
-			);
-
-			const linkedNotice = attributes.useLinkedProducts
-				? el(
-					Notice,
-					{
-						status: 'info',
-						isDismissible: false,
-					},
-					__( 'This preview uses the products saved in the post’s Recommended Products panel. Save the post after changing those links to refresh the preview.', 'larder' )
-				)
-				: null;
-
-			return el(
-				'div',
-				{ className: 'nkt-recommended-products-editor' },
-				inspector,
-				linkedNotice,
-				el( ServerSideRender, {
-					block: 'nkt/recommended-products',
-					attributes: attributes,
-					httpMethod: 'POST',
-					urlQueryArgs: currentPostId ? { post_id: currentPostId } : {},
-				} )
 			);
 		},
 		save: function () {
@@ -175,9 +187,7 @@
 } )(
 	window.wp.blocks,
 	window.wp.blockEditor,
-	window.wp.components,
 	window.wp.data,
 	window.wp.element,
-	window.wp.i18n,
-	window.wp.serverSideRender
+	window.wp.i18n
 );

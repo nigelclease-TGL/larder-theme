@@ -164,6 +164,8 @@ jobs:
           grep -q "nofollow sponsored noopener noreferrer" inc/recipe-products.php
           grep -q "inc/recipe-products.php" functions.php
           grep -q "registerBlockType( 'nkt/recommended-products'" assets/js/recommended-products-block.js
+          grep -q "apiVersion: 2" assets/js/recommended-products-block.js
+          grep -q "useBlockProps" assets/js/recommended-products-block.js
           grep -q ".nkt-recommended-products" assets/css/recommended-products.css
 
       - name: Verify release version alignment
@@ -174,7 +176,7 @@ jobs:
           stable=$(sed -n 's/^Stable tag:[[:space:]]*//p' readme.txt | head -n1)
           test -n "$version" || { echo 'Theme version missing.'; exit 1; }
           test "$version" = "$stable" || { echo "Version mismatch: style.css=$version readme.txt=$stable"; exit 1; }
-          test "$version" = '2.1.0-alpha.3' || { echo "Unexpected Theme 2.1 release version: $version"; exit 1; }
+          test "$version" = '2.1.0-alpha.4' || { echo "Unexpected Theme 2.1 release version: $version"; exit 1; }
 
       - name: Confirm evergreen recipe dates remain hidden
         shell: bash
