@@ -3,7 +3,7 @@ Theme Name: Nigel's Kitchen Table
 Theme URI: https://thegourmetlarder.com
 Author: Nigel Clease
 Description: A premium editorial recipe theme for Nigel's Kitchen Table, preserving existing recipe URLs and search visibility.
-Version: 2.1.0-alpha.3
+Version: 2.1.0-alpha.4
 Requires at least: 6.6
 Tested up to: 6.8
 Requires PHP: 8.1
@@ -23,131 +23,6 @@ Tags: food-and-drink, blog, custom-logo, custom-menu, featured-images, threaded-
 	background: linear-gradient(
 		180deg,
 		rgba(18, 23, 19, .16) 0%,
-		rgba(18, 23, 19, .34) 52%,
-		rgba(18, 23, 19, .94) 100%
-	) !important;
+		rgba(18, 23, 19, .72) 100%
+	);
 }
-
-.home .home-categories .category-card__content {
-	position: relative;
-	z-index: 2;
-	text-shadow: 0 2px 18px rgba(0, 0, 0, .56);
-}
-
-.home .home-categories .category-card__name {
-	color: #fffdfa !important;
-	text-wrap: balance;
-}
-
-.home .home-categories .category-card__eyebrow {
-	color: #f2d5be !important;
-}
-
-.home .home-categories .category-card__count,
-.home .home-categories .category-card__cta {
-	color: rgba(255, 253, 250, .92) !important;
-}
-
-.home .home-categories .category-card:nth-child(2) .category-card__name,
-.home .home-categories .category-card:nth-child(3) .category-card__name {
-	font-size: clamp(2rem, 2.7vw, 3.45rem) !important;
-}
-
-@media (max-width: 760px) {
-	.home .home-categories .category-card__name,
-	.home .home-categories .category-card:nth-child(2) .category-card__name,
-	.home .home-categories .category-card:nth-child(3) .category-card__name {
-		font-size: clamp(2rem, 10vw, 3.2rem) !important;
-	}
-}
-
-/*
- * Legacy recipe panel brand normalisation.
- * Additive and restricted to old Gutenberg article panels only.
- */
-.single-recipe .recipe-content > :is(
-	.wp-block-group.has-background,
-	.wp-block-cover.has-background,
-	.wp-block-columns.has-background,
-	.wp-block-media-text.has-background
-):not(.nkt-pinterest-save):not(.nkt-recipe-share-card):not(.recipe-share):not(.nkt-ad-slot):not(.wprm-recipe-container),
-.single-recipe .recipe-content > .wp-block-group[style*="background-color"]:not(.nkt-pinterest-save):not(.nkt-recipe-share-card):not(.recipe-share):not(.nkt-ad-slot):not(.wprm-recipe-container),
-.single-recipe .recipe-content > .wp-block-cover[style*="background-color"]:not(.nkt-pinterest-save):not(.nkt-recipe-share-card):not(.recipe-share):not(.nkt-ad-slot):not(.wprm-recipe-container) {
-	background: #fdfcf9 !important;
-	background-color: #fdfcf9 !important;
-	color: #2e2e2b !important;
-	border: 1px solid #efe9df !important;
-	border-radius: 8px;
-	box-shadow: none !important;
-}
-
-.single-recipe .recipe-content > :is(
-	.wp-block-group.has-background,
-	.wp-block-cover.has-background,
-	.wp-block-columns.has-background,
-	.wp-block-media-text.has-background
-):not(.nkt-pinterest-save):not(.nkt-recipe-share-card):not(.recipe-share):not(.nkt-ad-slot):not(.wprm-recipe-container) :is(h2, h3, h4, p, li, strong),
-.single-recipe .recipe-content > .wp-block-group[style*="background-color"]:not(.nkt-pinterest-save):not(.nkt-recipe-share-card):not(.recipe-share):not(.nkt-ad-slot):not(.wprm-recipe-container) :is(h2, h3, h4, p, li, strong),
-.single-recipe .recipe-content > .wp-block-cover[style*="background-color"]:not(.nkt-pinterest-save):not(.nkt-recipe-share-card):not(.recipe-share):not(.nkt-ad-slot):not(.wprm-recipe-container) :is(h2, h3, h4, p, li, strong) {
-	color: #2e2e2b !important;
-}
-
-.single-recipe .recipe-content > .wp-block-cover.has-background .wp-block-cover__background,
-.single-recipe .recipe-content > .wp-block-cover[style*="background-color"] .wp-block-cover__background {
-	opacity: 0 !important;
-}
-
-.single-recipe .recipe-content > .wp-block-cover.has-background .wp-block-cover__inner-container,
-.single-recipe .recipe-content > .wp-block-cover[style*="background-color"] .wp-block-cover__inner-container {
-	color: #2e2e2b !important;
-}
-
-/* Remove every legacy Gutenberg colour layer inside recipe Contents panels. */
-.single-recipe .recipe-content .nkt-toc-panel :is(
-	.wp-block-group,
-	.wp-block-cover,
-	.wp-block-columns,
-	.wp-block-media-text,
-	.wp-block-heading
-).has-background,
-.single-recipe .recipe-content .nkt-toc-panel [class*="-background-color"],
-.single-recipe .recipe-content .nkt-toc-panel [style*="background"],
-.single-recipe .recipe-content .nkt-toc-panel .wp-block-cover__inner-container {
-	background: transparent !important;
-	background-color: transparent !important;
-	background-image: none !important;
-	box-shadow: none !important;
-}
-
-.single-recipe .recipe-content .nkt-toc-panel .wp-block-cover__background,
-.single-recipe .recipe-content .nkt-toc-panel .has-background-dim,
-.single-recipe .recipe-content .nkt-toc-panel [class*="background-dim"] {
-	display: none !important;
-	opacity: 0 !important;
-	background: transparent !important;
-}
-
-.single-recipe .recipe-content .nkt-toc-panel::before,
-.single-recipe .recipe-content .nkt-toc-panel::after,
-.single-recipe .recipe-content .nkt-toc-panel *::before,
-.single-recipe .recipe-content .nkt-toc-panel *::after {
-	background-color: transparent !important;
-	box-shadow: none !important;
-}
-
-/* Prevent anchor navigation from applying a grey target highlight. */
-.single-recipe .recipe-content :is(h2, h3):target,
-.single-recipe .recipe-content :is(.wp-block-group, .wp-block-cover, .wp-block-columns):target {
-	background: transparent !important;
-	background-color: transparent !important;
-	box-shadow: none !important;
-	outline: 0 !important;
-}
-
-/* Present recipe section headings and generated Contents labels in title case. */
-.single-recipe .recipe-content h2:not(.nkt-toc-heading),
-.single-recipe .recipe-content .nkt-toc-list a {
-	text-transform: capitalize;
-}
-
-/* Packaged release: legacy recipe panel brand normalisation. */
