@@ -69,3 +69,5 @@ function nkt_shop_wpseo_title( $title ) {
 	return $title;
 }
 add_filter( 'wpseo_title', 'nkt_shop_wpseo_title', 20 );
+
+require_once get_template_directory() . '/inc/shop-cta-copy.php';
