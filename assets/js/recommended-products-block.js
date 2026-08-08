@@ -3,13 +3,14 @@
 
 	const el = element.createElement;
 	const { registerBlockType } = blocks;
-	const { InspectorControls } = blockEditor;
+	const { InspectorControls, useBlockProps } = blockEditor;
 	const { Notice, PanelBody, SelectControl, Spinner, TextControl, TextareaControl, ToggleControl } = components;
 	const { useSelect } = data;
 	const { __ } = i18n;
 	const ServerSideRender = serverSideRender;
 
 	registerBlockType( 'nkt/recommended-products', {
+		apiVersion: 2,
 		title: __( 'Recommended Products', 'larder' ),
 		description: __( 'Display Kitchen Products linked to this recipe or choose a specific set of products.', 'larder' ),
 		category: 'widgets',
@@ -63,6 +64,9 @@
 				const editorStore = select( 'core/editor' );
 				return editorStore && editorStore.getCurrentPostId ? editorStore.getCurrentPostId() : 0;
 			}, [] );
+			const blockProps = useBlockProps( {
+				className: 'nkt-recommended-products-editor',
+			} );
 
 			const productOptions = ( products || [] ).map( function ( product ) {
 				const rawTitle = product.title && product.title.raw ? product.title.raw : __( 'Untitled product', 'larder' );
@@ -156,16 +160,20 @@
 				: null;
 
 			return el(
-				'div',
-				{ className: 'nkt-recommended-products-editor' },
+				element.Fragment,
+				null,
 				inspector,
-				linkedNotice,
-				el( ServerSideRender, {
-					block: 'nkt/recommended-products',
-					attributes: attributes,
-					httpMethod: 'POST',
-					urlQueryArgs: currentPostId ? { post_id: currentPostId } : {},
-				} )
+				el(
+					'div',
+					blockProps,
+					linkedNotice,
+					el( ServerSideRender, {
+						block: 'nkt/recommended-products',
+						attributes: attributes,
+						httpMethod: 'POST',
+						urlQueryArgs: currentPostId ? { post_id: currentPostId } : {},
+					} )
+				)
 			);
 		},
 		save: function () {
