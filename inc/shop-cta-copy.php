@@ -26,6 +26,7 @@ function nkt_filter_shop_cta_copy( $translation, $text, $domain ) {
 
 	$replacements = array(
 		'Why I recommend it' => 'View in Shop My Kitchen',
+		'View product'       => 'View in Shop My Kitchen',
 		'View at %s'         => 'Shop at %s',
 		'View at Amazon UK'  => 'Shop at Amazon UK',
 		'View at retailer'   => 'Shop at retailer',
