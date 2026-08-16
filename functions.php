@@ -45,7 +45,7 @@ function larder_setup() {
 
 	add_editor_style(
 		array(
-			'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Instrument+Serif:ital@0;1&family=Source+Sans+3:wght@400;500;600;700&display=swap',
+			'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Instrument+Serif:ital@0;1&family=Source+Sans+3:wght@400;600;700&display=swap',
 			'assets/css/editor.css',
 		)
 	);
@@ -63,16 +63,40 @@ function larder_setup() {
 add_action( 'after_setup_theme', 'larder_setup' );
 
 function larder_enqueue_assets() {
-	$version = wp_get_theme()->get( 'Version' );
+	$version           = wp_get_theme()->get( 'Version' );
+	$is_front          = is_front_page();
+	$is_recipe         = is_singular( 'post' );
+	$is_singular       = is_singular();
+	$is_about_contact  = is_page( array( 'about', 'about-nigel', 'my-story', 'contact', 'contact-me' ) );
+	$is_recipes_hub    = is_page( 'recipes' );
+	$is_kitchen_notes  = is_page( array( 'kitchen-notes', 'baking-guides' ) );
+	$is_collections    = is_page( array( 'recipe-collections', 'collections', 'seasons' ) ) || is_tax( 'recipe_collection' );
+	$needs_newsletter  = $is_front || $is_recipe || is_page( 'newsletter' );
+	$font_dependency   = 'larder-fonts';
 
+	/*
+	 * Keep the global font payload to the weights the public theme actually uses.
+	 * Instrument Serif is an editorial accent, so only load it on singular content
+	 * and the static front page instead of defining it on archives/search/404 pages.
+	 */
 	wp_enqueue_style(
 		'larder-fonts',
-		'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Instrument+Serif:ital@0;1&family=Source+Sans+3:wght@400;500;600;700&display=swap',
+		'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap',
 		array(),
 		null
 	);
 
-	wp_enqueue_style( 'larder-style', get_stylesheet_uri(), array( 'larder-fonts' ), $version );
+	if ( $is_front || $is_singular ) {
+		wp_enqueue_style(
+			'larder-editorial-fonts',
+			'https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap',
+			array( 'larder-fonts' ),
+			null
+		);
+		$font_dependency = 'larder-editorial-fonts';
+	}
+
+	wp_enqueue_style( 'larder-style', get_stylesheet_uri(), array( $font_dependency ), $version );
 	wp_enqueue_style( 'larder-main', get_template_directory_uri() . '/assets/css/main.css', array( 'larder-style' ), $version );
 	wp_enqueue_style( 'larder-templates', get_template_directory_uri() . '/assets/css/templates.css', array( 'larder-main' ), $version );
 	wp_enqueue_style( 'larder-pages', get_template_directory_uri() . '/assets/css/pages.css', array( 'larder-templates' ), $version );
@@ -82,14 +106,6 @@ function larder_enqueue_assets() {
 	wp_enqueue_style( 'nkt-editorial-content', get_template_directory_uri() . '/assets/css/editorial-content.css', array( 'nkt-brand' ), $version );
 
 	$brand_dependency = 'nkt-editorial-content';
-	$is_front          = is_front_page();
-	$is_recipe         = is_singular( 'post' );
-	$is_singular       = is_singular();
-	$is_about_contact  = is_page( array( 'about', 'about-nigel', 'my-story', 'contact', 'contact-me' ) );
-	$is_recipes_hub    = is_page( 'recipes' );
-	$is_kitchen_notes  = is_page( array( 'kitchen-notes', 'baking-guides' ) );
-	$is_collections    = is_page( array( 'recipe-collections', 'collections', 'seasons' ) ) || is_tax( 'recipe_collection' );
-	$needs_newsletter  = $is_front || $is_recipe || is_page( 'newsletter' );
 
 	if ( $needs_newsletter ) {
 		wp_enqueue_style( 'larder-mailchimp', get_template_directory_uri() . '/assets/css/mailchimp.css', array( $brand_dependency ), $version );
