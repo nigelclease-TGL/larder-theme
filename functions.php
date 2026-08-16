@@ -72,25 +72,32 @@ function larder_enqueue_assets() {
 	$is_kitchen_notes  = is_page( array( 'kitchen-notes', 'baking-guides' ) );
 	$is_collections    = is_page( array( 'recipe-collections', 'collections', 'seasons' ) ) || is_tax( 'recipe_collection' );
 	$needs_newsletter  = $is_front || $is_recipe || is_page( 'newsletter' );
+	$font_dependency   = 'larder-fonts';
 
 	/*
-	 * Keep a single Google Fonts stylesheet handle so OMGF can optimize one
-	 * combined request. Instrument Serif remains conditional: it is included only
-	 * on singular content and the static front page, where the editorial accent is used.
+	 * OMGF caches Google Fonts stylesheets by their WordPress stylesheet handle.
+	 * Keep each handle tied to one stable Google Fonts request: the global brand
+	 * fonts always use larder-fonts, while Instrument Serif uses its own handle
+	 * only on pages where the editorial accent is actually required.
 	 */
-	$font_url = 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap';
-	if ( $is_front || $is_singular ) {
-		$font_url = 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Instrument+Serif:ital@0;1&family=Source+Sans+3:wght@400;600;700&display=swap';
-	}
-
 	wp_enqueue_style(
 		'larder-fonts',
-		$font_url,
+		'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap',
 		array(),
 		null
 	);
 
-	wp_enqueue_style( 'larder-style', get_stylesheet_uri(), array( 'larder-fonts' ), $version );
+	if ( $is_front || $is_singular ) {
+		wp_enqueue_style(
+			'larder-editorial-fonts',
+			'https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap',
+			array( 'larder-fonts' ),
+			null
+		);
+		$font_dependency = 'larder-editorial-fonts';
+	}
+
+	wp_enqueue_style( 'larder-style', get_stylesheet_uri(), array( $font_dependency ), $version );
 	wp_enqueue_style( 'larder-main', get_template_directory_uri() . '/assets/css/main.css', array( 'larder-style' ), $version );
 	wp_enqueue_style( 'larder-templates', get_template_directory_uri() . '/assets/css/templates.css', array( 'larder-main' ), $version );
 	wp_enqueue_style( 'larder-pages', get_template_directory_uri() . '/assets/css/pages.css', array( 'larder-templates' ), $version );
