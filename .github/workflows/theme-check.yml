@@ -110,6 +110,7 @@ jobs:
             inc/product-platform.php
             inc/recipe-products.php
             inc/shop-title.php
+            inc/shop-cta-copy.php
             inc/setup-wizard.php
             inc/site-health.php
             inc/discovery.php
@@ -166,6 +167,24 @@ jobs:
           grep -q "registerBlockType( 'nkt/recommended-products'" assets/js/recommended-products-block.js
           grep -q ".nkt-recommended-products" assets/css/recommended-products.css
 
+      - name: Verify Shop My Kitchen CTA copy
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "View in Shop My Kitchen" inc/shop-cta-copy.php
+          grep -q "Shop at %s" inc/shop-cta-copy.php
+          grep -q "Shop at Amazon UK" inc/shop-cta-copy.php
+          grep -q "nkt_migrate_shop_cta_copy" inc/shop-cta-copy.php
+          grep -q "inc/shop-cta-copy.php" inc/shop-title.php
+
+      - name: Verify compact recommendation styling
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "aspect-ratio: 16 / 9" assets/css/recommended-products.css
+          grep -q "340px" assets/css/recommended-products.css
+          grep -q "justify-content: start" assets/css/recommended-products.css
+
       - name: Verify release version alignment
         shell: bash
         run: |
@@ -174,7 +193,7 @@ jobs:
           stable=$(sed -n 's/^Stable tag:[[:space:]]*//p' readme.txt | head -n1)
           test -n "$version" || { echo 'Theme version missing.'; exit 1; }
           test "$version" = "$stable" || { echo "Version mismatch: style.css=$version readme.txt=$stable"; exit 1; }
-          test "$version" = '2.1.0-alpha.3' || { echo "Unexpected Theme 2.1 release version: $version"; exit 1; }
+          test "$version" = '2.1.0-alpha.5' || { echo "Unexpected Theme 2.1 release version: $version"; exit 1; }
 
       - name: Confirm evergreen recipe dates remain hidden
         shell: bash

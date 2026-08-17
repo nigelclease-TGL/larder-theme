@@ -1,6 +1,6 @@
 .nkt-recommended-products {
-	margin-block: clamp(2.5rem, 6vw, 5rem);
-	padding: clamp(1.5rem, 4vw, 3rem);
+	margin-block: clamp(1.75rem, 4vw, 3rem);
+	padding: clamp(1.25rem, 2.5vw, 1.75rem);
 	border: 1px solid #e4ded4;
 	border-radius: 10px;
 	background: linear-gradient(135deg, #f4eee4 0%, #eef2eb 100%);
@@ -8,30 +8,31 @@
 }
 
 .nkt-recommended-products__header {
-	max-width: 760px;
-	margin-bottom: 1.75rem;
+	max-width: 720px;
+	margin-bottom: 1.1rem;
 }
 
 .nkt-recommended-products__header h2,
 .nkt-product-recipes__header h2 {
-	margin: .15em 0 .3em;
+	margin: .12em 0 .25em;
 	font-family: "Cormorant Garamond", Georgia, serif;
-	font-size: clamp(2.2rem, 5vw, 3.8rem);
-	line-height: 1;
+	font-size: clamp(1.9rem, 3.4vw, 2.8rem);
+	line-height: 1.05;
 	text-wrap: balance;
 }
 
 .nkt-recommended-products__header > p:last-child {
-	max-width: 680px;
+	max-width: 660px;
 	margin-bottom: 0;
-	font-size: 1.08rem;
-	line-height: 1.65;
+	font-size: 1rem;
+	line-height: 1.55;
 }
 
 .nkt-recommended-products__grid {
 	display: grid;
-	grid-template-columns: repeat(3, minmax(0, 1fr));
-	gap: clamp(1rem, 2.5vw, 1.75rem);
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 340px));
+	gap: clamp(.85rem, 2vw, 1.25rem);
+	justify-content: start;
 }
 
 .nkt-recommended-product-card {
@@ -42,13 +43,13 @@
 	border: 1px solid #ded7cc;
 	border-radius: 8px;
 	background: #fffdfa;
-	box-shadow: 0 12px 30px rgba(46, 46, 43, .06);
+	box-shadow: 0 8px 22px rgba(46, 46, 43, .055);
 }
 
 .nkt-recommended-product-card__media {
 	position: relative;
 	display: block;
-	aspect-ratio: 4 / 3;
+	aspect-ratio: 16 / 9;
 	overflow: hidden;
 	background: #ece9e2;
 }
@@ -73,13 +74,13 @@
 
 .nkt-recommended-product-card__category {
 	position: absolute;
-	top: .75rem;
-	left: .75rem;
-	padding: .35rem .65rem;
+	top: .6rem;
+	left: .6rem;
+	padding: .3rem .55rem;
 	border-radius: 999px;
 	background: rgba(255, 253, 250, .94);
 	color: #394236;
-	font-size: .75rem;
+	font-size: .7rem;
 	font-weight: 700;
 	letter-spacing: .05em;
 	text-transform: uppercase;
@@ -89,22 +90,22 @@
 	display: flex;
 	flex: 1;
 	flex-direction: column;
-	padding: 1.25rem;
+	padding: 1rem;
 }
 
 .nkt-recommended-product-card__brand {
-	margin: 0 0 .35rem;
+	margin: 0 0 .3rem;
 	color: #a35d37;
-	font-size: .78rem;
+	font-size: .74rem;
 	font-weight: 700;
-	letter-spacing: .11em;
+	letter-spacing: .1em;
 	text-transform: uppercase;
 }
 
 .nkt-recommended-product-card__title {
-	margin: 0 0 .65rem;
+	margin: 0 0 .5rem;
 	font-family: "Cormorant Garamond", Georgia, serif;
-	font-size: clamp(1.55rem, 2.5vw, 2rem);
+	font-size: clamp(1.35rem, 2vw, 1.65rem);
 	line-height: 1.08;
 	text-transform: none !important;
 }
@@ -120,21 +121,23 @@
 }
 
 .nkt-recommended-product-card__excerpt {
-	margin: 0 0 1rem;
+	margin: 0 0 .75rem;
 	color: #575751;
-	line-height: 1.55;
+	font-size: .95rem;
+	line-height: 1.45;
 }
 
 .nkt-recommended-product-card__actions {
 	display: flex;
 	flex-wrap: wrap;
-	gap: .75rem;
+	gap: .6rem;
 	align-items: center;
 	margin-top: auto;
 }
 
 .nkt-recommended-product-card__details {
 	color: #394236;
+	font-size: .94rem;
 	font-weight: 700;
 	text-decoration: none;
 }
@@ -147,15 +150,15 @@
 
 .nkt-recommended-product-card__retailer {
 	margin: 0;
-	padding: .55rem .8rem;
-	font-size: .9rem;
+	padding: .5rem .75rem;
+	font-size: .86rem;
 }
 
 .nkt-recommended-products__disclosure {
-	margin: 1.25rem 0 0;
+	margin: 1rem 0 0;
 	color: #67665f;
-	font-size: .88rem;
-	line-height: 1.5;
+	font-size: .84rem;
+	line-height: 1.45;
 }
 
 .nkt-product-recipes {
@@ -222,7 +225,6 @@
 }
 
 @media (max-width: 900px) {
-	.nkt-recommended-products__grid,
 	.nkt-product-recipes__grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
@@ -230,7 +232,7 @@
 
 @media (max-width: 620px) {
 	.nkt-recommended-products {
-		padding: 1.25rem;
+		padding: 1rem;
 	}
 
 	.nkt-recommended-products__grid,
