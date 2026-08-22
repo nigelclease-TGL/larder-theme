@@ -42,6 +42,7 @@
 		</nav>
 
 		<div class="header-actions">
+			<?php do_action( 'nkt_header_language_switcher' ); ?>
 			<button class="search-toggle" type="button" aria-expanded="false" aria-controls="site-search-dialog" aria-haspopup="dialog">
 				<span class="screen-reader-text"><?php esc_html_e( 'Open recipe search', 'larder' ); ?></span>
 				<svg aria-hidden="true" viewBox="0 0 24 24" width="21" height="21" focusable="false"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>

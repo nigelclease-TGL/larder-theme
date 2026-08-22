@@ -1,0 +1,47 @@
+.nkt-hu-language-switcher {
+	display: inline-flex;
+	align-items: center;
+	gap: .15rem;
+	margin-inline-end: .4rem;
+}
+
+.nkt-hu-language-switcher a {
+	display: grid;
+	place-items: center;
+	min-width: 2.15rem;
+	min-height: 2.15rem;
+	padding: .3rem .4rem;
+	border: 1px solid transparent;
+	border-radius: 999px;
+	color: inherit;
+	font-family: "Source Sans 3", sans-serif;
+	font-size: .7rem;
+	font-weight: 700;
+	letter-spacing: .08em;
+	line-height: 1;
+	text-decoration: none;
+}
+
+.nkt-hu-language-switcher a:hover,
+.nkt-hu-language-switcher a:focus-visible {
+	border-color: rgba(70, 84, 67, .35);
+	background: rgba(247, 241, 231, .72);
+}
+
+.nkt-hu-language-switcher a[aria-current="page"] {
+	color: #fffdf9;
+	background: #465443;
+}
+
+@media (max-width: 760px) {
+	.nkt-hu-language-switcher {
+		order: -1;
+		margin-inline-end: .15rem;
+	}
+
+	.nkt-hu-language-switcher a {
+		min-width: 1.95rem;
+		min-height: 1.95rem;
+		font-size: .65rem;
+	}
+}

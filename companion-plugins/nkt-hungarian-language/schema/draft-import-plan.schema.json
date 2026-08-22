@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thegourmetlarder.com/schemas/nkt-hungarian-draft-import-plan-v1.json",
+  "title": "Nigel's Kitchen Table Hungarian draft import plan",
+  "type": "object",
+  "required": [
+    "import_plan_version",
+    "mode",
+    "source_site",
+    "target_language",
+    "required_wordpress_behaviour",
+    "operations",
+    "unresolved_dependencies"
+  ],
+  "properties": {
+    "import_plan_version": { "const": 1 },
+    "generated_at_gmt": { "type": "string" },
+    "mode": { "const": "dry_run_only" },
+    "source_site": { "type": "string", "format": "uri" },
+    "source_language": { "type": "string" },
+    "target_language": { "const": "hu-HU" },
+    "minimum_review_status": { "enum": ["reviewed", "approved"] },
+    "required_wordpress_behaviour": {
+      "type": "object",
+      "required": [
+        "create_target_as_draft",
+        "never_modify_source",
+        "verify_source_fingerprint_before_write",
+        "link_with_polylang_after_draft_creation",
+        "publish_automatically",
+        "create_taxonomy_terms_automatically"
+      ],
+      "properties": {
+        "create_target_as_draft": { "const": true },
+        "never_modify_source": { "const": true },
+        "verify_source_fingerprint_before_write": { "const": true },
+        "link_with_polylang_after_draft_creation": { "const": true },
+        "publish_automatically": { "const": false },
+        "create_taxonomy_terms_automatically": { "const": false }
+      },
+      "additionalProperties": false
+    },
+    "summary": { "type": "object" },
+    "operations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "operation",
+          "source_key",
+          "source_id",
+          "post_type",
+          "target_language",
+          "required_post_status",
+          "source_fingerprint",
+          "target_fingerprint",
+          "fields",
+          "relationships",
+          "dependencies"
+        ],
+        "properties": {
+          "operation": { "const": "create_or_update_hungarian_draft" },
+          "source_key": { "type": "string", "minLength": 3 },
+          "source_id": { "type": "integer", "minimum": 1 },
+          "post_type": { "enum": ["page", "post", "wprm_recipe"] },
+          "target_language": { "const": "hu" },
+          "required_post_status": { "const": "draft" },
+          "source_fingerprint": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "target_fingerprint": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "fields": { "type": "object" },
+          "media": { "type": "object" },
+          "relationships": { "type": "object" },
+          "dependencies": { "type": "object" },
+          "review": { "type": "object" },
+          "recipe": { "type": "object" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "unresolved_dependencies": { "type": "array" }
+  },
+  "additionalProperties": false
+}
